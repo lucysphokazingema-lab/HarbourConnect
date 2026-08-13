@@ -1,0 +1,371 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - HarbourConnect</title>
+    <link href="@Url.Content("~/Content/bootstrap.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg hc-navbar">
+        <div class="container">
+            <a class="navbar-brand hc-brand" href="@Url.Action("Index", "Home")">
+                &#9875; HarbourConnect
+            </a>
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navbarMain"
+                    aria-controls="navbarMain" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        @Html.ActionLink("Home", "Index", "Home", null, new { @class = "nav-link" })
+                    </li>
+                    <li class="nav-item">
+                        @Html.ActionLink("About Us", "About", "Home", null, new { @class = "nav-link" })
+                    </li>
+                    <li class="nav-item">
+                        @Html.ActionLink("Contact", "Contact", "Home", null, new { @class = "nav-link" })
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    @if (Session["BoatOwnerID"] != null)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link hc-user-greeting">
+                                Welcome, @Session["BoatOwnerName"]
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Dashboard", "Dashboard", "BoatOwner", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "BoatOwner", null, new { @class = "nav-link hc-logout" })
+                        </li>
+                    }
+                    else if (Session["TnpaAdminID"] != null)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link hc-user-greeting">
+                                TNPA: @Session["TnpaAdminName"]
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Dashboard", "Dashboard", "Tnpa", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "Tnpa", null, new { @class = "nav-link hc-logout" })
+                        </li>
+                    }
+                    else if (Session["CustomerID"] != null)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link hc-user-greeting">
+                                Welcome, @Session["CustomerName"]
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Dashboard", "Dashboard", "Customer", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "Customer", null, new { @class = "nav-link hc-logout" })
+                        </li>
+                    }
+                    else if (Session["DriverID"] != null)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link hc-user-greeting">
+                                Driver: @Session["DriverName"]
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Dashboard", "Dashboard", "Driver", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("My Trips", "MyTrips", "Driver", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            @Html.ActionLink("Logout", "Logout", "Driver", null, new { @class = "nav-link hc-logout" })
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="loginDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Login
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
+                                <li>@Html.ActionLink("Boat Owner Login", "Login", "BoatOwner", null, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Customer Login", "Login", "Customer", null, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Driver Login", "Login", "Driver", null, new { @class = "dropdown-item" })</li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>@Html.ActionLink("TNPA Admin Login", "Login", "Tnpa", null, new { @class = "dropdown-item" })</li>
+                            </ul>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="registerDropdown"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Register
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="registerDropdown">
+                                <li>@Html.ActionLink("Register as Boat Owner", "Register", "BoatOwner", null, new { @class = "dropdown-item" })</li>
+                                <li>@Html.ActionLink("Register as Customer", "Register", "Customer", null, new { @class = "dropdown-item" })</li>
+                            </ul>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    @* Global alert messages *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    <main class="hc-main-content">
+        @RenderBody()
+    </main>
+
+    <footer class="hc-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>&#9875; HarbourConnect</h5>
+                    <p class="text-muted small">Connecting boat owners, customers and the harbour authority.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled small">
+                        <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                        <li>@Html.ActionLink("About Us", "About", "Home")</li>
+                        <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>Portals</h6>
+                    <ul class="list-unstyled small">
+                        <li>@Html.ActionLink("Boat Owner Portal", "Login", "BoatOwner")</li>
+                        <li>@Html.ActionLink("Customer Portal", "Login", "Customer")</li>
+                        <li>@Html.ActionLink("Driver Portal", "Login", "Driver")</li>
+                        <li>@Html.ActionLink("TNPA Admin Portal", "Login", "Tnpa")</li>
+                    </ul>
+                </div>
+            </div>
+            <hr />
+            <p class="text-center text-muted small mb-0">
+                &copy; @DateTime.Now.Year HarbourConnect &mdash; Applications Development Project 2B
+            </p>
+        </div>
+    </footer>
+
+    @* Scripts loaded directly — bypasses the WebGrease minifier *@
+    <script src="@Url.Content("~/Scripts/jquery-3.7.0.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.bundle.min.js")"></script>
+
+    @* ── HarbourBot Chatbot Widget ───────────────────────────────── *@
+    <div id="hc-chatbot-wrapper">
+
+        @* Toggle Button *@
+        <button id="hc-chat-toggle" onclick="HarbourChat.toggle()" title="Chat with HarbourBot">
+            <span id="hc-chat-icon">&#129302;</span>
+            <span id="hc-chat-close" style="display:none;">&#10005;</span>
+            <span id="hc-chat-badge" style="display:none;">1</span>
+        </button>
+
+        @* Chat Window *@
+        <div id="hc-chat-window" style="display:none;">
+            <div id="hc-chat-header">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size:1.4rem;">⚓</span>
+                    <div>
+                        <div style="font-weight:700; font-size:0.95rem;">HarbourBot</div>
+                        <div style="font-size:0.72rem; opacity:0.85;">&#128994; Online — always here to help</div>
+                    </div>
+                </div>
+                <button onclick="HarbourChat.toggle()" class="hc-chat-close-btn">&#10005;</button>
+            </div>
+
+            <div id="hc-chat-messages"></div>
+
+            <div id="hc-chat-quick-replies">
+                <button onclick="HarbourChat.quickReply('How do I register?')">Register</button>
+                <button onclick="HarbourChat.quickReply('How do I login?')">Login</button>
+                <button onclick="HarbourChat.quickReply('How do I book a boat?')">Book a Boat</button>
+                <button onclick="HarbourChat.quickReply('How does TNPA approval work?')">TNPA</button>
+                <button onclick="HarbourChat.quickReply('Tell me about the weather feature')">Weather</button>
+                <button onclick="HarbourChat.quickReply('Show demo accounts')">Demo Accounts</button>
+            </div>
+
+            <div id="hc-chat-input-area">
+                <input type="text"
+                       id="hc-chat-input"
+                       placeholder="Ask me anything..."
+                       onkeypress="HarbourChat.onKeyPress(event)"
+                       autocomplete="off" />
+                <button onclick="HarbourChat.send()" id="hc-chat-send-btn">
+                    &#10148;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @* ── Chatbot Styles ─────────────────────────────────────────── *@
+    @* Styles moved to Site.css to avoid Razor parsing @keyframes *@
+
+    @* ── Chatbot JavaScript ─────────────────────────────────────── *@
+    <script>
+        var HarbourChat = (function () {
+
+            var isOpen      = false;
+            var hasGreeted  = false;
+
+            function toggle() {
+                isOpen = !isOpen;
+                var win    = document.getElementById('hc-chat-window');
+                var icon   = document.getElementById('hc-chat-icon');
+                var close  = document.getElementById('hc-chat-close');
+                var badge  = document.getElementById('hc-chat-badge');
+
+                win.style.display = isOpen ? 'flex' : 'none';
+                icon.style.display  = isOpen ? 'none'  : 'inline';
+                close.style.display = isOpen ? 'inline': 'none';
+                badge.style.display = 'none';
+
+                if (isOpen && !hasGreeted) {
+                    hasGreeted = true;
+                    setTimeout(function () {
+                        addBotMessage("👋 Hello! I'm <strong>HarbourBot</strong>, your HarbourConnect assistant.<br><br>I can help you with registering, booking boats, TNPA approvals, driver trips, weather, and much more!<br><br>What would you like help with today?");
+                    }, 300);
+                }
+
+                if (isOpen) {
+                    setTimeout(function () {
+                        document.getElementById('hc-chat-input').focus();
+                    }, 350);
+                }
+            }
+
+            function send() {
+                var input = document.getElementById('hc-chat-input');
+                var text  = input.value.trim();
+                if (!text) return;
+
+                addUserMessage(text);
+                input.value = '';
+                showTyping();
+
+                $.ajax({
+                    url: '/Chatbot/GetResponse',
+                    type: 'POST',
+                    data: { message: text },
+                    success: function (data) {
+                        removeTyping();
+                        addBotMessage(data.reply);
+                    },
+                    error: function () {
+                        removeTyping();
+                        addBotMessage("⚠️ Sorry, I'm having trouble connecting right now. Please try again.");
+                    }
+                });
+            }
+
+            function quickReply(text) {
+                document.getElementById('hc-chat-input').value = text;
+                send();
+            }
+
+            function onKeyPress(e) {
+                if (e.key === 'Enter') send();
+            }
+
+            function addUserMessage(text) {
+                var msgs = document.getElementById('hc-chat-messages');
+                var div  = document.createElement('div');
+                div.className = 'hc-msg hc-msg-user';
+                div.innerHTML = '<div class="hc-bubble">' + escapeHtml(text) + '</div>'
+                              + '<div class="hc-msg-time">' + getTime() + '</div>';
+                msgs.appendChild(div);
+                scrollBottom();
+            }
+
+            function addBotMessage(html) {
+                var msgs = document.getElementById('hc-chat-messages');
+                var div  = document.createElement('div');
+                div.className = 'hc-msg hc-msg-bot';
+                // Replace \n with <br> for plain text newlines
+                html = html.replace(/\n/g, '<br>');
+                div.innerHTML = '<div class="hc-bubble">' + html + '</div>'
+                              + '<div class="hc-msg-time">HarbourBot · ' + getTime() + '</div>';
+                msgs.appendChild(div);
+                scrollBottom();
+            }
+
+            function showTyping() {
+                var msgs = document.getElementById('hc-chat-messages');
+                var div  = document.createElement('div');
+                div.className = 'hc-msg hc-msg-bot';
+                div.id = 'hc-typing-indicator';
+                div.innerHTML = '<div class="hc-typing"><span></span><span></span><span></span></div>';
+                msgs.appendChild(div);
+                scrollBottom();
+            }
+
+            function removeTyping() {
+                var el = document.getElementById('hc-typing-indicator');
+                if (el) el.parentNode.removeChild(el);
+            }
+
+            function scrollBottom() {
+                var msgs = document.getElementById('hc-chat-messages');
+                msgs.scrollTop = msgs.scrollHeight;
+            }
+
+            function getTime() {
+                var d = new Date();
+                return d.getHours().toString().padStart(2,'0') + ':' +
+                       d.getMinutes().toString().padStart(2,'0');
+            }
+
+            function escapeHtml(text) {
+                return text.replace(/&/g,'&amp;')
+                           .replace(/</g,'&lt;')
+                           .replace(/>/g,'&gt;');
+            }
+
+            // Show badge after 3 seconds if chat hasn't been opened
+            setTimeout(function () {
+                if (!isOpen) {
+                    document.getElementById('hc-chat-badge').style.display = 'flex';
+                }
+            }, 3000);
+
+            return { toggle: toggle, send: send, quickReply: quickReply, onKeyPress: onKeyPress };
+        })();
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

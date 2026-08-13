@@ -1,0 +1,75 @@
+@model IEnumerable<APDP.Models.Boat>
+@{
+    ViewBag.Title = "Pending Boat Applications";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>&#9203; Pending Boat Applications</h2>
+        @Html.ActionLink("Back to Dashboard", "Dashboard", "Tnpa", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success text-center p-5">
+            <h5>&#10003; All clear!</h5>
+            <p>There are no boats currently pending review.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var boat in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card hc-card hc-pending-card h-100">
+                        @if (!string.IsNullOrEmpty(boat.ImagePath))
+                        {
+                            <img src="@Url.Content(boat.ImagePath)" class="card-img-top hc-boat-card-img" alt="@boat.BoatName" />
+                        }
+                        else
+                        {
+                            <div class="hc-boat-card-img-placeholder d-flex align-items-center justify-content-center">
+                                <span style="font-size:3rem;">&#128674;</span>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@boat.BoatName</h5>
+                            <p class="text-muted small mb-1">
+                                <strong>Owner:</strong> @boat.BoatOwner.FullName (@boat.BoatOwner.BusinessName)
+                            </p>
+                            <p class="text-muted small mb-1">
+                                <strong>Type:</strong> @boat.BoatType &nbsp;|&nbsp;
+                                <strong>Location:</strong> @boat.HarbourLocation
+                            </p>
+                            <p class="text-muted small mb-1">
+                                <strong>Reg No:</strong> @boat.RegistrationNumber
+                            </p>
+                            <p class="text-muted small mb-1">
+                                <strong>Passengers:</strong> @boat.MaxPassengers &nbsp;|&nbsp;
+                                <strong>Price:</strong> R @boat.PricePerTrip.ToString("N2")
+                            </p>
+                            <p class="text-muted small mb-2">
+                                <strong>Submitted:</strong> @boat.DateAdded.ToString("dd MMM yyyy HH:mm")
+                            </p>
+
+                            <div class="d-flex gap-2 mt-3">
+                                @Html.ActionLink("View Details", "BoatDetails", "Tnpa", new { id = boat.BoatID }, new { @class = "btn btn-outline-primary btn-sm" })
+
+                                @using (Html.BeginForm("Approve", "Tnpa", new { id = boat.BoatID }, FormMethod.Post, new { style = "display:inline;" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success btn-sm"
+                                            onclick="return confirm('Approve @boat.BoatName?')">
+                                        &#10003; Approve
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

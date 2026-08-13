@@ -1,0 +1,137 @@
+@model APDP.Models.Boat
+@{
+    ViewBag.Title = "Edit Boat";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header">
+                    <h4 class="mb-0">&#9998; Edit Boat — @Model.BoatName</h4>
+                    <p class="mb-0 small">
+                        Note: Changing the boat name or registration number will reset status to Pending for TNPA review.
+                    </p>
+                </div>
+                <div class="card-body p-4">
+
+                    @using (Html.BeginForm("EditBoat", "BoatOwner", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.BoatID)
+                        @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
+
+                        <h6 class="hc-form-section-title">Boat Details</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.BoatName, new { @class = "form-label fw-semibold" })
+                                @Html.TextBoxFor(m => m.BoatName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.BoatName, "", new { @class = "text-danger small" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.RegistrationNumber, new { @class = "form-label fw-semibold" })
+                                @Html.TextBoxFor(m => m.RegistrationNumber, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.RegistrationNumber, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.BoatType, new { @class = "form-label fw-semibold" })
+                                @Html.DropDownListFor(m => m.BoatType,
+                                    new SelectList(new[] { "Fishing Boat", "Leisure Cruiser", "Speed Boat", "Yacht", "Catamaran", "Party Boat", "Other" }, Model.BoatType),
+                                    "-- Select Boat Type --",
+                                    new { @class = "form-select" })
+                                @Html.ValidationMessageFor(m => m.BoatType, "", new { @class = "text-danger small" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.HarbourLocation, new { @class = "form-label fw-semibold" })
+                                @Html.DropDownListFor(m => m.HarbourLocation,
+                                    new SelectList(new[] { "Durban Harbour", "Cape Town Harbour", "Port Elizabeth", "East London", "Richards Bay" }, Model.HarbourLocation),
+                                    "-- Select Location --",
+                                    new { @class = "form-select" })
+                                @Html.ValidationMessageFor(m => m.HarbourLocation, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
+                            @Html.TextAreaFor(m => m.Description, 3, 0, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <h6 class="hc-form-section-title mt-3">Capacity &amp; Pricing</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.MaxPassengers, new { @class = "form-label fw-semibold" })
+                                @Html.TextBoxFor(m => m.MaxPassengers, new { @class = "form-control", type = "number", min = "1" })
+                                @Html.ValidationMessageFor(m => m.MaxPassengers, "", new { @class = "text-danger small" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PricePerTrip, new { @class = "form-label fw-semibold" })
+                                <div class="input-group">
+                                    <span class="input-group-text">R</span>
+                                    @Html.TextBoxFor(m => m.PricePerTrip, new { @class = "form-control", type = "number", min = "0", step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.PricePerTrip, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.LifeJacketQuantity, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.LifeJacketQuantity, new { @class = "form-control", type = "number", min = "0" })
+                            @Html.ValidationMessageFor(m => m.LifeJacketQuantity, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <h6 class="hc-form-section-title mt-3">Features &amp; Extras</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(m => m.HasFishingEquipment, new { @class = "form-check-input" })
+                                    @Html.LabelFor(m => m.HasFishingEquipment, new { @class = "form-check-label" })
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(m => m.HasDecoration, new { @class = "form-check-input" })
+                                    @Html.LabelFor(m => m.HasDecoration, new { @class = "form-check-label" })
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    @Html.CheckBoxFor(m => m.HasSoundSystem, new { @class = "form-check-input" })
+                                    @Html.LabelFor(m => m.HasSoundSystem, new { @class = "form-check-label" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="hc-form-section-title mt-3">Boat Image</h6>
+                        @if (!string.IsNullOrEmpty(Model.ImagePath))
+                        {
+                            <div class="mb-2">
+                                <img src="@Url.Content(Model.ImagePath)" alt="Current boat image"
+                                     class="img-thumbnail" style="max-height:150px;" />
+                                <p class="small text-muted mt-1">Current image. Upload a new one to replace it.</p>
+                            </div>
+                        }
+                        <div class="mb-3">
+                            <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                            @Html.ActionLink("Cancel", "MyBoats", "BoatOwner", null, new { @class = "btn btn-outline-secondary btn-lg" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+}

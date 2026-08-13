@@ -1,0 +1,139 @@
+@model APDP.Models.Driver
+@{
+    ViewBag.Title = "Driver Dashboard";
+}
+
+<div class="container py-4">
+
+    <div class="hc-dashboard-header mb-4">
+        <h2>&#128663; Driver Dashboard</h2>
+        <p class="text-muted">Welcome, <strong>@Model.FullName</strong></p>
+    </div>
+
+    @* Stats *@
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+            <div class="card hc-stat-card hc-stat-info text-center p-3">
+                <div class="hc-stat-number">@ViewBag.UpcomingTrips</div>
+                <div class="hc-stat-label">Upcoming Trips</div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card hc-stat-card hc-stat-success text-center p-3">
+                <div class="hc-stat-number">@ViewBag.TotalTrips</div>
+                <div class="hc-stat-label">Total Trips</div>
+            </div>
+        </div>
+    </div>
+
+    @* Assigned Boat Info *@
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card hc-card p-4 h-100">
+                <h5>&#128674; My Assigned Boat</h5>
+                @if (Model.AssignedBoat != null)
+                {
+                    <table class="table table-sm mt-3">
+                        <tr>
+                            <th>Boat Name</th>
+                            <td>@Model.AssignedBoat.BoatName</td>
+                        </tr>
+                        <tr>
+                            <th>Type</th>
+                            <td>@Model.AssignedBoat.BoatType</td>
+                        </tr>
+                        <tr>
+                            <th>Location</th>
+                            <td>@Model.AssignedBoat.HarbourLocation</td>
+                        </tr>
+                        <tr>
+                            <th>Registration</th>
+                            <td>@Model.AssignedBoat.RegistrationNumber</td>
+                        </tr>
+                        <tr>
+                            <th>Max Passengers</th>
+                            <td>@Model.AssignedBoat.MaxPassengers</td>
+                        </tr>
+                    </table>
+                }
+                else
+                {
+                    <div class="alert alert-warning mt-3">
+                        You are not currently assigned to a boat.
+                        Please contact your boat owner.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card hc-card p-4 h-100">
+                <h5>&#128100; My Details</h5>
+                <table class="table table-sm mt-3">
+                    <tr>
+                        <th>Name</th>
+                        <td>@Model.FullName</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th>Phone</th>
+                        <td>@Model.PhoneNumber</td>
+                    </tr>
+                    <tr>
+                        <th>License No.</th>
+                        <td>@Model.LicenseNumber</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            @if (Model.Status == APDP.Models.DriverStatus.Active)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else if (Model.Status == APDP.Models.DriverStatus.Inactive)
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Suspended</span>
+                            }
+                        </td>
+                    </tr>
+                    @if (Model.BoatOwner != null)
+                    {
+                        <tr>
+                            <th>Boat Owner</th>
+                            <td>@Model.BoatOwner.FullName</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* Action Cards *@
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card hc-card p-4">
+                <h5>&#128197; My Trips</h5>
+                <p class="text-muted">View all upcoming confirmed trips for your assigned boat.</p>
+                @Html.ActionLink("View My Trips", "MyTrips", "Driver", null, new { @class = "btn btn-primary" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card hc-card p-4">
+                <h5>&#128100; My Profile</h5>
+                <p class="text-muted">View your driver profile and assignment details.</p>
+                @Html.ActionLink("View Profile", "Profile", "Driver", null, new { @class = "btn btn-outline-secondary" })
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        @Html.ActionLink("Logout", "Logout", "Driver", null, new { @class = "btn btn-outline-danger" })
+    </div>
+</div>

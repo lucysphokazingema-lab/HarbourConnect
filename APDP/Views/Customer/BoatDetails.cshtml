@@ -1,0 +1,65 @@
+@model APDP.Models.Boat
+@{
+    ViewBag.Title = Model.BoatName + " — Details";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card hc-form-card">
+
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Url.Content(Model.ImagePath)" class="card-img-top hc-boat-detail-img" alt="@Model.BoatName" />
+                }
+
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3>@Model.BoatName</h3>
+                            <p class="text-muted">@Model.BoatType &nbsp;&bull;&nbsp; @Model.HarbourLocation</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="hc-price-tag-large">R @Model.PricePerTrip.ToString("N2")</div>
+                            <small class="text-muted">per trip</small>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="mt-3">@Model.Description</p>
+                    }
+
+                    <h6 class="hc-form-section-title mt-3">Boat Specifications</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><strong>Registration No:</strong> @Model.RegistrationNumber</li>
+                                <li><strong>Max Passengers:</strong> @Model.MaxPassengers</li>
+                                <li><strong>Life Jackets:</strong> @Model.LifeJacketQuantity</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><strong>Fishing Equipment:</strong> @(Model.HasFishingEquipment ? "Yes &#10003;" : "No")</li>
+                                <li><strong>Decoration:</strong> @(Model.HasDecoration ? "Yes &#10003;" : "No")</li>
+                                <li><strong>Sound System:</strong> @(Model.HasSoundSystem ? "Yes &#10003;" : "No")</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h6 class="hc-form-section-title mt-3">Owner Information</h6>
+                    <p>
+                        <strong>@Model.BoatOwner.BusinessName</strong><br />
+                        <span class="text-muted">@Model.BoatOwner.PhoneNumber &nbsp;&bull;&nbsp; @Model.BoatOwner.Email</span>
+                    </p>
+
+                    <div class="d-flex gap-2 mt-4">
+                        @Html.ActionLink("Book This Boat", "BookBoat", "Customer", new { id = Model.BoatID }, new { @class = "btn btn-success btn-lg" })
+                        @Html.ActionLink("Back to Boats", "Boats", "Customer", null, new { @class = "btn btn-outline-secondary btn-lg" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

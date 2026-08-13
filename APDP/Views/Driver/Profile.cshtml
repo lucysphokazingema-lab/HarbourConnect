@@ -1,0 +1,79 @@
+@model APDP.Models.Driver
+@{
+    ViewBag.Title = "My Profile";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card hc-form-card">
+                <div class="card-header" style="background: linear-gradient(135deg, #1b5e20, #388e3c); color: white; padding: 1.25rem 1.5rem;">
+                    <h4 class="mb-0">&#128100; Driver Profile</h4>
+                    <p class="mb-0 small">@Model.FullName</p>
+                </div>
+                <div class="card-body p-4">
+
+                    <h6 class="hc-form-section-title">Personal Details</h6>
+                    <table class="table table-bordered hc-detail-table">
+                        <tr><th width="35%">Full Name</th><td>@Model.FullName</td></tr>
+                        <tr><th>Email Address</th><td>@Model.Email</td></tr>
+                        <tr><th>Phone Number</th><td>@Model.PhoneNumber</td></tr>
+                        <tr><th>License Number</th><td>@Model.LicenseNumber</td></tr>
+                        <tr>
+                            <th>Account Status</th>
+                            <td>
+                                @if (Model.Status == APDP.Models.DriverStatus.Active)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else if (Model.Status == APDP.Models.DriverStatus.Inactive)
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Suspended</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr><th>Registered</th><td>@Model.DateRegistered.ToString("dd MMM yyyy")</td></tr>
+                    </table>
+
+                    <h6 class="hc-form-section-title mt-4">Assignment</h6>
+                    @if (Model.BoatOwner != null)
+                    {
+                        <table class="table table-bordered hc-detail-table">
+                            <tr><th width="35%">Boat Owner</th><td>@Model.BoatOwner.FullName</td></tr>
+                            <tr><th>Business</th><td>@Model.BoatOwner.BusinessName</td></tr>
+                            <tr><th>Contact</th><td>@Model.BoatOwner.PhoneNumber</td></tr>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">Not yet assigned to a boat owner.</div>
+                    }
+
+                    @if (Model.AssignedBoat != null)
+                    {
+                        <h6 class="hc-form-section-title mt-4">Assigned Boat</h6>
+                        <table class="table table-bordered hc-detail-table">
+                            <tr><th width="35%">Boat Name</th><td>@Model.AssignedBoat.BoatName</td></tr>
+                            <tr><th>Type</th><td>@Model.AssignedBoat.BoatType</td></tr>
+                            <tr><th>Registration</th><td>@Model.AssignedBoat.RegistrationNumber</td></tr>
+                            <tr><th>Location</th><td>@Model.AssignedBoat.HarbourLocation</td></tr>
+                            <tr><th>Max Passengers</th><td>@Model.AssignedBoat.MaxPassengers</td></tr>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mt-3">No boat assigned yet.</div>
+                    }
+
+                    <div class="mt-4">
+                        @Html.ActionLink("Back to Dashboard", "Dashboard", "Driver", null, new { @class = "btn btn-outline-secondary" })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

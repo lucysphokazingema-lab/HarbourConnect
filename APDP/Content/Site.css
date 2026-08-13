@@ -1,0 +1,1237 @@
+﻿/* ============================================================
+   HarbourConnect — Site.css
+   Custom styles layered on top of Bootstrap 5
+   ============================================================ */
+
+/* ── Colour Palette ────────────────────────────────────────── */
+:root {
+    --hc-navy:      #0d2c54;
+    --hc-blue:      #1565c0;
+    --hc-teal:      #00897b;
+    --hc-gold:      #f9a825;
+    --hc-light-bg:  #f4f7fc;
+    --hc-card-shadow: 0 2px 12px rgba(0,0,0,0.09);
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
+body {
+    background-color: var(--hc-light-bg);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2d2d2d;
+}
+
+/* ── Navbar ─────────────────────────────────────────────────── */
+.hc-navbar {
+    background-color: var(--hc-navy) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.hc-brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    letter-spacing: 0.5px;
+}
+
+.hc-navbar .nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.hc-navbar .nav-link:hover,
+.hc-navbar .nav-link:focus {
+    color: #ffffff !important;
+}
+
+.hc-user-greeting {
+    color: var(--hc-gold) !important;
+    font-weight: 600;
+}
+
+.hc-logout {
+    color: #ff8a80 !important;
+}
+
+.hc-navbar .dropdown-menu {
+    border: none;
+    box-shadow: var(--hc-card-shadow);
+    border-radius: 8px;
+}
+
+/* ── Hero Section ───────────────────────────────────────────── */
+.hc-hero {
+    background: linear-gradient(135deg, var(--hc-navy) 0%, var(--hc-blue) 60%, var(--hc-teal) 100%);
+    color: #ffffff;
+    padding: 90px 20px;
+}
+
+.hc-hero-title {
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+
+.hc-hero-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.hc-hero-btn {
+    font-weight: 600;
+    padding: 0.7rem 2rem;
+    border-radius: 30px;
+}
+
+/* ── Section Titles ─────────────────────────────────────────── */
+.hc-section-title {
+    color: var(--hc-navy);
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.hc-section-title::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: var(--hc-teal);
+    margin-top: 0.4rem;
+}
+
+/* ── Cards ──────────────────────────────────────────────────── */
+.hc-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--hc-card-shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.13);
+}
+
+.hc-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ── Features Band ──────────────────────────────────────────── */
+.hc-features-band {
+    background-color: #ffffff;
+    border-top: 1px solid #e8edf5;
+    border-bottom: 1px solid #e8edf5;
+}
+
+.hc-feature-icon {
+    font-size: 2rem;
+    color: var(--hc-teal);
+}
+
+/* ── Main Content ───────────────────────────────────────────── */
+.hc-main-content {
+    min-height: calc(100vh - 160px);
+    padding-top: 10px;
+    padding-bottom: 40px;
+}
+
+/* ── Footer ─────────────────────────────────────────────────── */
+.hc-footer {
+    background-color: var(--hc-navy);
+    color: rgba(255,255,255,0.75);
+    padding: 40px 0 20px;
+    margin-top: 40px;
+}
+
+.hc-footer a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+}
+
+.hc-footer a:hover {
+    color: #ffffff;
+}
+
+.hc-footer h5,
+.hc-footer h6 {
+    color: #ffffff;
+}
+
+.hc-footer hr {
+    border-color: rgba(255,255,255,0.15);
+}
+
+/* ── Form Cards ─────────────────────────────────────────────── */
+.hc-form-card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.hc-form-header {
+    background: linear-gradient(135deg, var(--hc-navy), var(--hc-blue));
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+}
+
+.hc-form-header-dark {
+    background-color: #1a1a2e;
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+}
+
+.hc-form-header-green {
+    background: linear-gradient(135deg, var(--hc-teal), #2e7d32);
+    color: #ffffff;
+    padding: 1.25rem 1.5rem;
+}
+
+.hc-form-section-title {
+    color: var(--hc-navy);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid var(--hc-teal);
+    padding-bottom: 4px;
+    margin-bottom: 1rem;
+}
+
+/* ── Dashboard ──────────────────────────────────────────────── */
+.hc-dashboard-header {
+    border-left: 4px solid var(--hc-teal);
+    padding-left: 1rem;
+}
+
+.hc-dashboard-header h2 {
+    color: var(--hc-navy);
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+/* ── Stat Cards ─────────────────────────────────────────────── */
+.hc-stat-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--hc-card-shadow);
+}
+
+.hc-stat-number {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.hc-stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    margin-top: 4px;
+}
+
+.hc-stat-primary  { background-color: #e3f0ff; color: var(--hc-blue); }
+.hc-stat-success  { background-color: #e8f5e9; color: #2e7d32; }
+.hc-stat-warning  { background-color: #fff8e1; color: #f57f17; }
+.hc-stat-info     { background-color: #e0f7fa; color: #00838f; }
+.hc-stat-danger   { background-color: #fce4ec; color: #c62828; }
+
+/* ── Tables ─────────────────────────────────────────────────── */
+.hc-table thead {
+    background-color: var(--hc-navy);
+    color: #ffffff;
+}
+
+.hc-table thead th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    padding: 0.85rem 1rem;
+}
+
+.hc-table tbody tr {
+    transition: background-color 0.15s;
+}
+
+.hc-table tbody tr:hover {
+    background-color: #f0f5ff;
+}
+
+.hc-table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+.hc-detail-table th {
+    background-color: #f4f7fc;
+    font-weight: 600;
+    color: var(--hc-navy);
+}
+
+/* ── Boat Cards (Customer) ──────────────────────────────────── */
+.hc-boat-card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: var(--hc-card-shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.hc-boat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+}
+
+.hc-boat-card-img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.hc-boat-card-img-placeholder {
+    height: 200px;
+    background: linear-gradient(135deg, #e8edf5, #c8d6e8);
+}
+
+.hc-boat-detail-img {
+    max-height: 360px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+}
+
+/* ── Pending Card (TNPA) ────────────────────────────────────── */
+.hc-pending-card {
+    border: 2px solid var(--hc-gold) !important;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ── Pricing ─────────────────────────────────────────────────── */
+.hc-price-tag {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--hc-teal);
+}
+
+.hc-price-tag-large {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--hc-teal);
+}
+
+/* ── Booking Summary Box ────────────────────────────────────── */
+.hc-booking-summary {
+    background-color: #f0f7f5;
+    border: 1px solid #b2dfdb;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+}
+
+/* ── Alerts ─────────────────────────────────────────────────── */
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: var(--hc-blue);
+    border-color: var(--hc-blue);
+}
+
+.btn-primary:hover {
+    background-color: #0d47a1;
+    border-color: #0d47a1;
+}
+
+/* ── Responsive Tweaks ──────────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .hc-hero-title {
+        font-size: 2rem;
+    }
+
+    .hc-hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hc-stat-number {
+        font-size: 1.8rem;
+    }
+}
+
+/* ── Weather Card ────────────────────────────────────────────── */
+.hc-weather-card {
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
+    box-shadow: var(--hc-card-shadow);
+}
+
+.hc-weather-icon {
+    width: 80px;
+    height: 80px;
+}
+
+.hc-weather-stat {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 8px;
+}
+
+.hc-weather-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--hc-navy);
+}
+
+.hc-weather-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+/* ── HarbourBot Chatbot Widget ───────────────────────────────── */
+#hc-chatbot-wrapper {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+#hc-chat-toggle {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d2c54, #1565c0);
+    color: white;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#hc-chat-toggle:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+
+#hc-chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #e53935;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#hc-chat-window {
+    position: absolute;
+    bottom: 74px;
+    right: 0;
+    width: 360px;
+    max-height: 560px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: hcSlideUp 0.25s ease;
+}
+
+@keyframes hcSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+#hc-chat-header {
+    background: linear-gradient(135deg, #0d2c54, #1565c0);
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hc-chat-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 0 4px;
+}
+
+.hc-chat-close-btn:hover { opacity: 1; }
+
+#hc-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #f4f7fc;
+    max-height: 320px;
+    scroll-behavior: smooth;
+}
+
+.hc-msg {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.hc-msg-bot .hc-bubble {
+    background: #ffffff;
+    border: 1px solid #e0e8f5;
+    border-radius: 0 12px 12px 12px;
+    padding: 10px 14px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: #2d2d2d;
+    max-width: 90%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.hc-msg-user {
+    align-items: flex-end;
+}
+
+.hc-msg-user .hc-bubble {
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    border-radius: 12px 12px 0 12px;
+    padding: 10px 14px;
+    font-size: 0.86rem;
+    max-width: 85%;
+}
+
+.hc-msg-time {
+    font-size: 0.68rem;
+    color: #999;
+    margin-top: 3px;
+    padding: 0 4px;
+}
+
+.hc-typing {
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 0 12px 12px 12px;
+    width: fit-content;
+    border: 1px solid #e0e8f5;
+}
+
+.hc-typing span {
+    width: 8px;
+    height: 8px;
+    background: #1565c0;
+    border-radius: 50%;
+    animation: hcBounce 1.2s infinite;
+}
+
+.hc-typing span:nth-child(2) { animation-delay: 0.2s; }
+.hc-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes hcBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+    40%           { transform: translateY(-6px); opacity: 1; }
+}
+
+#hc-chat-quick-replies {
+    padding: 8px 12px;
+    background: #fff;
+    border-top: 1px solid #e8edf5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#hc-chat-quick-replies button {
+    background: #e3f0ff;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#hc-chat-quick-replies button:hover {
+    background: #1565c0;
+    color: white;
+}
+
+#hc-chat-input-area {
+    display: flex;
+    padding: 10px 12px;
+    border-top: 1px solid #e8edf5;
+    background: white;
+    gap: 8px;
+}
+
+#hc-chat-input {
+    flex: 1;
+    border: 1px solid #dde4f0;
+    border-radius: 24px;
+    padding: 8px 16px;
+    font-size: 0.86rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#hc-chat-input:focus {
+    border-color: #1565c0;
+}
+
+#hc-chat-send-btn {
+    background: linear-gradient(135deg, #0d2c54, #1565c0);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+#hc-chat-send-btn:hover { transform: scale(1.1); }
+
+#hc-chat-messages a { color: #1565c0; }
+
+#hc-chat-messages .btn {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 480px) {
+    #hc-chat-window {
+        width: calc(100vw - 20px);
+        right: -12px;
+        bottom: 70px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PHONE-STYLE WEATHER WIDGET
+   ══════════════════════════════════════════════════════════════ */
+
+.hc-phone-weather {
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    color: #ffffff;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    font-family: 'Segoe UI', sans-serif;
+    user-select: none;
+}
+
+/* ── Sky backgrounds ────────────────────────────────────────── */
+.sky-clear {
+    background: linear-gradient(180deg, #1a78c2 0%, #56aff5 50%, #a8d8f0 100%);
+}
+.sky-clear-night {
+    background: linear-gradient(180deg, #0a0e2a 0%, #1a1f4e 50%, #2c3575 100%);
+}
+.sky-cloudy {
+    background: linear-gradient(180deg, #4a90d9 0%, #7eb8e8 60%, #b0d0eb 100%);
+}
+.sky-cloudy-night {
+    background: linear-gradient(180deg, #1a1f3a 0%, #2a3060 60%, #3d4a7a 100%);
+}
+.sky-rain {
+    background: linear-gradient(180deg, #2c3e50 0%, #3d5060 50%, #546070 100%);
+}
+.sky-thunder {
+    background: linear-gradient(180deg, #1a1a2e 0%, #2d2d44 50%, #3d3d5c 100%);
+}
+.sky-snow {
+    background: linear-gradient(180deg, #7ba7bc 0%, #a8c5d4 50%, #d4e8f0 100%);
+}
+.sky-fog {
+    background: linear-gradient(180deg, #8a9ba8 0%, #b0bec5 50%, #cfd8dc 100%);
+}
+
+/* ── Sky Layer (holds all animated elements) ─────────────────── */
+.sky-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* ── Stars ──────────────────────────────────────────────────── */
+.stars { position: absolute; inset: 0; }
+
+.star {
+    position: absolute;
+    background: #ffffff;
+    border-radius: 50%;
+    animation: starTwinkle 3s infinite alternate;
+}
+
+@keyframes starTwinkle {
+    0%   { opacity: 0.2; transform: scale(1); }
+    100% { opacity: 1;   transform: scale(1.4); }
+}
+
+/* ── Sun ────────────────────────────────────────────────────── */
+.sun {
+    position: absolute;
+    top: 24px;
+    right: 40px;
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle, #ffe066 40%, #ffcc00 70%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 40px 20px rgba(255,220,50,0.4);
+    animation: sunPulse 4s ease-in-out infinite;
+}
+
+.sun-rays {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: conic-gradient(
+        transparent 0deg, rgba(255,220,50,0.15) 10deg,
+        transparent 20deg, rgba(255,220,50,0.15) 30deg,
+        transparent 40deg, rgba(255,220,50,0.15) 50deg,
+        transparent 60deg, rgba(255,220,50,0.15) 70deg,
+        transparent 80deg, rgba(255,220,50,0.15) 90deg,
+        transparent 100deg, rgba(255,220,50,0.15) 110deg,
+        transparent 120deg, rgba(255,220,50,0.15) 130deg,
+        transparent 140deg, rgba(255,220,50,0.15) 150deg,
+        transparent 160deg, rgba(255,220,50,0.15) 170deg,
+        transparent 180deg, rgba(255,220,50,0.15) 190deg,
+        transparent 200deg, rgba(255,220,50,0.15) 210deg,
+        transparent 220deg, rgba(255,220,50,0.15) 230deg,
+        transparent 240deg, rgba(255,220,50,0.15) 250deg,
+        transparent 260deg, rgba(255,220,50,0.15) 270deg,
+        transparent 280deg, rgba(255,220,50,0.15) 290deg,
+        transparent 300deg, rgba(255,220,50,0.15) 310deg,
+        transparent 320deg, rgba(255,220,50,0.15) 330deg,
+        transparent 340deg, rgba(255,220,50,0.15) 350deg,
+        transparent 360deg
+    );
+    animation: sunRotate 12s linear infinite;
+}
+
+@keyframes sunPulse {
+    0%, 100% { box-shadow: 0 0 40px 20px rgba(255,220,50,0.4); }
+    50%       { box-shadow: 0 0 60px 30px rgba(255,220,50,0.6); }
+}
+
+@keyframes sunRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ── Moon ───────────────────────────────────────────────────── */
+.moon {
+    position: absolute;
+    top: 24px;
+    right: 44px;
+    width: 56px;
+    height: 56px;
+    background: #e8e8c0;
+    border-radius: 50%;
+    box-shadow: 0 0 30px 10px rgba(232,232,192,0.3),
+                inset -12px -4px 0 rgba(180,180,100,0.5);
+    animation: moonGlow 5s ease-in-out infinite;
+}
+
+@keyframes moonGlow {
+    0%, 100% { box-shadow: 0 0 30px 10px rgba(232,232,192,0.3), inset -12px -4px 0 rgba(180,180,100,0.5); }
+    50%       { box-shadow: 0 0 50px 20px rgba(232,232,192,0.5), inset -12px -4px 0 rgba(180,180,100,0.5); }
+}
+
+/* ── Clouds ─────────────────────────────────────────────────── */
+.cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.92);
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+}
+
+.cloud-1 {
+    width: 120px; height: 40px;
+    top: 30px; left: -140px;
+    animation: cloudFloat1 18s linear infinite;
+}
+.cloud-1::before {
+    width: 60px; height: 60px;
+    top: -30px; left: 20px;
+}
+.cloud-1::after {
+    width: 40px; height: 40px;
+    top: -20px; left: 60px;
+}
+
+.cloud-2 {
+    width: 90px; height: 30px;
+    top: 65px; left: -110px;
+    animation: cloudFloat2 24s linear infinite;
+    opacity: 0.8;
+}
+.cloud-2::before {
+    width: 45px; height: 45px;
+    top: -22px; left: 15px;
+}
+.cloud-2::after {
+    width: 30px; height: 30px;
+    top: -14px; left: 50px;
+}
+
+.cloud-3 {
+    width: 100px; height: 35px;
+    top: 15px; left: -120px;
+    animation: cloudFloat3 30s linear infinite;
+    opacity: 0.6;
+}
+.cloud-3::before {
+    width: 50px; height: 50px;
+    top: -25px; left: 18px;
+}
+.cloud-3::after {
+    width: 35px; height: 35px;
+    top: -16px; left: 56px;
+}
+
+.cloud-light {
+    opacity: 0.45;
+    background: rgba(255,255,255,0.7);
+}
+
+@keyframes cloudFloat1 {
+    0%   { left: -140px; }
+    100% { left: 110%; }
+}
+@keyframes cloudFloat2 {
+    0%   { left: -110px; }
+    100% { left: 110%; }
+}
+@keyframes cloudFloat3 {
+    0%   { left: -120px; }
+    100% { left: 110%; }
+}
+
+/* ── Rain ───────────────────────────────────────────────────── */
+.rain-container {
+    position: absolute;
+    inset: 0;
+}
+
+.raindrop {
+    position: absolute;
+    top: -20px;
+    width: 2px;
+    height: 18px;
+    background: linear-gradient(to bottom, transparent, rgba(174,214,241,0.9));
+    border-radius: 2px;
+    animation: rainFall 0.7s linear infinite;
+}
+
+@keyframes rainFall {
+    0%   { transform: translateY(-10px); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translateY(400px); opacity: 0.4; }
+}
+
+/* ── Lightning ──────────────────────────────────────────────── */
+.lightning {
+    position: absolute;
+    top: 60px;
+    left: 40%;
+    width: 4px;
+    height: 80px;
+    background: linear-gradient(to bottom, #fffde0, #f9e900);
+    clip-path: polygon(50% 0%, 0% 50%, 50% 50%, 0% 100%, 100% 50%, 50% 50%, 100% 0%);
+    animation: lightningFlash 4s ease-in-out infinite;
+    opacity: 0;
+}
+
+@keyframes lightningFlash {
+    0%, 90%, 100% { opacity: 0; }
+    92%            { opacity: 1; }
+    94%            { opacity: 0; }
+    96%            { opacity: 0.8; }
+    98%            { opacity: 0; }
+}
+
+/* ── Snow ───────────────────────────────────────────────────── */
+.snow-container {
+    position: absolute;
+    inset: 0;
+}
+
+.snowflake {
+    position: absolute;
+    top: -20px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    animation: snowFall 3s linear infinite;
+}
+
+@keyframes snowFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    100% { transform: translateY(420px) rotate(360deg); opacity: 0.3; }
+}
+
+/* ── Main weather info ──────────────────────────────────────── */
+.weather-main {
+    position: relative;
+    z-index: 2;
+    padding: 30px 24px 10px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.weather-city {
+    font-size: 1rem;
+    font-weight: 600;
+    opacity: 0.92;
+    letter-spacing: 0.3px;
+}
+
+.weather-temp {
+    font-size: 5rem;
+    font-weight: 200;
+    line-height: 1;
+    margin: 8px 0 4px;
+    letter-spacing: -2px;
+}
+
+.weather-deg {
+    font-size: 2.5rem;
+    font-weight: 300;
+    vertical-align: super;
+}
+
+.weather-desc {
+    font-size: 1.1rem;
+    text-transform: capitalize;
+    opacity: 0.9;
+    margin-bottom: 4px;
+}
+
+.weather-hilo {
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+/* ── Stats strip ────────────────────────────────────────────── */
+.weather-stats-strip {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-around;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(6px);
+    padding: 12px 8px;
+    margin: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.weather-stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-icon { font-size: 1.3rem; line-height: 1; }
+.stat-val  { font-size: 0.9rem; font-weight: 700; margin-top: 2px; }
+.stat-lbl  { font-size: 0.65rem; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ── 7-Day forecast strip ───────────────────────────────────── */
+.forecast-strip {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-around;
+    background: rgba(0,0,0,0.18);
+    backdrop-filter: blur(6px);
+    margin: 0 16px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 4px;
+    overflow-x: auto;
+}
+
+.forecast-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 8px;
+    min-width: 52px;
+}
+
+.fc-day-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    margin-bottom: 2px;
+}
+
+.fc-icon {
+    width: 36px;
+    height: 36px;
+}
+
+.fc-temps {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+}
+
+.fc-max {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.fc-min {
+    font-size: 0.78rem;
+    opacity: 0.65;
+}
+
+/* ── Sailing advice bar ─────────────────────────────────────── */
+.sailing-advice {
+    position: relative;
+    z-index: 2;
+    margin: 0 16px 18px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    backdrop-filter: blur(6px);
+}
+
+.sailing-success {
+    background: rgba(46,125,50,0.7);
+    border: 1px solid rgba(100,220,100,0.4);
+}
+.sailing-warning {
+    background: rgba(245,124,0,0.7);
+    border: 1px solid rgba(255,200,50,0.4);
+}
+.sailing-danger {
+    background: rgba(183,28,28,0.75);
+    border: 1px solid rgba(255,100,100,0.4);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .weather-temp { font-size: 3.8rem; }
+    .forecast-strip { margin: 0 8px 12px; }
+    .weather-stats-strip { margin: 10px 8px; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ANIMATED SEA / OCEAN BACKGROUND
+   ══════════════════════════════════════════════════════════════ */
+
+/* Override body to use a deep-sea gradient and show the wave canvas */
+body {
+    background-color: transparent !important;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Fixed sea backdrop that sits behind everything */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background: linear-gradient(
+        180deg,
+        #0a1628 0%,
+        #0d2c54 25%,
+        #0e3d6e 50%,
+        #0b5394 75%,
+        #1565c0 100%
+    );
+}
+
+/* Wave layer container — fixed, full-screen, behind content */
+#hc-sea-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Each wave is a wide pseudo-ellipse that scrolls sideways */
+.hc-wave {
+    position: absolute;
+    bottom: 0;
+    left: -200%;
+    width: 500%;
+    border-radius: 43% 57% 46% 54% / 30% 40% 60% 70%;
+    opacity: 0;
+    animation: hcWaveRise linear infinite;
+}
+
+/* Wave colours — layered from dark deep to bright surface */
+.hc-wave:nth-child(1) {
+    height: 18vh;
+    background: rgba(13, 71, 161, 0.55);
+    animation-duration: 14s;
+    animation-delay: 0s;
+    bottom: 0;
+    border-radius: 40% 60% 55% 45% / 30% 50% 50% 70%;
+}
+.hc-wave:nth-child(2) {
+    height: 15vh;
+    background: rgba(21, 101, 192, 0.50);
+    animation-duration: 18s;
+    animation-delay: -5s;
+    bottom: 2vh;
+    border-radius: 55% 45% 40% 60% / 50% 30% 70% 50%;
+}
+.hc-wave:nth-child(3) {
+    height: 12vh;
+    background: rgba(30, 136, 229, 0.45);
+    animation-duration: 22s;
+    animation-delay: -9s;
+    bottom: 4vh;
+    border-radius: 45% 55% 60% 40% / 40% 60% 40% 60%;
+}
+.hc-wave:nth-child(4) {
+    height: 10vh;
+    background: rgba(66, 165, 245, 0.35);
+    animation-duration: 28s;
+    animation-delay: -14s;
+    bottom: 6vh;
+    border-radius: 60% 40% 45% 55% / 60% 40% 60% 40%;
+}
+.hc-wave:nth-child(5) {
+    height: 8vh;
+    background: rgba(144, 202, 249, 0.25);
+    animation-duration: 34s;
+    animation-delay: -20s;
+    bottom: 8vh;
+    border-radius: 50% 50% 38% 62% / 45% 55% 45% 55%;
+}
+
+/* Floating foam bubbles */
+.hc-wave-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    animation: hcBubbleFloat linear infinite;
+}
+
+@keyframes hcWaveRise {
+    0%   { opacity: 0;    transform: translateX(0%)     scaleY(1); }
+    10%  { opacity: 1; }
+    50%  { transform: translateX(-25%)    scaleY(1.06); }
+    90%  { opacity: 1; }
+    100% { opacity: 0;    transform: translateX(-50%)   scaleY(1); }
+}
+
+@keyframes hcBubbleFloat {
+    0%   { transform: translateY(0) scale(1);    opacity: 0.6; }
+    50%  { transform: translateY(-40px) scale(1.2); opacity: 0.3; }
+    100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
+}
+
+/* Shimmer/glitter on the water surface */
+.hc-sea-shimmer {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    animation: hcShimmer ease-in-out infinite alternate;
+}
+
+@keyframes hcShimmer {
+    0%   { opacity: 0.1; transform: scale(0.6); }
+    100% { opacity: 0.9; transform: scale(1.4); }
+}
+
+/* Make page content panels slightly frosted so the sea shows through */
+.container > .card,
+.hc-card,
+.hc-form-card,
+.hc-stat-card,
+.hc-boat-card,
+.hc-pending-card {
+    background: rgba(255, 255, 255, 0.93) !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Hero blends with the sea rather than hiding it */
+.hc-hero {
+    background: linear-gradient(
+        135deg,
+        rgba(13, 44, 84, 0.88) 0%,
+        rgba(21, 101, 192, 0.82) 60%,
+        rgba(0, 137, 123, 0.75) 100%
+    ) !important;
+}
+
+/* Features band — semi-transparent */
+.hc-features-band {
+    background: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* Dashboard header area — readable over sea */
+.hc-dashboard-header h2,
+.hc-section-title {
+    text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+}
+
+/* Page-level container background — light frosted panel */
+.hc-main-content,
+.container.py-4,
+.container.py-5 {
+    position: relative;
+}

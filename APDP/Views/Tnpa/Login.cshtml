@@ -1,0 +1,53 @@
+@{
+    ViewBag.Title = "TNPA Admin Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-dark">
+                    <h4 class="mb-0">&#128203; TNPA Admin Login</h4>
+                    <p class="mb-0 small">Transnet National Ports Authority Portal</p>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Login", "Tnpa", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <input type="email" name="email" class="form-control"
+                                   placeholder="Admin email address" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                            <input type="password" name="password" class="form-control"
+                                   placeholder="Admin password" required />
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-dark btn-lg">
+                                Login to TNPA Portal
+                            </button>
+                        </div>
+                    }
+
+                    <hr class="mt-4" />
+                    <p class="text-center text-muted small mb-0">
+                        This portal is restricted to authorised TNPA staff only.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

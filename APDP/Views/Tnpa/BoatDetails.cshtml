@@ -1,0 +1,101 @@
+@model APDP.Models.Boat
+@{
+    ViewBag.Title = "Boat Application Details";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-dark">
+                    <h4 class="mb-0">&#128674; @Model.BoatName — Application Details</h4>
+                    <p class="mb-0 small">Submitted by @Model.BoatOwner.FullName on @Model.DateAdded.ToString("dd MMM yyyy")</p>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                    {
+                        <div class="text-center mb-4">
+                            <img src="@Url.Content(Model.ImagePath)" class="img-fluid rounded hc-boat-detail-img" alt="@Model.BoatName" />
+                        </div>
+                    }
+
+                    <h6 class="hc-form-section-title">Boat Information</h6>
+                    <table class="table table-bordered hc-detail-table">
+                        <tr><th width="35%">Boat Name</th><td>@Model.BoatName</td></tr>
+                        <tr><th>Registration Number</th><td>@Model.RegistrationNumber</td></tr>
+                        <tr><th>Boat Type</th><td>@Model.BoatType</td></tr>
+                        <tr><th>Harbour Location</th><td>@Model.HarbourLocation</td></tr>
+                        <tr><th>Description</th><td>@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</td></tr>
+                        <tr><th>Maximum Passengers</th><td>@Model.MaxPassengers</td></tr>
+                        <tr><th>Price per Trip</th><td>R @Model.PricePerTrip.ToString("N2")</td></tr>
+                        <tr><th>Life Jackets</th><td>@Model.LifeJacketQuantity</td></tr>
+                        <tr><th>Fishing Equipment</th><td>@(Model.HasFishingEquipment ? "Yes" : "No")</td></tr>
+                        <tr><th>Decoration</th><td>@(Model.HasDecoration ? "Yes" : "No")</td></tr>
+                        <tr><th>Sound System</th><td>@(Model.HasSoundSystem ? "Yes" : "No")</td></tr>
+                    </table>
+
+                    <h6 class="hc-form-section-title mt-4">Owner Information</h6>
+                    <table class="table table-bordered hc-detail-table">
+                        <tr><th width="35%">Full Name</th><td>@Model.BoatOwner.FullName</td></tr>
+                        <tr><th>Business Name</th><td>@Model.BoatOwner.BusinessName</td></tr>
+                        <tr><th>Phone Number</th><td>@Model.BoatOwner.PhoneNumber</td></tr>
+                        <tr><th>Email</th><td>@Model.BoatOwner.Email</td></tr>
+                    </table>
+
+                    @if (Model.Status == APDP.Models.BoatStatus.Pending)
+                    {
+                        <h6 class="hc-form-section-title mt-4">Decision</h6>
+                        <div class="row g-3">
+
+                            @* Approve *@
+                            <div class="col-md-5">
+                                @using (Html.BeginForm("Approve", "Tnpa", new { id = Model.BoatID }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-success w-100"
+                                            onclick="return confirm('Approve this boat? It will become visible to customers.')">
+                                        &#10003; Approve Boat
+                                    </button>
+                                }
+                            </div>
+
+                            @* Reject *@
+                            <div class="col-md-7">
+                                @using (Html.BeginForm("Reject", "Tnpa", new { id = Model.BoatID }, FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <div class="input-group">
+                                        <input type="text" name="rejectionReason" class="form-control"
+                                               placeholder="Reason for rejection (required)" required />
+                                        <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Reject this boat?')">
+                                            &#10007; Reject
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert @(Model.Status == APDP.Models.BoatStatus.Approved ? "alert-success" : "alert-danger") mt-4">
+                            <strong>Status: @Model.Status</strong>
+                            @if (!string.IsNullOrEmpty(Model.RejectionReason))
+                            {
+                                <br /><span>Reason: @Model.RejectionReason</span>
+                            }
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        @Html.ActionLink("Back to Pending List", "PendingBoats", "Tnpa", null, new { @class = "btn btn-outline-secondary" })
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

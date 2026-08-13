@@ -1,0 +1,71 @@
+@{
+    ViewBag.Title = "Customer Dashboard";
+}
+
+<div class="container py-4">
+
+    <div class="hc-dashboard-header mb-4">
+        <h2>&#128106; Customer Dashboard</h2>
+        <p class="text-muted">Welcome back, <strong>@Session["CustomerName"]</strong></p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+            <div class="card hc-stat-card hc-stat-success text-center p-3">
+                <div class="hc-stat-number">@ViewBag.AvailableBoats</div>
+                <div class="hc-stat-label">Available Boats</div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card hc-stat-card hc-stat-info text-center p-3">
+                <div class="hc-stat-number">@ViewBag.TotalBookings</div>
+                <div class="hc-stat-label">My Bookings</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card hc-card p-4 h-100">
+                <h5>&#128674; Browse Available Boats</h5>
+                <p class="text-muted">Explore TNPA-approved boats and plan your harbour trip.</p>
+                @Html.ActionLink("Browse Boats", "Boats", "Customer", null, new { @class = "btn btn-success" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card hc-card p-4 h-100">
+                <h5>&#128203; My Bookings</h5>
+                <p class="text-muted">View and manage all your trip bookings.</p>
+                @Html.ActionLink("View My Bookings", "MyBookings", "Customer", null, new { @class = "btn btn-info" })
+            </div>
+        </div>
+    </div>
+
+    @* Durban Harbour Location *@
+    <div class="card hc-card mt-4">
+        <div class="card-body p-4">
+            <h5 class="mb-1">&#128205; Durban Harbour Location</h5>
+            <p class="text-muted small mb-3">All boat trips depart from the Durban Harbour, Point Waterfront, Durban, KwaZulu-Natal.</p>
+            <div class="ratio ratio-16x9" style="border-radius:10px; overflow:hidden;">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3460.2!2d31.0292!3d-29.8681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1ef7a9127b8aad3b%3A0x8f1f3e2a1e3e1e3e!2sDurban%20Harbour!5e0!3m2!1sen!2sza!4v1690000000000!5m2!1sen!2sza"
+                    width="600"
+                    height="450"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Durban Harbour Map">
+                </iframe>
+            </div>
+            <div class="mt-3 d-flex align-items-center gap-2">
+                <span class="badge bg-primary">&#9875; Departure Point</span>
+                <span class="text-muted small">Point Waterfront, Durban, 4001, KwaZulu-Natal, South Africa</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        @Html.ActionLink("Logout", "Logout", "Customer", null, new { @class = "btn btn-outline-danger" })
+    </div>
+</div>

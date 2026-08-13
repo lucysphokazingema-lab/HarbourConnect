@@ -1,0 +1,72 @@
+@model APDP.Models.BoatOwner
+@{
+    ViewBag.Title = "Boat Owner Registration";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header">
+                    <h4 class="mb-0">&#128674; Boat Owner Registration</h4>
+                    <p class="mb-0 small">Create your HarbourConnect account</p>
+                </div>
+                <div class="card-body p-4">
+
+                    @using (Html.BeginForm("Register", "BoatOwner", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "e.g. Lucy Ngema" })
+                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.BusinessName, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.BusinessName, new { @class = "form-control", placeholder = "e.g. Ngema Marine Services" })
+                            @Html.ValidationMessageFor(m => m.BusinessName, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "e.g. 0712345678" })
+                            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "e.g. lucy@email.com", type = "email" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Password, new { @class = "form-label fw-semibold" })
+                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Minimum 6 characters" })
+                            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Create Account
+                            </button>
+                        </div>
+                    }
+
+                    <hr class="mt-4" />
+                    <p class="text-center text-muted mb-0">
+                        Already have an account?
+                        @Html.ActionLink("Login here", "Login", "BoatOwner", null, new { @class = "text-primary fw-semibold" })
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+}

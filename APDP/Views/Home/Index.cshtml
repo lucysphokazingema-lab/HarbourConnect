@@ -1,0 +1,172 @@
+﻿@{
+    ViewBag.Title = "Welcome to HarbourConnect";
+}
+
+<style>
+    /* ── Background image, home page only ── */
+    .hc-home-wrapper::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background-image: url('@Url.Content("~/Content/BoatImages/OIP (1).jpg")');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Overlay so cards are readable over the photo */
+    .hc-home-wrapper::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background: rgba(0, 10, 30, 0.55);
+    }
+
+    .hc-home-wrapper {
+        position: relative;
+        min-height: 100vh;
+        padding-top: 2.5rem;
+    }
+
+    /* Section title white on the photo */
+    .hc-home-wrapper .hc-section-title {
+        color: #ffffff;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .hc-home-wrapper .hc-section-title::after {
+        background: #64b5f6;
+    }
+
+    /* Cards — solid white, strong shadow so they lift off the photo */
+    .hc-home-wrapper .hc-card {
+        background: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.30) !important;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .hc-home-wrapper .hc-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 45px rgba(0,0,0,0.40) !important;
+    }
+
+    /* Features band — dark frosted strip at the bottom */
+    .hc-home-features {
+        position: relative;
+        z-index: 1;
+        background: rgba(0, 8, 25, 0.78);
+        backdrop-filter: blur(6px);
+        border-top: 1px solid rgba(255,255,255,0.12);
+        padding: 3rem 0;
+    }
+
+    .hc-home-features .hc-section-title       { color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+    .hc-home-features .hc-section-title::after { background: #4dd0e1; }
+    .hc-home-features h6                       { color: #e3f2fd; font-weight: 600; }
+    .hc-home-features .text-muted              { color: #90caf9 !important; }
+    .hc-home-features .hc-feature-icon         { color: #4dd0e1; font-size: 2.2rem; }
+</style>
+
+<div class="hc-home-wrapper">
+
+    <section class="container py-5">
+        <h2 class="text-center mb-4 hc-section-title">Who uses HarbourConnect?</h2>
+        <div class="row g-4">
+
+            <div class="col-md-3">
+                <div class="card h-100 hc-card text-center p-4">
+                    <div class="hc-card-icon">&#128674;</div>
+                    <h4 class="mt-3">Boat Owners</h4>
+                    <p class="text-muted">
+                        Register your boats, manage trips, and grow your maritime business.
+                        All boats are reviewed and approved by TNPA before going live.
+                    </p>
+                    <div class="mt-auto pt-3">
+                        @Html.ActionLink("Register as Boat Owner", "Register", "BoatOwner", null, new { @class = "btn btn-primary w-100" })
+                        <div class="mt-2">
+                            @Html.ActionLink("Already registered? Login", "Login", "BoatOwner", null, new { @class = "small text-muted" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 hc-card text-center p-4">
+                    <div class="hc-card-icon">&#128203;</div>
+                    <h4 class="mt-3">TNPA Admin</h4>
+                    <p class="text-muted">
+                        Review boat registrations, approve or reject submissions, and
+                        maintain oversight of all harbour operations.
+                    </p>
+                    <div class="mt-auto pt-3">
+                        @Html.ActionLink("TNPA Admin Login", "Login", "Tnpa", null, new { @class = "btn btn-dark w-100" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 hc-card text-center p-4">
+                    <div class="hc-card-icon">&#128106;</div>
+                    <h4 class="mt-3">Customers</h4>
+                    <p class="text-muted">
+                        Browse approved boats, book your dream harbour trip, and manage
+                        all your bookings in one place.
+                    </p>
+                    <div class="mt-auto pt-3">
+                        @Html.ActionLink("Register as Customer", "Register", "Customer", null, new { @class = "btn btn-success w-100" })
+                        <div class="mt-2">
+                            @Html.ActionLink("Already registered? Login", "Login", "Customer", null, new { @class = "small text-muted" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card h-100 hc-card text-center p-4">
+                    <div class="hc-card-icon">&#128663;</div>
+                    <h4 class="mt-3">Drivers</h4>
+                    <p class="text-muted">
+                        View your assigned boat, check your upcoming trip schedule,
+                        and manage passenger information.
+                    </p>
+                    <div class="mt-auto pt-3">
+                        @Html.ActionLink("Driver Login", "Login", "Driver", null, new { @class = "btn btn-success w-100" })
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="hc-home-features">
+        <div class="container">
+            <h2 class="text-center mb-4 hc-section-title">Why HarbourConnect?</h2>
+            <div class="row text-center g-4">
+                <div class="col-md-3">
+                    <div class="hc-feature-icon">&#10003;</div>
+                    <h6 class="mt-2">TNPA Approved</h6>
+                    <p class="text-muted small">Every boat is vetted before customers can book.</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="hc-feature-icon">&#128197;</div>
+                    <h6 class="mt-2">Easy Booking</h6>
+                    <p class="text-muted small">Book harbour trips in minutes, right from your browser.</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="hc-feature-icon">&#128241;</div>
+                    <h6 class="mt-2">Manage Everything</h6>
+                    <p class="text-muted small">Dashboards for owners, customers and admins.</p>
+                </div>
+                <div class="col-md-3">
+                    <div class="hc-feature-icon">&#128275;</div>
+                    <h6 class="mt-2">Secure &amp; Reliable</h6>
+                    <p class="text-muted small">Your data is protected at every step.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>

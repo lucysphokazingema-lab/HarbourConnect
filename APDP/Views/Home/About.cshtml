@@ -1,0 +1,243 @@
+﻿@{
+    ViewBag.Title = "About Durban Harbour";
+}
+
+<style>
+    body {
+        background-color: #f4f7fc !important;
+        background-image: none !important;
+    }
+
+    body::before,
+    body::after,
+    .hc-home-wrapper::before,
+    .hc-home-wrapper::after {
+        display: none !important;
+    }
+
+    .hc-about-hero {
+        background: linear-gradient(135deg, #0d2c54 0%, #1565c0 60%, #00897b 100%);
+        color: #ffffff;
+        padding: 60px 20px 45px;
+        text-align: center;
+    }
+
+    .hc-about-hero h1 {
+        font-size: 2.6rem;
+        font-weight: 800;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        margin-bottom: 0.6rem;
+    }
+
+    .hc-about-hero p {
+        font-size: 1.1rem;
+        opacity: 0.92;
+        max-width: 580px;
+        margin: 0 auto;
+    }
+
+    .hc-about-body {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+        padding: 2.2rem 2.5rem;
+    }
+
+    .hc-about-body h3 {
+        color: #0d2c54;
+        font-weight: 700;
+        margin-top: 1.8rem;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid #00897b;
+        padding-left: 0.75rem;
+        font-size: 1.15rem;
+    }
+
+    .hc-about-body p,
+    .hc-about-body li {
+        color: #3d3d3d;
+        font-size: 0.97rem;
+        line-height: 1.85;
+    }
+
+    .hc-about-body ul {
+        padding-left: 1.3rem;
+    }
+
+    .hc-about-body ul li {
+        margin-bottom: 0.4rem;
+    }
+
+    .hc-fact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 1.2rem;
+    }
+
+    .hc-fact-box {
+        background: #f0f7f5;
+        border: 1px solid #b2dfdb;
+        border-radius: 12px;
+        padding: 1.1rem 0.8rem;
+        text-align: center;
+    }
+
+    .hc-fact-box .hc-fact-num {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #00897b;
+        line-height: 1;
+    }
+
+    .hc-fact-box .hc-fact-lbl {
+        font-size: 0.8rem;
+        color: #555;
+        margin-top: 5px;
+    }
+
+    /* Location pin badge */
+    .hc-location-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #0d2c54;
+        color: #ffffff;
+        border-radius: 30px;
+        padding: 8px 18px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .hc-location-badge span.pin {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+
+    /* Map container with a pin label on top */
+    .hc-map-wrapper {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .hc-map-label {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 10;
+        background: #0d2c54;
+        color: white;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+</style>
+
+<div class="hc-about-hero">
+    <h1>&#9875; Durban Harbour</h1>
+    <p>The biggest and busiest port in Africa, right here in KwaZulu-Natal.</p>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="hc-about-body">
+
+                <h3>&#127758; What is Durban Harbour?</h3>
+                <p>
+                    Durban Harbour is a large port on the east coast of South Africa, in the city of Durban,
+                    KwaZulu-Natal. It sits along the warm Indian Ocean and is managed by the Transnet National
+                    Ports Authority (TNPA). It is the number one busiest port in all of Africa, and one of the
+                    top ports in the world.
+                </p>
+
+                <div class="hc-fact-grid">
+                    <div class="hc-fact-box">
+                        <div class="hc-fact-num">&#35;1</div>
+                        <div class="hc-fact-lbl">Busiest port in Africa</div>
+                    </div>
+                    <div class="hc-fact-box">
+                        <div class="hc-fact-num">57km&sup2;</div>
+                        <div class="hc-fact-lbl">Total size of the port</div>
+                    </div>
+                    <div class="hc-fact-box">
+                        <div class="hc-fact-num">2.9M+</div>
+                        <div class="hc-fact-lbl">Containers handled per year</div>
+                    </div>
+                    <div class="hc-fact-box">
+                        <div class="hc-fact-num">1824</div>
+                        <div class="hc-fact-lbl">Year it was first built</div>
+                    </div>
+                </div>
+
+                <h3>&#128674; Boat Trips &amp; Leisure</h3>
+                <p>
+                    The harbour is not just for big ships. People come here to enjoy boat trips on the water.
+                    You can go on a harbour cruise, a fishing trip, or a sunset ride across the Indian Ocean.
+                    The Point Waterfront area is where most leisure boats depart from — it is a lively and
+                    beautiful part of the harbour that is open to the public.
+                </p>
+
+                <h3>&#127960;&#65039; Places Inside the Harbour</h3>
+                <ul>
+                    <li><strong>Point Waterfront</strong> — where you board boats for leisure trips</li>
+                    <li><strong>Wilson's Wharf</strong> — a marina with restaurants and entertainment</li>
+                    <li><strong>Durban Yacht Club</strong> — one of the oldest yacht clubs in South Africa</li>
+                    <li><strong>Container Terminal</strong> — where big cargo ships load and unload goods</li>
+                    <li><strong>The Bluff</strong> — the land on the south side that protects the harbour from big waves</li>
+                </ul>
+
+                <h3>&#128031; Sea Life</h3>
+                <p>
+                    The Indian Ocean around Durban is full of life. You can spot dolphins, different kinds of
+                    fish, and even whales during certain times of the year. TNPA works hard to keep the ocean
+                    clean and to protect the animals that live in it.
+                </p>
+
+                <h3>&#128200; Why It Matters</h3>
+                <p>
+                    Durban Harbour helps South Africa trade with more than 30 countries around the world.
+                    It brings in cars, fuel, and food, and sends out goods like fruit, coal, and steel.
+                    The harbour supports hundreds of thousands of jobs for people in KwaZulu-Natal.
+                </p>
+
+                <h3>&#128205; Where Is It?</h3>
+                <p>The harbour is located at <strong>Point Waterfront, Durban, 4001, KwaZulu-Natal, South Africa.</strong></p>
+
+                <div class="hc-location-badge">
+                    <span class="pin">&#128205;</span>
+                    Durban Harbour — Point Waterfront, Durban, KZN
+                </div>
+
+                <div class="hc-map-wrapper">
+                    <div class="hc-map-label">
+                        <span>&#128205;</span> Durban Harbour, South Africa
+                    </div>
+                    <div class="ratio ratio-16x9">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3462.398!2d31.02541!3d-29.86768!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1ef7a91247840ff5%3A0xe3c8a41e62800455!2sDurban%20Harbour!5e0!3m2!1sen!2sza!4v1690000000000!5m2!1sen!2sza"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Durban Harbour location on Google Maps">
+                        </iframe>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    @Html.ActionLink("&#8592; Back to Home", "Index", "Home", null, new { @class = "btn btn-primary" })
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+@{
+    ViewBag.Title = "Driver Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card hc-form-card">
+                <div class="card-header" style="background: linear-gradient(135deg, #1b5e20, #388e3c); color: white; padding: 1.25rem 1.5rem;">
+                    <h4 class="mb-0">&#128663; Driver Login</h4>
+                    <p class="mb-0 small">Sign in to your driver portal</p>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Login", "Driver", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email Address</label>
+                            <input type="email" name="email" class="form-control"
+                                   placeholder="Enter your email" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                            <input type="password" name="password" class="form-control"
+                                   placeholder="Enter your password" required />
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-lg"
+                                    style="background-color: #2e7d32; color: white;">
+                                Login
+                            </button>
+                        </div>
+                    }
+
+                    <hr class="mt-4" />
+                    <p class="text-center text-muted small mb-0">
+                        Contact your boat owner if you have trouble logging in.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

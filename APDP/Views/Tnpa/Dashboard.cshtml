@@ -1,0 +1,65 @@
+@{
+    ViewBag.Title = "TNPA Dashboard";
+}
+
+<div class="container py-4">
+
+    <div class="hc-dashboard-header mb-4">
+        <h2>&#128203; TNPA Admin Dashboard</h2>
+        <p class="text-muted">Welcome, <strong>@Session["TnpaAdminName"]</strong> — Transnet National Ports Authority</p>
+    </div>
+
+    @* Stats Row *@
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card hc-stat-card hc-stat-warning text-center p-3">
+                <div class="hc-stat-number">@ViewBag.PendingCount</div>
+                <div class="hc-stat-label">Pending Review</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card hc-stat-card hc-stat-success text-center p-3">
+                <div class="hc-stat-number">@ViewBag.ApprovedCount</div>
+                <div class="hc-stat-label">Approved Boats</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card hc-stat-card hc-stat-danger text-center p-3">
+                <div class="hc-stat-number">@ViewBag.RejectedCount</div>
+                <div class="hc-stat-label">Rejected Boats</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card hc-stat-card hc-stat-info text-center p-3">
+                <div class="hc-stat-number">@ViewBag.TotalOwners</div>
+                <div class="hc-stat-label">Registered Owners</div>
+            </div>
+        </div>
+    </div>
+
+    @* Action Cards *@
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card hc-card p-4">
+                <h5>&#9203; Pending Boat Reviews</h5>
+                <p class="text-muted">Review and approve or reject boat submissions from boat owners.</p>
+                @if ((int)ViewBag.PendingCount > 0)
+                {
+                    <span class="badge bg-warning text-dark mb-2">@ViewBag.PendingCount boat(s) awaiting review</span>
+                }
+                @Html.ActionLink("Review Pending Boats", "PendingBoats", "Tnpa", null, new { @class = "btn btn-warning" })
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card hc-card p-4">
+                <h5>&#128674; All Boats</h5>
+                <p class="text-muted">View all registered boats and their current approval status.</p>
+                @Html.ActionLink("View All Boats", "AllBoats", "Tnpa", null, new { @class = "btn btn-dark" })
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        @Html.ActionLink("Logout", "Logout", "Tnpa", null, new { @class = "btn btn-outline-danger" })
+    </div>
+</div>

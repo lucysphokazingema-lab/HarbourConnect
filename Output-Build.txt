@@ -1,0 +1,6 @@
+﻿19:12:13:000	Build started at 7:12 PM...
+19:12:13:117	1>------ Build started: Project: APDP, Configuration: Debug Any CPU ------
+19:12:13:391	1>C:\APDProject\APDP\APDP\Controllers\DriverController.cs(139,29,139,36): warning CS0108: 'DriverController.Profile()' hides inherited member 'Controller.Profile'. Use the new keyword if hiding was intended.
+19:12:13:408	1>  APDP -> C:\APDProject\APDP\APDP\bin\APDP.dll
+19:12:13:453	========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+19:12:13:453	========== Build completed at 7:12 PM and took 00.479 seconds ==========

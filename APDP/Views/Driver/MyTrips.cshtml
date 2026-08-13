@@ -1,0 +1,77 @@
+@model IEnumerable<APDP.Models.Booking>
+@{
+    ViewBag.Title = "My Trips";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>&#128197; My Trips</h2>
+        @Html.ActionLink("Back to Dashboard", "Dashboard", "Driver", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-warning text-center p-4">
+            <h5>@ViewBag.Message</h5>
+        </div>
+    }
+    else if (!Model.Any())
+    {
+        <div class="alert alert-info text-center p-5">
+            <h5>No upcoming trips.</h5>
+            <p>There are no confirmed bookings for your boat at the moment.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover hc-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Booking #</th>
+                        <th>Customer</th>
+                        <th>Customer Phone</th>
+                        <th>Trip Date</th>
+                        <th>Passengers</th>
+                        <th>Special Requests</th>
+                        <th>Boat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var trip in Model)
+                    {
+                        <tr class="@(trip.TripDate.Date == DateTime.Today ? "table-warning" : "")">
+                            <td><strong>#@trip.BookingID</strong></td>
+                            <td>@trip.Customer.FullName</td>
+                            <td>@trip.Customer.PhoneNumber</td>
+                            <td>
+                                @trip.TripDate.ToString("dddd, dd MMM yyyy")
+                                @if (trip.TripDate.Date == DateTime.Today)
+                                {
+                                    <br /><span class="badge bg-warning text-dark">Today!</span>
+                                }
+                                else if (trip.TripDate.Date == DateTime.Today.AddDays(1))
+                                {
+                                    <br /><span class="badge bg-info">Tomorrow</span>
+                                }
+                            </td>
+                            <td>@trip.NumberOfPassengers</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(trip.SpecialRequests))
+                                {
+                                    @trip.SpecialRequests
+                                }
+                                else
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                            </td>
+                            <td>@trip.Boat.BoatName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,353 @@
+@model APDP.Models.Booking
+@{
+    ViewBag.Title = "Book a Trip";
+    var boat    = ViewBag.Boat    as APDP.Models.Boat;
+    var weather = ViewBag.Weather as APDP.Models.WeatherViewModel;
+    string skyType  = weather != null ? weather.SkyType : "clear";
+    bool   isNight  = weather != null && weather.IsNight;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @* ══════════════════════════════════════════════════════════
+               PHONE-STYLE WEATHER WIDGET
+               ══════════════════════════════════════════════════════════ *@
+            @if (weather != null && !weather.HasError)
+            {
+                <div class="hc-phone-weather sky-@skyType mb-4" id="weatherWidget">
+
+                    @* ── Animated Sky Layer ────────────────────────────── *@
+                    <div class="sky-layer">
+
+                        @* Stars (night only) *@
+                        @if (isNight)
+                        {
+                            <div class="stars">
+                                @for (int s = 0; s < 60; s++)
+                                {
+                                    <div class="star" style="
+                                        left:@(s * 1.7 % 100)%;
+                                        top:@(s * 2.3 % 60)%;
+                                        animation-delay:@(s * 0.15)s;
+                                        width:@(s % 3 + 1)px;
+                                        height:@(s % 3 + 1)px;">
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @* Sun (day, clear/partly cloudy) *@
+                        @if (!isNight && (skyType == "clear" || skyType == "cloudy"))
+                        {
+                            <div class="sun">
+                                <div class="sun-rays"></div>
+                            </div>
+                        }
+
+                        @* Moon (night, clear) *@
+                        @if (isNight && (skyType == "clear-night" || skyType == "cloudy-night"))
+                        {
+                            <div class="moon"></div>
+                        }
+
+                        @* Clouds *@
+                        @if (skyType == "cloudy" || skyType == "cloudy-night" ||
+                             skyType == "rain"   || skyType == "thunder")
+                        {
+                            <div class="cloud cloud-1"></div>
+                            <div class="cloud cloud-2"></div>
+                            <div class="cloud cloud-3"></div>
+                        }
+                        @if (skyType == "clear" || skyType == "clear-night")
+                        {
+                            <div class="cloud cloud-light cloud-1"></div>
+                        }
+
+                        @* Rain drops *@
+                        @if (skyType == "rain" || skyType == "thunder")
+                        {
+                            <div class="rain-container">
+                                @for (int r = 0; r < 40; r++)
+                                {
+                                    <div class="raindrop" style="
+                                        left:@(r * 2.5)%;
+                                        animation-delay:@(r * 0.07)s;
+                                        animation-duration:@(0.6 + r % 4 * 0.1)s;">
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @* Lightning (thunder) *@
+                        @if (skyType == "thunder")
+                        {
+                            <div class="lightning"></div>
+                        }
+
+                        @* Snow *@
+                        @if (skyType == "snow")
+                        {
+                            <div class="snow-container">
+                                @for (int sn = 0; sn < 30; sn++)
+                                {
+                                    <div class="snowflake" style="
+                                        left:@(sn * 3.3)%;
+                                        animation-delay:@(sn * 0.2)s;
+                                        animation-duration:@(2 + sn % 3)s;">
+                                        &#10052;
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @* ── Main Weather Info ─────────────────────────────── *@
+                    <div class="weather-main">
+                        <div class="weather-city">
+                            &#127754; @weather.CityName, @weather.Country
+                        </div>
+                        <div class="weather-temp">
+                            @weather.TemperatureCelsius<span class="weather-deg">&deg;C</span>
+                        </div>
+                        <div class="weather-desc">@weather.Description</div>
+                        <div class="weather-hilo">
+                            H:@weather.Forecast.Count > 0 ? weather.Forecast[0].TempMax.ToString("0") : weather.TemperatureCelsius.ToString("0")&deg;
+                            &nbsp; L:@(weather.Forecast.Count > 0 ? weather.Forecast[0].TempMin.ToString("0") : (weather.TemperatureCelsius - 5).ToString("0"))&deg;
+                        </div>
+                    </div>
+
+                    @* ── Stats Strip ───────────────────────────────────── *@
+                    <div class="weather-stats-strip">
+                        <div class="weather-stat-item">
+                            <div class="stat-icon">&#128167;</div>
+                            <div class="stat-val">@weather.Humidity%</div>
+                            <div class="stat-lbl">Humidity</div>
+                        </div>
+                        <div class="weather-stat-item">
+                            <div class="stat-icon">&#127788;</div>
+                            <div class="stat-val">@weather.WindSpeedKmh</div>
+                            <div class="stat-lbl">km/h Wind</div>
+                        </div>
+                        <div class="weather-stat-item">
+                            <div class="stat-icon">&#127774;</div>
+                            <div class="stat-val">@weather.Sunrise.ToString("HH:mm")</div>
+                            <div class="stat-lbl">Sunrise</div>
+                        </div>
+                        <div class="weather-stat-item">
+                            <div class="stat-icon">&#127772;</div>
+                            <div class="stat-val">@weather.Sunset.ToString("HH:mm")</div>
+                            <div class="stat-lbl">Sunset</div>
+                        </div>
+                        <div class="weather-stat-item">
+                            <div class="stat-icon">&#129406;</div>
+                            <div class="stat-val">@weather.FeelsLike&deg;</div>
+                            <div class="stat-lbl">Feels Like</div>
+                        </div>
+                    </div>
+
+                    @* ── 7-Day Forecast ────────────────────────────────── *@
+                    @if (weather.Forecast != null && weather.Forecast.Count > 0)
+                    {
+                        <div class="forecast-strip">
+                            @foreach (var day in weather.Forecast)
+                            {
+                                <div class="forecast-day">
+                                    <div class="fc-day-name">@day.DayName</div>
+                                    <img src="@day.IconUrl" class="fc-icon" alt="@day.Description" />
+                                    <div class="fc-temps">
+                                        <span class="fc-max">@day.TempMax.ToString("0")&deg;</span>
+                                        <span class="fc-min">@day.TempMin.ToString("0")&deg;</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @* ── Sailing Advice ────────────────────────────────── *@
+                    <div class="sailing-advice sailing-@weather.SailingAdviceCssClass">
+                        &#9875; <strong>Sailing:</strong> @weather.SailingAdvice
+                    </div>
+
+                </div>
+            }
+
+            @* ══════════════════════════════════════════════════════════
+               BOOKING FORM
+               ══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-green">
+                    <h4 class="mb-0">&#128197; Book a Trip</h4>
+                    @if (boat != null)
+                    {
+                        <p class="mb-0 small">@boat.BoatName &mdash; @boat.HarbourLocation</p>
+                    }
+                </div>
+                <div class="card-body p-4">
+
+                    @if (boat != null)
+                    {
+                        <div class="hc-booking-summary mb-4">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Boat</small>
+                                    <p class="fw-semibold mb-1">@boat.BoatName</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Type</small>
+                                    <p class="fw-semibold mb-1">@boat.BoatType</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Location</small>
+                                    <p class="fw-semibold mb-1">@boat.HarbourLocation</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Max Passengers</small>
+                                    <p class="fw-semibold mb-1">@boat.MaxPassengers</p>
+                                </div>
+                                <div class="col-12">
+                                    <small class="text-muted">Price per Trip</small>
+                                    <p class="hc-price-tag mb-0">R @boat.PricePerTrip.ToString("N2")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("BookBoat", "Customer", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.BoatID)
+                        @Html.ValidationSummary(true, "Please fix the errors below:", new { @class = "alert alert-danger" })
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.TripDate, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.TripDate, "{0:yyyy-MM-dd}", new
+                            {
+                                @class = "form-control",
+                                type   = "date",
+                                min    = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")
+                            })
+                            @Html.ValidationMessageFor(m => m.TripDate, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.NumberOfPassengers, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.NumberOfPassengers, new
+                            {
+                                @class = "form-control",
+                                type   = "number",
+                                min    = "1",
+                                max    = boat != null ? boat.MaxPassengers.ToString() : "200"
+                            })
+                            @Html.ValidationMessageFor(m => m.NumberOfPassengers, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.SpecialRequests, new { @class = "form-label fw-semibold" })
+                            @Html.TextAreaFor(m => m.SpecialRequests, 3, 0, new
+                            {
+                                @class      = "form-control",
+                                placeholder = "Any special requests? (optional)"
+                            })
+                            @Html.ValidationMessageFor(m => m.SpecialRequests, "", new { @class = "text-danger small" })
+                        </div>
+
+                        @* ── Payment Details ───────────────────────────────── *@
+                        <hr class="my-4" />
+                        <h5 class="mb-3">&#128179; Payment Details</h5>
+                        <p class="text-muted small mb-3">Enter your card information to complete the booking. Your payment is secure and encrypted.</p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Cardholder Name</label>
+                            <input type="text" class="form-control" id="cardName" name="CardName"
+                                   placeholder="Full name as it appears on card"
+                                   maxlength="100" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Card Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text">&#128179;</span>
+                                <input type="text" class="form-control" id="cardNumber" name="CardNumber"
+                                       placeholder="1234 5678 9012 3456"
+                                       maxlength="19" inputmode="numeric"
+                                       autocomplete="cc-number" required />
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Expiry Date</label>
+                                <input type="text" class="form-control" id="cardExpiry" name="CardExpiry"
+                                       placeholder="MM / YY"
+                                       maxlength="7" inputmode="numeric"
+                                       autocomplete="cc-exp" required />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">CVV</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="cardCvv" name="CardCvv"
+                                           placeholder="&bull;&bull;&bull;"
+                                           maxlength="4" inputmode="numeric"
+                                           autocomplete="cc-csc" required />
+                                    <span class="input-group-text" title="3-digit code on the back of your card (4 digits for Amex)">&#128274;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Accepted card logos *@
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <span class="text-muted small">We accept:</span>
+                            <span class="badge bg-light text-dark border fw-bold px-2">VISA</span>
+                            <span class="badge bg-light text-dark border fw-bold px-2">Mastercard</span>
+                            <span class="badge bg-light text-dark border fw-bold px-2">Amex</span>
+                        </div>
+
+                        <div class="alert alert-light border d-flex align-items-center gap-2 py-2 mb-4" role="alert">
+                            <span style="font-size:1.2rem;">&#128274;</span>
+                            <span class="small text-muted">Your payment is protected with 256-bit SSL encryption. We do not store your card details.</span>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                &#128179; Pay &amp; Confirm Booking
+                            </button>
+                            @Html.ActionLink("Cancel", "Boats", "Customer", null,
+                                new { @class = "btn btn-outline-secondary btn-lg" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+    <script>
+        // ── Card number: auto-space every 4 digits ──────────────────────
+        document.getElementById('cardNumber').addEventListener('input', function () {
+            var v = this.value.replace(/\D/g, '').substring(0, 16);
+            this.value = v.replace(/(.{4})/g, '$1 ').trim();
+        });
+
+        // ── Expiry: auto-insert slash ───────────────────────────────────
+        document.getElementById('cardExpiry').addEventListener('input', function () {
+            var v = this.value.replace(/\D/g, '').substring(0, 4);
+            if (v.length >= 3) {
+                this.value = v.substring(0, 2) + ' / ' + v.substring(2);
+            } else {
+                this.value = v;
+            }
+        });
+
+        // ── CVV: digits only ────────────────────────────────────────────
+        document.getElementById('cardCvv').addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').substring(0, 4);
+        });
+    </script>
+}
