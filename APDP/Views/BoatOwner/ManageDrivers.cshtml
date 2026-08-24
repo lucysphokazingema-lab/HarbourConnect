@@ -1,0 +1,103 @@
+@model IEnumerable<APDP.Models.Driver>
+@{
+    ViewBag.Title = "Manage Drivers";
+    var ownerBoats = ViewBag.OwnerBoats as IEnumerable<APDP.Models.Boat>;
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="hc-page-title">&#128663; Manage Drivers</h2>
+        @Html.ActionLink("+ Add New Driver", "AddDriver", "BoatOwner", null, new { @class = "btn btn-success" })
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center p-5">
+            <div style="font-size:3rem;">&#128663;</div>
+            <h5 class="mt-2">No drivers added yet.</h5>
+            <p class="mb-3">Add a driver so they can log in and manage trips for your boats.</p>
+            @Html.ActionLink("Add Your First Driver", "AddDriver", "BoatOwner", null, new { @class = "btn btn-primary" })
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover hc-table align-middle">
+                <thead>
+                    <tr>
+                        <th>License No. (Primary Key)</th>
+                        <th>Full Name</th>
+                        <th>Email (Login)</th>
+                        <th>Phone</th>
+                        <th>Assigned Boat</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var driver in Model)
+                    {
+                        <tr>
+                            <td><span class="badge bg-dark fs-6 px-2 py-1">@driver.LicenseNumber</span></td>
+                            <td class="fw-semibold">@driver.FullName</td>
+                            <td>
+                                <code class="hc-login-code">@driver.Email</code>
+                            </td>
+                            <td>@driver.PhoneNumber</td>
+                            <td>
+                                @if (driver.AssignedBoat != null)
+                                {
+                                    <span class="badge bg-primary">&#128674; @driver.AssignedBoat.BoatName</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Unassigned</span>
+                                }
+                            </td>
+                            <td>
+                                @if (driver.Status == APDP.Models.DriverStatus.Active)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else if (driver.Status == APDP.Models.DriverStatus.Inactive)
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Suspended</span>
+                                }
+                            </td>
+                            <td>
+                                @Html.ActionLink("Edit", "EditDriver", "BoatOwner", new { id = driver.DriverID }, new { @class = "btn btn-sm btn-outline-primary" })
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        if (ownerBoats != null && !ownerBoats.Any())
+        {
+            <div class="alert alert-warning mt-3">
+                <strong>&#9888; Note:</strong> You have no approved boats yet. Drivers can only be assigned to approved boats.
+                Get your boats approved by TNPA first.
+            </div>
+        }
+    }
+
+    <div class="mt-4">
+        @Html.ActionLink("Back to Dashboard", "Dashboard", "BoatOwner", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+</div>
+
+<style>
+    .hc-login-code {
+        background: #eef2ff;
+        color: #1565c0;
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 0.85rem;
+    }
+</style>

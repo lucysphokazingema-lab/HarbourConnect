@@ -143,6 +143,7 @@
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\TnpaAdmin.cs" />
     <Compile Include="Models\HarbourConnectContext.cs" />
+    <Compile Include="Models\BoatRating.cs" />
     <Compile Include="Models\HarbourConnectInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -235,6 +236,7 @@
     <Content Include="Views\Driver\Dashboard.cshtml" />
     <Content Include="Views\Driver\MyTrips.cshtml" />
     <Content Include="Views\Driver\Profile.cshtml" />
+    <Content Include="Views\Driver\RideMap.cshtml" />
     <!-- BoatOwner -->
     <Content Include="Views\BoatOwner\Register.cshtml" />
     <Content Include="Views\BoatOwner\Login.cshtml" />
@@ -243,6 +245,9 @@
     <Content Include="Views\BoatOwner\MyBoats.cshtml" />
     <Content Include="Views\BoatOwner\EditBoat.cshtml" />
     <Content Include="Views\BoatOwner\Bookings.cshtml" />
+    <Content Include="Views\BoatOwner\ManageDrivers.cshtml" />
+    <Content Include="Views\BoatOwner\AddDriver.cshtml" />
+    <Content Include="Views\BoatOwner\EditDriver.cshtml" />
     <!-- Tnpa -->
     <Content Include="Views\Tnpa\Login.cshtml" />
     <Content Include="Views\Tnpa\Dashboard.cshtml" />
@@ -257,6 +262,8 @@
     <Content Include="Views\Customer\BoatDetails.cshtml" />
     <Content Include="Views\Customer\BookBoat.cshtml" />
     <Content Include="Views\Customer\MyBookings.cshtml" />
+    <Content Include="Views\Customer\RateBoat.cshtml" />
+    <Content Include="Views\Customer\BookingConfirmation.cshtml" />
   </ItemGroup>
   <!-- ── Folders ──────────────────────────────────────────── -->
   <ItemGroup>

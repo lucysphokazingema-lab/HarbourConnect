@@ -80,7 +80,6 @@ namespace APDP.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Count bookings for the assigned boat
             if (driver.AssignedBoatID != null)
             {
                 ViewBag.UpcomingTrips = db.Bookings
@@ -90,12 +89,35 @@ namespace APDP.Controllers
 
                 ViewBag.TotalTrips = db.Bookings
                     .Count(b => b.BoatID == driver.AssignedBoatID
-                             && b.Status == BookingStatus.Confirmed);
+                             && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed));
+
+                // Find the next confirmed booking for this boat (today or future, not yet started)
+                var nextBooking = db.Bookings
+                    .Include("Customer")
+                    .Where(b => b.BoatID == driver.AssignedBoatID
+                             && b.Status == BookingStatus.Confirmed
+                             && b.TripDate >= DateTime.Today
+                             && b.RideStartedAt == null)
+                    .OrderBy(b => b.TripDate)
+                    .FirstOrDefault();
+
+                // Find an active (started but not ended) ride
+                var activeRide = db.Bookings
+                    .Include("Customer")
+                    .Where(b => b.BoatID == driver.AssignedBoatID
+                             && b.RideStartedAt != null
+                             && b.RideEndedAt == null)
+                    .FirstOrDefault();
+
+                ViewBag.NextBooking  = nextBooking;
+                ViewBag.ActiveRide   = activeRide;
             }
             else
             {
                 ViewBag.UpcomingTrips = 0;
                 ViewBag.TotalTrips    = 0;
+                ViewBag.NextBooking   = null;
+                ViewBag.ActiveRide    = null;
             }
 
             return View(driver);
@@ -124,7 +146,7 @@ namespace APDP.Controllers
                 .Include("Customer")
                 .Include("Boat")
                 .Where(b => b.BoatID == driver.AssignedBoatID
-                         && b.Status == BookingStatus.Confirmed)
+                         && (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Completed))
                 .OrderBy(b => b.TripDate)
                 .ToList();
 
@@ -154,6 +176,121 @@ namespace APDP.Controllers
             }
 
             return View(driver);
+        }
+
+        // ─────────────────────────────────────────────
+        // START RIDE
+        // ─────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult StartRide(int bookingId)
+        {
+            if (Session["DriverID"] == null)
+                return RedirectToAction("Login");
+
+            int driverID = (int)Session["DriverID"];
+            var driver = db.Drivers.FirstOrDefault(d => d.DriverID == driverID);
+
+            if (driver == null)
+                return RedirectToAction("Login");
+
+            var booking = db.Bookings.FirstOrDefault(b => b.BookingID == bookingId
+                                                       && b.BoatID == driver.AssignedBoatID
+                                                       && b.Status == BookingStatus.Confirmed
+                                                       && b.RideStartedAt == null);
+            if (booking == null)
+            {
+                TempData["ErrorMessage"] = "Booking not found or ride already started.";
+                return RedirectToAction("Dashboard");
+            }
+
+            booking.RideStartedAt = DateTime.Now;
+            db.SaveChanges();
+
+            TempData["SuccessMessage"] = "Ride started! Safe sailing.";
+            return RedirectToAction("RideMap", new { bookingId = booking.BookingID });
+        }
+
+        // ─────────────────────────────────────────────
+        // RIDE MAP
+        // ─────────────────────────────────────────────
+
+        [HttpGet]
+        public ActionResult RideMap(int bookingId)
+        {
+            if (Session["DriverID"] == null)
+                return RedirectToAction("Login");
+
+            int driverID = (int)Session["DriverID"];
+            var driver = db.Drivers
+                .Include("AssignedBoat")
+                .FirstOrDefault(d => d.DriverID == driverID);
+
+            if (driver == null)
+                return RedirectToAction("Login");
+
+            var booking = db.Bookings
+                .Include("Customer")
+                .Include("Boat")
+                .FirstOrDefault(b => b.BookingID == bookingId
+                                  && b.BoatID == driver.AssignedBoatID
+                                  && b.RideStartedAt != null
+                                  && b.RideEndedAt == null);
+
+            if (booking == null)
+            {
+                TempData["ErrorMessage"] = "Active ride not found.";
+                return RedirectToAction("Dashboard");
+            }
+
+            return View(booking);
+        }
+
+        // ─────────────────────────────────────────────
+        // END RIDE
+        // ─────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EndRide(int bookingId,
+            bool lifeJacketsReturned,
+            bool boatSecured,
+            bool noIncidents,
+            bool passengersSafe,
+            string endNotes)
+        {
+            if (Session["DriverID"] == null)
+                return RedirectToAction("Login");
+
+            int driverID = (int)Session["DriverID"];
+            var driver = db.Drivers.FirstOrDefault(d => d.DriverID == driverID);
+
+            if (driver == null)
+                return RedirectToAction("Login");
+
+            var booking = db.Bookings.FirstOrDefault(b => b.BookingID == bookingId
+                                                       && b.BoatID == driver.AssignedBoatID
+                                                       && b.RideStartedAt != null
+                                                       && b.RideEndedAt == null);
+            if (booking == null)
+            {
+                TempData["ErrorMessage"] = "Active ride not found.";
+                return RedirectToAction("Dashboard");
+            }
+
+            if (!lifeJacketsReturned || !boatSecured || !passengersSafe)
+            {
+                TempData["ErrorMessage"] = "Please confirm all safety checks before ending the ride.";
+                return RedirectToAction("RideMap", new { bookingId });
+            }
+
+            booking.RideEndedAt = DateTime.Now;
+            booking.Status      = BookingStatus.Completed;
+            db.SaveChanges();
+
+            TempData["SuccessMessage"] = "Ride completed successfully. All checks passed.";
+            return RedirectToAction("Dashboard");
         }
 
         protected override void Dispose(bool disposing)

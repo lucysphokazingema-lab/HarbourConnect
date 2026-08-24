@@ -10,9 +10,7 @@
             <div class="card hc-form-card">
                 <div class="card-header hc-form-header">
                     <h4 class="mb-0">&#9998; Edit Boat — @Model.BoatName</h4>
-                    <p class="mb-0 small">
-                        Note: Changing the boat name or registration number will reset status to Pending for TNPA review.
-                    </p>
+                    <p class="mb-0 small">Changing the boat name or registration number resets status to Pending for TNPA review.</p>
                 </div>
                 <div class="card-body p-4">
 
@@ -22,6 +20,7 @@
                         @Html.HiddenFor(m => m.BoatID)
                         @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
 
+                        @* ── Boat Details ──────────────────────────────────────── *@
                         <h6 class="hc-form-section-title">Boat Details</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -31,8 +30,12 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 @Html.LabelFor(m => m.RegistrationNumber, new { @class = "form-label fw-semibold" })
-                                @Html.TextBoxFor(m => m.RegistrationNumber, new { @class = "form-control" })
+                                <div class="input-group">
+                                    <span class="input-group-text">&#128273;</span>
+                                    @Html.TextBoxFor(m => m.RegistrationNumber, new { @class = "form-control", maxlength = "50" })
+                                </div>
                                 @Html.ValidationMessageFor(m => m.RegistrationNumber, "", new { @class = "text-danger small" })
+                                <small class="text-muted">&#128273; <strong>Primary key</strong></small>
                             </div>
                         </div>
 
@@ -45,14 +48,6 @@
                                     new { @class = "form-select" })
                                 @Html.ValidationMessageFor(m => m.BoatType, "", new { @class = "text-danger small" })
                             </div>
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.HarbourLocation, new { @class = "form-label fw-semibold" })
-                                @Html.DropDownListFor(m => m.HarbourLocation,
-                                    new SelectList(new[] { "Durban Harbour", "Cape Town Harbour", "Port Elizabeth", "East London", "Richards Bay" }, Model.HarbourLocation),
-                                    "-- Select Location --",
-                                    new { @class = "form-select" })
-                                @Html.ValidationMessageFor(m => m.HarbourLocation, "", new { @class = "text-danger small" })
-                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -61,6 +56,7 @@
                             @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
                         </div>
 
+                        @* ── Capacity & Pricing ────────────────────────────────── *@
                         <h6 class="hc-form-section-title mt-3">Capacity &amp; Pricing</h6>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -71,52 +67,261 @@
                             <div class="col-md-6 mb-3">
                                 @Html.LabelFor(m => m.PricePerTrip, new { @class = "form-label fw-semibold" })
                                 <div class="input-group">
-                                    <span class="input-group-text">R</span>
-                                    @Html.TextBoxFor(m => m.PricePerTrip, new { @class = "form-control", type = "number", min = "0", step = "0.01" })
+                                    <span class="input-group-text fw-bold">R</span>
+                                    @Html.TextBoxFor(m => m.PricePerTrip, new { @class = "form-control", type = "number", min = "0", step = "1" })
                                 </div>
                                 @Html.ValidationMessageFor(m => m.PricePerTrip, "", new { @class = "text-danger small" })
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.LifeJacketQuantity, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.LifeJacketQuantity, new { @class = "form-control", type = "number", min = "0" })
-                            @Html.ValidationMessageFor(m => m.LifeJacketQuantity, "", new { @class = "text-danger small" })
+                        @* ── Safety Equipment ──────────────────────────────────── *@
+                        <h6 class="hc-form-section-title mt-3">&#9875; Safety Equipment</h6>
+                        <p class="text-muted small mb-3">Upload a new photo to replace the existing one, or leave blank to keep it.</p>
+
+                        <div class="row g-3 mb-3">
+
+                            @* Life Jackets *@
+                            <div class="col-md-4">
+                                <div class="hc-eq-card hc-eq-always" style="cursor:default;">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.LifeJacketImagePath))
+                                        {
+                                            <img id="prev_lj" src="@Url.Content(Model.LifeJacketImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Life Jacket" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_lj" src="https://cdn-icons-png.flaticon.com/512/2972/2972158.png"
+                                                 class="hc-eq-img" alt="Life Jacket" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Life Jackets</div>
+                                    <div class="mt-2 px-2 w-100">
+                                        @Html.LabelFor(m => m.LifeJacketQuantity, "Quantity", new { @class = "form-label small mb-1" })
+                                        @Html.TextBoxFor(m => m.LifeJacketQuantity, new { @class = "form-control form-control-sm text-center", type = "number", min = "0" })
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.LifeJacketImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqLifeJacket" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_lj','https://cdn-icons-png.flaticon.com/512/2972/2972158.png')" />
+                                    </div>
+                                    <div class="hc-eq-required-badge">Required</div>
+                                </div>
+                            </div>
+
+                            @* Medical Kit *@
+                            <div class="col-md-4">
+                                <div class="hc-eq-card @(Model.HasMedKit ? "hc-eq-active" : "")"
+                                     id="medKitCard" onclick="toggleEquipment('HasMedKit','medKitCard','medKitStatus','On board')">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.MedKitImagePath))
+                                        {
+                                            <img id="prev_mk" src="@Url.Content(Model.MedKitImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Medical Kit" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_mk" src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+                                                 class="hc-eq-img" alt="Medical Kit" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Medical Kit</div>
+                                    @Html.CheckBoxFor(m => m.HasMedKit, new { @class = "d-none", id = "HasMedKit" })
+                                    <div class="hc-eq-status" id="medKitStatus">
+                                        @(Model.HasMedKit ? "&#10003; On board" : "Click to add")
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.MedKitImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqMedKit" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_mk','https://cdn-icons-png.flaticon.com/512/2966/2966327.png')" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* Fire Extinguisher *@
+                            <div class="col-md-4">
+                                <div class="hc-eq-card @(Model.HasFireExtinguisher ? "hc-eq-active" : "")"
+                                     id="fireCard" onclick="toggleEquipment('HasFireExtinguisher','fireCard','fireStatus','On board')">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.FireExtImagePath))
+                                        {
+                                            <img id="prev_fe" src="@Url.Content(Model.FireExtImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Fire Extinguisher" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_fe" src="https://cdn-icons-png.flaticon.com/512/3774/3774278.png"
+                                                 class="hc-eq-img" alt="Fire Extinguisher" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Fire Extinguisher</div>
+                                    @Html.CheckBoxFor(m => m.HasFireExtinguisher, new { @class = "d-none", id = "HasFireExtinguisher" })
+                                    <div class="hc-eq-status" id="fireStatus">
+                                        @(Model.HasFireExtinguisher ? "&#10003; On board" : "Click to add")
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.FireExtImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqFireExt" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_fe','https://cdn-icons-png.flaticon.com/512/3774/3774278.png')" />
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
-                        <h6 class="hc-form-section-title mt-3">Features &amp; Extras</h6>
-                        <div class="row mb-3">
+                        @* ── Features & Extras ────────────────────────────────── *@
+                        <h6 class="hc-form-section-title mt-3">&#127775; Features &amp; Extras</h6>
+                        <div class="row g-3 mb-3">
+
+                            @* Fishing Equipment *@
                             <div class="col-md-4">
-                                <div class="form-check">
-                                    @Html.CheckBoxFor(m => m.HasFishingEquipment, new { @class = "form-check-input" })
-                                    @Html.LabelFor(m => m.HasFishingEquipment, new { @class = "form-check-label" })
+                                <div class="hc-eq-card @(Model.HasFishingEquipment ? "hc-eq-active" : "")"
+                                     id="fishCard" onclick="toggleEquipment('HasFishingEquipment','fishCard','fishStatus','Available')">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.FishingImagePath))
+                                        {
+                                            <img id="prev_fish" src="@Url.Content(Model.FishingImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Fishing Equipment" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_fish" src="https://cdn-icons-png.flaticon.com/512/1988/1988592.png"
+                                                 class="hc-eq-img" alt="Fishing Equipment" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Fishing Equipment</div>
+                                    @Html.CheckBoxFor(m => m.HasFishingEquipment, new { @class = "d-none", id = "HasFishingEquipment" })
+                                    <div class="hc-eq-status" id="fishStatus">
+                                        @(Model.HasFishingEquipment ? "&#10003; Available" : "Click to add")
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.FishingImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqFishing" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_fish','https://cdn-icons-png.flaticon.com/512/1988/1988592.png')" />
+                                    </div>
                                 </div>
                             </div>
+
+                            @* Decoration *@
                             <div class="col-md-4">
-                                <div class="form-check">
-                                    @Html.CheckBoxFor(m => m.HasDecoration, new { @class = "form-check-input" })
-                                    @Html.LabelFor(m => m.HasDecoration, new { @class = "form-check-label" })
+                                <div class="hc-eq-card @(Model.HasDecoration ? "hc-eq-active" : "")"
+                                     id="decorCard" onclick="toggleEquipment('HasDecoration','decorCard','decorStatus','Available')">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.DecorationImagePath))
+                                        {
+                                            <img id="prev_dec" src="@Url.Content(Model.DecorationImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Decoration" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_dec" src="https://cdn-icons-png.flaticon.com/512/3050/3050434.png"
+                                                 class="hc-eq-img" alt="Decoration" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Decoration</div>
+                                    @Html.CheckBoxFor(m => m.HasDecoration, new { @class = "d-none", id = "HasDecoration" })
+                                    <div class="hc-eq-status" id="decorStatus">
+                                        @(Model.HasDecoration ? "&#10003; Available" : "Click to add")
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.DecorationImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqDecoration" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_dec','https://cdn-icons-png.flaticon.com/512/3050/3050434.png')" />
+                                    </div>
                                 </div>
                             </div>
+
+                            @* Sound System *@
                             <div class="col-md-4">
-                                <div class="form-check">
-                                    @Html.CheckBoxFor(m => m.HasSoundSystem, new { @class = "form-check-input" })
-                                    @Html.LabelFor(m => m.HasSoundSystem, new { @class = "form-check-label" })
+                                <div class="hc-eq-card @(Model.HasSoundSystem ? "hc-eq-active" : "")"
+                                     id="soundCard" onclick="toggleEquipment('HasSoundSystem','soundCard','soundStatus','Available')">
+                                    <div class="hc-eq-img-wrap">
+                                        @if (!string.IsNullOrEmpty(Model.SoundSystemImagePath))
+                                        {
+                                            <img id="prev_snd" src="@Url.Content(Model.SoundSystemImagePath)"
+                                                 class="hc-eq-img hc-eq-uploaded" alt="Sound System" />
+                                        }
+                                        else
+                                        {
+                                            <img id="prev_snd" src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png"
+                                                 class="hc-eq-img" alt="Sound System" />
+                                        }
+                                    </div>
+                                    <div class="hc-eq-name">Sound System</div>
+                                    @Html.CheckBoxFor(m => m.HasSoundSystem, new { @class = "d-none", id = "HasSoundSystem" })
+                                    <div class="hc-eq-status" id="soundStatus">
+                                        @(Model.HasSoundSystem ? "&#10003; Available" : "Click to add")
+                                    </div>
+                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
+                                        <label class="form-label small mb-1">
+                                            &#128247; @(string.IsNullOrEmpty(Model.SoundSystemImagePath) ? "Upload photo" : "Replace photo")
+                                        </label>
+                                        <input type="file" name="eqSoundSystem" class="form-control form-control-sm"
+                                               accept=".jpg,.jpeg,.png,.gif"
+                                               onchange="previewEq(this,'prev_snd','https://cdn-icons-png.flaticon.com/512/2972/2972531.png')" />
+                                    </div>
                                 </div>
                             </div>
+
                         </div>
 
-                        <h6 class="hc-form-section-title mt-3">Boat Image</h6>
-                        @if (!string.IsNullOrEmpty(Model.ImagePath))
-                        {
-                            <div class="mb-2">
-                                <img src="@Url.Content(Model.ImagePath)" alt="Current boat image"
-                                     class="img-thumbnail" style="max-height:150px;" />
-                                <p class="small text-muted mt-1">Current image. Upload a new one to replace it.</p>
-                            </div>
-                        }
+                        @* ── Disability Accommodation ──────────────────────────── *@
+                        <h6 class="hc-form-section-title mt-3">&#9855; Disability Accommodation</h6>
                         <div class="mb-3">
-                            <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                            @Html.LabelFor(m => m.DisabilityAccommodation, new { @class = "form-label fw-semibold" })
+                            @Html.TextAreaFor(m => m.DisabilityAccommodation, 3, 0, new
+                            {
+                                @class      = "form-control",
+                                placeholder = "e.g. Wheelchair ramp, wide boarding platform. Leave blank if none."
+                            })
+                            @Html.ValidationMessageFor(m => m.DisabilityAccommodation, "", new { @class = "text-danger small" })
+                        </div>
+
+                        @* ── Boat Photos ───────────────────────────────────────── *@
+                        <h6 class="hc-form-section-title mt-3">Boat Photos</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Main Photo</label>
+                                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                                {
+                                    <img src="@Url.Content(Model.ImagePath)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current main" />
+                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
+                                }
+                                <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Side View Photo</label>
+                                @if (!string.IsNullOrEmpty(Model.ImagePath2))
+                                {
+                                    <img src="@Url.Content(Model.ImagePath2)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current side" />
+                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
+                                }
+                                <input type="file" name="imageFile2" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Interior Photo</label>
+                                @if (!string.IsNullOrEmpty(Model.ImagePath3))
+                                {
+                                    <img src="@Url.Content(Model.ImagePath3)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current interior" />
+                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
+                                }
+                                <input type="file" name="imageFile3" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2 mt-4">
@@ -134,4 +339,53 @@
 @section scripts {
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+    <script>
+        function previewEq(input, imgId, fallbackSrc) {
+            var img = document.getElementById(imgId);
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                    img.classList.add('hc-eq-uploaded');
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                img.src = fallbackSrc;
+                img.classList.remove('hc-eq-uploaded');
+            }
+        }
+
+        function toggleEquipment(cbId, cardId, statusId, activeLabel) {
+            var cb   = document.getElementById(cbId);
+            var card = document.getElementById(cardId);
+            var st   = document.getElementById(statusId);
+            cb.checked = !cb.checked;
+            if (cb.checked) {
+                card.classList.add('hc-eq-active');
+                st.innerHTML = '&#10003; ' + activeLabel;
+            } else {
+                card.classList.remove('hc-eq-active');
+                st.textContent = 'Click to add';
+            }
+        }
+    </script>
+
+    <style>
+        .hc-eq-card         { border:2px dashed #90a4ae; border-radius:12px; padding:14px 10px 14px;
+                              background:#fff; cursor:pointer; transition:all 0.2s; text-align:center;
+                              user-select:none; display:flex; flex-direction:column; align-items:center; position:relative; }
+        .hc-eq-card:hover   { border-color:#00897b; background:#f0faf9; transform:translateY(-2px); }
+        .hc-eq-active       { border:2px solid #00897b !important; background:#e8f5e9 !important; }
+        .hc-eq-always       { border:2px solid #1565c0 !important; background:#e3f2fd !important; cursor:default; }
+        .hc-eq-img-wrap     { width:80px; height:80px; display:flex; align-items:center; justify-content:center; }
+        .hc-eq-img          { width:72px; height:72px; object-fit:contain; transition:all 0.2s; border-radius:4px; }
+        .hc-eq-uploaded     { object-fit:cover !important; border-radius:8px !important; border:2px solid #00897b; }
+        .hc-eq-name         { font-weight:700; font-size:0.88rem; margin-top:8px; color:#212529; }
+        .hc-eq-status       { font-size:0.78rem; color:#666; margin-top:3px; min-height:18px; }
+        .hc-eq-active .hc-eq-status { color:#2e7d32; font-weight:700; }
+        .hc-eq-upload       { border-top:1px dashed #ccc; padding-top:8px; margin-top:6px; }
+        .hc-eq-required-badge { position:absolute; top:6px; right:8px; background:#1565c0;
+                                color:#fff; font-size:0.62rem; padding:1px 7px;
+                                border-radius:10px; font-weight:700; }
+    </style>
 }

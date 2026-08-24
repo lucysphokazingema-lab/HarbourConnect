@@ -1,6 +1,8 @@
 @model APDP.Models.Driver
 @{
     ViewBag.Title = "Driver Dashboard";
+    var nextBooking = ViewBag.NextBooking as APDP.Models.Booking;
+    var activeRide  = ViewBag.ActiveRide  as APDP.Models.Booking;
 }
 
 <div class="container py-4">
@@ -10,7 +12,76 @@
         <p class="text-muted">Welcome, <strong>@Model.FullName</strong></p>
     </div>
 
-    @* Stats *@
+    @* ── Active Ride Banner ────────────────────────────────────── *@
+    @if (activeRide != null)
+    {
+        <div class="alert hc-active-ride-banner mb-4" role="alert">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-1">&#127945; Ride in Progress!</h5>
+                    <p class="mb-0">
+                        <strong>@activeRide.Boat.BoatName</strong> &mdash;
+                        @activeRide.NumberOfPassengers passenger@(activeRide.NumberOfPassengers == 1 ? "" : "s") on board<br />
+                        <small>Started: @activeRide.RideStartedAt.Value.ToString("HH:mm, dd MMM yyyy")</small>
+                    </p>
+                </div>
+                <div class="d-flex gap-2 flex-shrink-0">
+                    @Html.ActionLink("&#128205; View Map", "RideMap", "Driver", new { bookingId = activeRide.BookingID },
+                        new { @class = "btn btn-light fw-semibold" })
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ── Next Trip Notification ────────────────────────────────── *@
+    @if (activeRide == null && nextBooking != null)
+    {
+        bool isToday    = nextBooking.TripDate.Date == DateTime.Today;
+        bool isTomorrow = nextBooking.TripDate.Date == DateTime.Today.AddDays(1);
+
+        <div class="alert @(isToday ? "hc-trip-today" : "hc-trip-upcoming") mb-4" role="alert">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h5 class="mb-1">
+                        @if (isToday)
+                        { <text>&#128680; Trip Today!</text> }
+                        else if (isTomorrow)
+                        { <text>&#128276; Trip Tomorrow</text> }
+                        else
+                        { <text>&#128197; Upcoming Trip</text> }
+                    </h5>
+                    <p class="mb-0">
+                        <strong>@nextBooking.Boat.BoatName</strong> &mdash; @nextBooking.TripDate.ToString("dddd, dd MMMM yyyy")<br />
+                        <strong>@nextBooking.NumberOfPassengers</strong> passenger@(nextBooking.NumberOfPassengers == 1 ? "" : "s") &bull;
+                        Customer: <strong>@nextBooking.Customer.FullName</strong>
+                    </p>
+                </div>
+                @if (isToday)
+                {
+                    <div class="flex-shrink-0">
+                        @using (Html.BeginForm("StartRide", "Driver", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingId" value="@nextBooking.BookingID" />
+                            <button type="submit" class="btn btn-success btn-lg fw-semibold"
+                                    onclick="return confirm('Start the ride? Make sure all passengers are on board.')">
+                                &#9654; Start Ride
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (activeRide == null && nextBooking == null && Model.AssignedBoatID != null)
+    {
+        <div class="alert alert-info mb-4">
+            &#128197; No upcoming trips scheduled. Check back later or view all your trips below.
+        </div>
+    }
+
+    @* ── Stats ────────────────────────────────────────────────── *@
     <div class="row g-3 mb-4">
         <div class="col-sm-6">
             <div class="card hc-stat-card hc-stat-info text-center p-3">
@@ -26,7 +97,7 @@
         </div>
     </div>
 
-    @* Assigned Boat Info *@
+    @* ── Assigned Boat Info ──────────────────────────────────── *@
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="card hc-card p-4 h-100">
@@ -48,12 +119,30 @@
                         </tr>
                         <tr>
                             <th>Registration</th>
-                            <td>@Model.AssignedBoat.RegistrationNumber</td>
+                            <td><span class="badge bg-dark">@Model.AssignedBoat.RegistrationNumber</span></td>
                         </tr>
                         <tr>
                             <th>Max Passengers</th>
                             <td>@Model.AssignedBoat.MaxPassengers</td>
                         </tr>
+                        <tr>
+                            <th>Life Jackets</th>
+                            <td>@Model.AssignedBoat.LifeJacketQuantity on board</td>
+                        </tr>
+                        @if (Model.AssignedBoat.HasMedKit)
+                        {
+                            <tr>
+                                <th>Med Kit</th>
+                                <td><span class="text-success">&#10003; On board</span></td>
+                            </tr>
+                        }
+                        @if (Model.AssignedBoat.HasFireExtinguisher)
+                        {
+                            <tr>
+                                <th>Fire Extinguisher</th>
+                                <td><span class="text-success">&#10003; On board</span></td>
+                            </tr>
+                        }
                     </table>
                 }
                 else
@@ -70,57 +159,36 @@
             <div class="card hc-card p-4 h-100">
                 <h5>&#128100; My Details</h5>
                 <table class="table table-sm mt-3">
-                    <tr>
-                        <th>Name</th>
-                        <td>@Model.FullName</td>
-                    </tr>
-                    <tr>
-                        <th>Email</th>
-                        <td>@Model.Email</td>
-                    </tr>
-                    <tr>
-                        <th>Phone</th>
-                        <td>@Model.PhoneNumber</td>
-                    </tr>
-                    <tr>
-                        <th>License No.</th>
-                        <td>@Model.LicenseNumber</td>
-                    </tr>
+                    <tr><th>Name</th><td>@Model.FullName</td></tr>
+                    <tr><th>Email</th><td>@Model.Email</td></tr>
+                    <tr><th>Phone</th><td>@Model.PhoneNumber</td></tr>
+                    <tr><th>License No.</th><td>@Model.LicenseNumber</td></tr>
                     <tr>
                         <th>Status</th>
                         <td>
                             @if (Model.Status == APDP.Models.DriverStatus.Active)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
+                            { <span class="badge bg-success">Active</span> }
                             else if (Model.Status == APDP.Models.DriverStatus.Inactive)
-                            {
-                                <span class="badge bg-secondary">Inactive</span>
-                            }
+                            { <span class="badge bg-secondary">Inactive</span> }
                             else
-                            {
-                                <span class="badge bg-danger">Suspended</span>
-                            }
+                            { <span class="badge bg-danger">Suspended</span> }
                         </td>
                     </tr>
                     @if (Model.BoatOwner != null)
                     {
-                        <tr>
-                            <th>Boat Owner</th>
-                            <td>@Model.BoatOwner.FullName</td>
-                        </tr>
+                        <tr><th>Boat Owner</th><td>@Model.BoatOwner.FullName</td></tr>
                     }
                 </table>
             </div>
         </div>
     </div>
 
-    @* Action Cards *@
+    @* ── Action Cards ────────────────────────────────────────── *@
     <div class="row g-3">
         <div class="col-md-6">
             <div class="card hc-card p-4">
                 <h5>&#128197; My Trips</h5>
-                <p class="text-muted">View all upcoming confirmed trips for your assigned boat.</p>
+                <p class="text-muted">View all upcoming and completed trips for your assigned boat.</p>
                 @Html.ActionLink("View My Trips", "MyTrips", "Driver", null, new { @class = "btn btn-primary" })
             </div>
         </div>
@@ -137,3 +205,12 @@
         @Html.ActionLink("Logout", "Logout", "Driver", null, new { @class = "btn btn-outline-danger" })
     </div>
 </div>
+
+<style>
+    .hc-active-ride-banner { background: linear-gradient(135deg,#1b5e20,#2e7d32); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
+    .hc-active-ride-banner h5 { color:#fff; }
+    .hc-trip-today    { background: linear-gradient(135deg,#b71c1c,#c62828); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
+    .hc-trip-today h5 { color:#fff; }
+    .hc-trip-upcoming { background: linear-gradient(135deg,#0d47a1,#1565c0); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
+    .hc-trip-upcoming h5 { color:#fff; }
+</style>

@@ -1,0 +1,102 @@
+@model APDP.Models.Driver
+@{
+    ViewBag.Title = "Edit Driver";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header">
+                    <h4 class="mb-0">&#9998; Edit Driver — @Model.FullName</h4>
+                    <p class="mb-0 small">Leave the password field blank to keep the current password.</p>
+                </div>
+                <div class="card-body p-4">
+
+                    @using (Html.BeginForm("EditDriver", "BoatOwner", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.DriverID)
+                        @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
+
+                        <h6 class="hc-form-section-title">Driver Information</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
+                                @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
+                                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.LicenseNumber, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.LicenseNumber, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.LicenseNumber, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <hr class="my-3" />
+                        <h6 class="hc-form-section-title">Login Credentials</h6>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email" })
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Password, "New Password (leave blank to keep current)", new { @class = "form-label fw-semibold" })
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.Password, new { @class = "form-control", type = "password", id = "driverPassword", placeholder = "Leave blank to keep current password" })
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd()">&#128065;</button>
+                            </div>
+                        </div>
+
+                        <hr class="my-3" />
+                        <h6 class="hc-form-section-title">Status &amp; Assignment</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.Status, new { @class = "form-label fw-semibold" })
+                                @Html.DropDownListFor(m => m.Status,
+                                    new SelectList(Enum.GetValues(typeof(APDP.Models.DriverStatus)).Cast<APDP.Models.DriverStatus>()
+                                        .Select(s => new SelectListItem { Value = ((int)s).ToString(), Text = s.ToString(), Selected = s == Model.Status }),
+                                        "Value", "Text"),
+                                    new { @class = "form-select" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Assigned Boat</label>
+                                @Html.DropDownList("AssignedBoatID", ViewBag.OwnerBoats as SelectList,
+                                    "-- No assignment --",
+                                    new { @class = "form-select" })
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+                            @Html.ActionLink("Cancel", "ManageDrivers", "BoatOwner", null, new { @class = "btn btn-outline-secondary btn-lg" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+    <script>
+        function togglePwd() {
+            var f = document.getElementById('driverPassword');
+            f.type = (f.type === 'password') ? 'text' : 'password';
+        }
+    </script>
+}

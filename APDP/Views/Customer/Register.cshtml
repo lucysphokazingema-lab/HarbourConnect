@@ -18,27 +18,55 @@
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
 
+                        @* Full Name *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
                             @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "Your full name" })
                             @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
                         </div>
 
+                        @* Phone — SA format with +27 flag *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "e.g. 0712345678" })
+                            <div class="input-group">
+                                <span class="input-group-text" title="South Africa">&#127480;&#127462; +27</span>
+                                @Html.TextBoxFor(m => m.PhoneNumber, new
+                                {
+                                    @class      = "form-control",
+                                    placeholder = "e.g. 0821234567 or +27821234567",
+                                    type        = "tel",
+                                    maxlength   = "15"
+                                })
+                            </div>
                             @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
+                            <small class="text-muted">South African numbers only — 0821234567 or +27821234567</small>
                         </div>
 
+                        @* Email *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "your@email.com", type = "email" })
+                            <div class="input-group">
+                                <span class="input-group-text">&#9993;</span>
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "your@email.com", type = "email" })
+                            </div>
                             @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
                         </div>
 
+                        @* Password *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.Password, new { @class = "form-label fw-semibold" })
-                            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Minimum 6 characters" })
+                            <div class="input-group">
+                                @Html.TextBoxFor(m => m.Password, new
+                                {
+                                    @class      = "form-control",
+                                    type        = "password",
+                                    id          = "pwdInput",
+                                    placeholder = "Minimum 6 characters"
+                                })
+                                <button class="btn btn-outline-secondary" type="button"
+                                        onclick="var f=document.getElementById('pwdInput');f.type=f.type==='password'?'text':'password';"
+                                        tabindex="-1">&#128065;</button>
+                            </div>
                             @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
                         </div>
 

@@ -50,5 +50,16 @@ namespace APDP.Models
 
         [Display(Name = "Total Price (R)")]
         public decimal TotalPrice { get; set; }
+
+        // ── Ride tracking ─────────────────────────────────────────────
+        [Display(Name = "Ride Started At")]
+        public DateTime? RideStartedAt { get; set; }
+
+        [Display(Name = "Ride Ended At")]
+        public DateTime? RideEndedAt { get; set; }
+
+        // Whether a post-ride rating has been submitted for this booking
+        [Display(Name = "Has Been Rated")]
+        public bool IsRated { get; set; }
     }
 }

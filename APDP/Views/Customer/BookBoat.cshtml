@@ -113,7 +113,7 @@
                         </div>
                         <div class="weather-desc">@weather.Description</div>
                         <div class="weather-hilo">
-                            H:@weather.Forecast.Count > 0 ? weather.Forecast[0].TempMax.ToString("0") : weather.TemperatureCelsius.ToString("0")&deg;
+                            H:@(weather.Forecast.Count > 0 ? weather.Forecast[0].TempMax.ToString("0") : weather.TemperatureCelsius.ToString("0"))&deg;
                             &nbsp; L:@(weather.Forecast.Count > 0 ? weather.Forecast[0].TempMin.ToString("0") : (weather.TemperatureCelsius - 5).ToString("0"))&deg;
                         </div>
                     </div>

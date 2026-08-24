@@ -5,14 +5,12 @@ namespace APDP.Models
 {
     /// <summary>
     /// Drops and recreates the database whenever the model changes.
-    /// Perfect for development — never use DropCreateDatabaseAlways in production.
     /// </summary>
     public class HarbourConnectInitializer : DropCreateDatabaseIfModelChanges<HarbourConnectContext>
     {
         protected override void Seed(HarbourConnectContext context)
         {
-            // ── TNPA Admin ─────────────────────────────────────────────
-            // Login: admin@tnpa.co.za  /  Admin@123
+            // ── TNPA Admin ──────────────────────────────────────────
             context.TnpaAdmins.Add(new TnpaAdmin
             {
                 FullName = "TNPA Administrator",
@@ -20,8 +18,7 @@ namespace APDP.Models
                 Password = "Admin@123"
             });
 
-            // ── Boat Owner ─────────────────────────────────────────────
-            // Login: owner@demo.co.za  /  Owner@123
+            // ── Boat Owner ──────────────────────────────────────────
             var owner = new BoatOwner
             {
                 FullName     = "Demo Boat Owner",
@@ -32,8 +29,7 @@ namespace APDP.Models
             };
             context.BoatOwners.Add(owner);
 
-            // ── Customer ───────────────────────────────────────────────
-            // Login: customer@demo.co.za  /  Customer@123
+            // ── Customer ────────────────────────────────────────────
             context.Customers.Add(new Customer
             {
                 FullName       = "Demo Customer",
@@ -43,8 +39,32 @@ namespace APDP.Models
                 DateRegistered = DateTime.Now
             });
 
-            // ── Driver ─────────────────────────────────────────────────
-            // Login: driver@demo.co.za  /  Driver@123
+            // ── Demo Boat ───────────────────────────────────────────
+            var demoBoat = new Boat
+            {
+                BoatName                = "Sea Breeze",
+                RegistrationNumber      = "SA-DRB-0001",
+                BoatType                = "Leisure Cruiser",
+                Description             = "A comfortable leisure cruiser perfect for harbour tours and sunset trips.",
+                MaxPassengers           = 12,
+                PricePerTrip            = 1500.00m,
+                HarbourLocation         = "Durban Harbour",
+                LifeJacketQuantity      = 14,
+                HasMedKit               = true,
+                HasFireExtinguisher     = true,
+                HasFishingEquipment     = false,
+                HasDecoration           = true,
+                HasSoundSystem          = true,
+                DisabilityAccommodation = "Wide boarding platform and seating available for mobility-impaired passengers.",
+                Status                  = BoatStatus.Approved,
+                DateAdded               = DateTime.Now,
+                AverageRating           = 0,
+                TotalRatings            = 0,
+                BoatOwner               = owner
+            };
+            context.Boats.Add(demoBoat);
+
+            // ── Driver ──────────────────────────────────────────────
             context.Drivers.Add(new Driver
             {
                 FullName       = "Demo Driver",
@@ -54,7 +74,8 @@ namespace APDP.Models
                 LicenseNumber  = "DRV-2024-001",
                 Status         = DriverStatus.Active,
                 DateRegistered = DateTime.Now,
-                BoatOwner      = owner
+                BoatOwner      = owner,
+                AssignedBoat   = demoBoat
             });
 
             context.SaveChanges();

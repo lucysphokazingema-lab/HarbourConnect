@@ -1,0 +1,252 @@
+@model APDP.Models.Booking
+@{
+    ViewBag.Title = "Booking Confirmed";
+
+    // Build the QR code data string — everything a scanner needs to see
+    string qrData = string.Format(
+        "HARBOURCONNECT BOOKING\n" +
+        "======================\n" +
+        "Booking ID   : #{0}\n" +
+        "Status       : {1}\n" +
+        "-----------------------------\n" +
+        "CUSTOMER\n" +
+        "Name         : {2}\n" +
+        "Phone        : {3}\n" +
+        "Email        : {4}\n" +
+        "-----------------------------\n" +
+        "BOAT\n" +
+        "Boat         : {5}\n" +
+        "Reg. Number  : {6}\n" +
+        "Type         : {7}\n" +
+        "Location     : {8}\n" +
+        "-----------------------------\n" +
+        "TRIP\n" +
+        "Trip Date    : {9}\n" +
+        "Passengers   : {10}\n" +
+        "Booked On    : {11}\n" +
+        "-----------------------------\n" +
+        "PAYMENT\n" +
+        "Amount Paid  : R {12}\n" +
+        "Payment      : Paid in Full\n" +
+        "-----------------------------\n" +
+        "DRIVER\n" +
+        "Owner        : {13}\n" +
+        "Phone        : {14}",
+        Model.BookingID,
+        Model.Status,
+        Model.Customer.FullName,
+        Model.Customer.PhoneNumber,
+        Model.Customer.Email,
+        Model.Boat.BoatName,
+        Model.Boat.RegistrationNumber,
+        Model.Boat.BoatType,
+        Model.Boat.HarbourLocation,
+        Model.TripDate.ToString("dddd, dd MMMM yyyy"),
+        Model.NumberOfPassengers,
+        Model.BookingDate.ToString("dd MMM yyyy HH:mm"),
+        Model.TotalPrice.ToString("N2"),
+        Model.Boat.BoatOwner.BusinessName,
+        Model.Boat.BoatOwner.PhoneNumber
+    );
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @* Success banner *@
+            <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+                <span style="font-size:2.5rem;">&#9989;</span>
+                <div>
+                    <h5 class="mb-0 fw-bold">Booking Confirmed!</h5>
+                    <p class="mb-0 small">Your trip has been successfully booked. Save or print this confirmation slip.</p>
+                </div>
+            </div>
+
+            @* Booking Slip Card *@
+            <div class="card hc-slip-card" id="bookingSlip">
+
+                @* Slip Header *@
+                <div class="hc-slip-header">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h3 class="mb-0 fw-bold">&#9875; HarbourConnect</h3>
+                            <div class="hc-slip-sub">Booking Confirmation Slip</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="hc-slip-booking-id">#@Model.BookingID</div>
+                            <span class="badge bg-success px-3 py-2 fs-6">CONFIRMED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row g-4">
+
+                        @* Left column — booking details *@
+                        <div class="col-md-7">
+
+                            @* Customer *@
+                            <div class="hc-slip-section">
+                                <div class="hc-slip-section-title">&#128100; Customer</div>
+                                <table class="table table-sm hc-slip-table">
+                                    <tr><th>Name</th><td>@Model.Customer.FullName</td></tr>
+                                    <tr><th>Phone</th><td>@Model.Customer.PhoneNumber</td></tr>
+                                    <tr><th>Email</th><td>@Model.Customer.Email</td></tr>
+                                </table>
+                            </div>
+
+                            @* Boat *@
+                            <div class="hc-slip-section">
+                                <div class="hc-slip-section-title">&#128674; Boat</div>
+                                <table class="table table-sm hc-slip-table">
+                                    <tr><th>Boat Name</th><td><strong>@Model.Boat.BoatName</strong></td></tr>
+                                    <tr><th>Reg. Number</th><td><code>@Model.Boat.RegistrationNumber</code></td></tr>
+                                    <tr><th>Type</th><td>@Model.Boat.BoatType</td></tr>
+                                    <tr><th>Location</th><td>@Model.Boat.HarbourLocation</td></tr>
+                                    <tr><th>Owner</th><td>@Model.Boat.BoatOwner.BusinessName</td></tr>
+                                    <tr><th>Owner Phone</th><td>@Model.Boat.BoatOwner.PhoneNumber</td></tr>
+                                </table>
+                            </div>
+
+                            @* Trip & Payment *@
+                            <div class="hc-slip-section">
+                                <div class="hc-slip-section-title">&#128197; Trip &amp; Payment</div>
+                                <table class="table table-sm hc-slip-table">
+                                    <tr><th>Trip Date</th><td><strong>@Model.TripDate.ToString("dddd, dd MMMM yyyy")</strong></td></tr>
+                                    <tr><th>Passengers</th><td>@Model.NumberOfPassengers</td></tr>
+                                    <tr><th>Booked On</th><td>@Model.BookingDate.ToString("dd MMM yyyy") at @Model.BookingDate.ToString("HH:mm")</td></tr>
+                                    @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+                                    {
+                                        <tr><th>Special Requests</th><td>@Model.SpecialRequests</td></tr>
+                                    }
+                                    <tr class="hc-slip-total">
+                                        <th>Amount Paid</th>
+                                        <td><strong class="text-success fs-5">R @Model.TotalPrice.ToString("N2")</strong></td>
+                                    </tr>
+                                    <tr><th>Payment Status</th><td><span class="badge bg-success">Paid in Full</span></td></tr>
+                                </table>
+                            </div>
+
+                        </div>
+
+                        @* Right column — QR code *@
+                        <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
+                            <div class="hc-qr-container">
+                                <div class="hc-qr-label">&#128247; Scan to Verify Booking</div>
+                                @{
+                                    // Full booking details encoded into the QR code
+                                    string qrFull = string.Format(
+                                        "===== HARBOURCONNECT BOOKING =====\n" +
+                                        "Booking ID     : #{0}\n" +
+                                        "Status         : CONFIRMED\n" +
+                                        "----------------------------------\n" +
+                                        "CUSTOMER\n" +
+                                        "Name           : {1}\n" +
+                                        "Phone          : {2}\n" +
+                                        "Email          : {3}\n" +
+                                        "----------------------------------\n" +
+                                        "BOAT\n" +
+                                        "Boat Name      : {4}\n" +
+                                        "Reg Number     : {5}\n" +
+                                        "Type           : {6}\n" +
+                                        "Location       : {7}\n" +
+                                        "----------------------------------\n" +
+                                        "OWNER\n" +
+                                        "Business       : {8}\n" +
+                                        "Phone          : {9}\n" +
+                                        "----------------------------------\n" +
+                                        "TRIP\n" +
+                                        "Trip Date      : {10}\n" +
+                                        "Passengers     : {11}\n" +
+                                        "Booked On      : {12}\n" +
+                                        "----------------------------------\n" +
+                                        "PAYMENT\n" +
+                                        "Amount Paid    : R {13}\n" +
+                                        "Payment Status : PAID IN FULL\n" +
+                                        "==================================",
+                                        Model.BookingID,
+                                        Model.Customer.FullName,
+                                        Model.Customer.PhoneNumber,
+                                        Model.Customer.Email,
+                                        Model.Boat.BoatName,
+                                        Model.Boat.RegistrationNumber,
+                                        Model.Boat.BoatType,
+                                        Model.Boat.HarbourLocation,
+                                        Model.Boat.BoatOwner.BusinessName,
+                                        Model.Boat.BoatOwner.PhoneNumber,
+                                        Model.TripDate.ToString("dddd, dd MMMM yyyy"),
+                                        Model.NumberOfPassengers,
+                                        Model.BookingDate.ToString("dd MMM yyyy HH:mm"),
+                                        Model.TotalPrice.ToString("N2")
+                                    );
+                                    string qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&ecc=M&data="
+                                                   + Uri.EscapeDataString(qrFull);
+                                }
+                                <img src="@qrUrl"
+                                     alt="Booking QR Code"
+                                     width="220" height="220"
+                                     style="border-radius:8px; border:3px solid #0d2c54; display:block; margin:0 auto;" />
+                                <div class="hc-qr-sublabel mt-2">
+                                    Booking #@Model.BookingID &bull; @Model.Boat.BoatName<br />
+                                    @Model.TripDate.ToString("dd MMM yyyy") &bull; R @Model.TotalPrice.ToString("N2")
+                                </div>
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <div class="hc-email-notice">
+                                    &#128231; A copy of this slip has been<br />
+                                    sent to <strong>@Model.Customer.Email</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @* Footer note *@
+                    <div class="hc-slip-footer mt-3">
+                        &#9432; Please show this QR code to the driver or boat owner on the day of your trip.
+                        The driver will scan it to verify your booking before starting the ride.
+                    </div>
+
+                </div>
+            </div>
+
+            @* Action buttons *@
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                <button class="btn btn-primary btn-lg" onclick="window.print()">
+                    &#128438; Print / Save as PDF
+                </button>
+                @Html.ActionLink("&#128203; View All Bookings", "MyBookings", "Customer", null,
+                    new { @class = "btn btn-outline-secondary btn-lg" })
+                @Html.ActionLink("&#128674; Browse More Boats", "Boats", "Customer", null,
+                    new { @class = "btn btn-outline-success btn-lg" })
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .hc-slip-card          { border: 2px solid #e0e0e0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+    .hc-slip-header        { background: linear-gradient(135deg, #0d2c54, #1565c0); color: #fff; padding: 24px 28px; }
+    .hc-slip-sub           { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
+    .hc-slip-booking-id    { font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; }
+    .hc-slip-section       { margin-bottom: 18px; }
+    .hc-slip-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: #1565c0; border-bottom: 1px solid #e3f2fd; padding-bottom: 4px; margin-bottom: 8px; }
+    .hc-slip-table th      { font-weight: 600; color: #555; width: 38%; font-size: 0.82rem; }
+    .hc-slip-table td      { font-size: 0.85rem; color: #212529; }
+    .hc-slip-total th,
+    .hc-slip-total td      { padding-top: 10px; border-top: 2px solid #1565c0; }
+    .hc-qr-container       { background: #f8faff; border: 2px solid #e3f2fd; border-radius: 12px; padding: 16px 20px; text-align: center; }
+    .hc-qr-label           { font-weight: 700; font-size: 0.82rem; color: #0d2c54; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    #qrcode                { display: inline-block; }
+    #qrcode img            { border-radius: 6px; }
+    .hc-qr-sublabel        { font-size: 0.72rem; color: #888; margin-top: 10px; line-height: 1.5; }
+    .hc-email-notice       { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #2e7d32; }
+    .hc-slip-footer        { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #6d4c00; }
+</style>
+
+@* Print styles live in Site.css to avoid Razor parsing @media as code *@
+
+@* No scripts needed — QR code is generated server-side as an image *@

@@ -1,0 +1,134 @@
+@model APDP.Models.BoatRating
+@{
+    ViewBag.Title = "Rate Your Trip";
+    var booking = ViewBag.Booking as APDP.Models.Booking;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-green">
+                    <h4 class="mb-0">&#11088; Rate Your Trip</h4>
+                    @if (booking != null)
+                    {
+                        <p class="mb-0 small">@booking.Boat.BoatName &mdash; @booking.TripDate.ToString("dd MMMM yyyy")</p>
+                    }
+                </div>
+                <div class="card-body p-4">
+
+                    @if (booking != null)
+                    {
+                        <div class="hc-booking-summary mb-4">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Boat</small>
+                                    <p class="fw-semibold mb-1">@booking.Boat.BoatName</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Location</small>
+                                    <p class="fw-semibold mb-1">@booking.Boat.HarbourLocation</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Trip Date</small>
+                                    <p class="fw-semibold mb-1">@booking.TripDate.ToString("dd MMM yyyy")</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Passengers</small>
+                                    <p class="fw-semibold mb-1">@booking.NumberOfPassengers</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("RateBoat", "Customer", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.BoatID)
+                        @Html.HiddenFor(m => m.BookingID)
+                        @Html.HiddenFor(m => m.CustomerID)
+                        @Html.ValidationSummary(true, "Please fix the errors below:", new { @class = "alert alert-danger" })
+
+                        @* Interactive star picker *@
+                        <div class="mb-4 text-center">
+                            <label class="form-label fw-semibold d-block mb-2">How would you rate this boat?</label>
+                            <div class="hc-star-picker" id="starPicker">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    <span class="hc-pick-star" data-val="@s" onclick="setRating(@s)">&#9733;</span>
+                                }
+                            </div>
+                            <div id="starLabel" class="mt-2 text-muted small">Click a star to rate</div>
+                            @Html.HiddenFor(m => m.Stars, new { id = "starsInput" })
+                            @Html.ValidationMessageFor(m => m.Stars, "", new { @class = "text-danger small d-block mt-1" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Comment, new { @class = "form-label fw-semibold" })
+                            @Html.TextAreaFor(m => m.Comment, 4, 0, new
+                            {
+                                @class       = "form-control",
+                                placeholder  = "Tell other customers about your experience... (optional)",
+                                maxlength    = "500"
+                            })
+                            @Html.ValidationMessageFor(m => m.Comment, "", new { @class = "text-danger small" })
+                            <small class="text-muted">Max 500 characters</small>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg fw-semibold flex-fill">
+                                &#11088; Submit Rating
+                            </button>
+                            @Html.ActionLink("Skip for Now", "MyBookings", "Customer", null, new { @class = "btn btn-outline-secondary btn-lg" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var starLabels = ['', 'Poor — not what I expected', 'Fair — room for improvement',
+                          'Good — enjoyed the trip', 'Very Good — great experience!',
+                          'Excellent — absolutely loved it!'];
+
+        function setRating(val) {
+            document.getElementById('starsInput').value = val;
+            document.getElementById('starLabel').textContent = starLabels[val];
+            document.getElementById('starLabel').className = 'mt-2 small fw-semibold text-warning';
+
+            var stars = document.querySelectorAll('.hc-pick-star');
+            stars.forEach(function(s) {
+                var sv = parseInt(s.getAttribute('data-val'));
+                s.classList.toggle('selected', sv <= val);
+            });
+        }
+
+        // Hover preview
+        document.querySelectorAll('.hc-pick-star').forEach(function(star) {
+            star.addEventListener('mouseenter', function() {
+                var hv = parseInt(this.getAttribute('data-val'));
+                document.querySelectorAll('.hc-pick-star').forEach(function(s) {
+                    s.classList.toggle('hover', parseInt(s.getAttribute('data-val')) <= hv);
+                });
+            });
+            star.addEventListener('mouseleave', function() {
+                document.querySelectorAll('.hc-pick-star').forEach(function(s) {
+                    s.classList.remove('hover');
+                });
+            });
+        });
+    </script>
+
+    <style>
+        .hc-star-picker  { display: flex; justify-content: center; gap: 6px; }
+        .hc-pick-star    { font-size: 3rem; color: #ddd; cursor: pointer; transition: color 0.15s, transform 0.15s; }
+        .hc-pick-star.hover, .hc-pick-star.selected { color: #f9a825; }
+        .hc-pick-star:hover { transform: scale(1.2); }
+    </style>
+}

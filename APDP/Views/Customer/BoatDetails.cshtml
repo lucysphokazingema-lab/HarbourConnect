@@ -1,65 +1,360 @@
 @model APDP.Models.Boat
 @{
     ViewBag.Title = Model.BoatName + " — Details";
+    var recentRatings = ViewBag.RecentRatings as IEnumerable<APDP.Models.BoatRating>;
 }
 
 <div class="container py-4">
     <div class="row">
-        <div class="col-lg-8 mx-auto">
+        <div class="col-lg-9 mx-auto">
             <div class="card hc-form-card">
 
+                @* Image gallery *@
                 @if (!string.IsNullOrEmpty(Model.ImagePath))
                 {
-                    <img src="@Url.Content(Model.ImagePath)" class="card-img-top hc-boat-detail-img" alt="@Model.BoatName" />
+                    <img src="@Url.Content(Model.ImagePath)"
+                         class="hc-detail-main-img" id="mainImg" alt="@Model.BoatName" />
+                }
+                @if (!string.IsNullOrEmpty(Model.ImagePath) &&
+                     (!string.IsNullOrEmpty(Model.ImagePath2) || !string.IsNullOrEmpty(Model.ImagePath3)))
+                {
+                    <div class="hc-detail-thumbs mt-2 d-flex gap-2 px-3 pb-2">
+                        <img src="@Url.Content(Model.ImagePath)" class="hc-detail-thumb active"
+                             alt="Main view" onclick="switchImg(this,'@Url.Content(Model.ImagePath)')" />
+                        @if (!string.IsNullOrEmpty(Model.ImagePath2))
+                        {
+                            <img src="@Url.Content(Model.ImagePath2)" class="hc-detail-thumb"
+                                 alt="Side view" onclick="switchImg(this,'@Url.Content(Model.ImagePath2)')" />
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ImagePath3))
+                        {
+                            <img src="@Url.Content(Model.ImagePath3)" class="hc-detail-thumb"
+                                 alt="Interior" onclick="switchImg(this,'@Url.Content(Model.ImagePath3)')" />
+                        }
+                    </div>
                 }
 
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
+
+                    @* Header — name, type, price, rating *@
+                    <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h3>@Model.BoatName</h3>
-                            <p class="text-muted">@Model.BoatType &nbsp;&bull;&nbsp; @Model.HarbourLocation</p>
+                            <h3 class="mb-1">@Model.BoatName</h3>
+                            <p class="text-muted mb-1">@Model.BoatType &nbsp;&bull;&nbsp; @Model.HarbourLocation</p>
+                            <span class="badge bg-dark">Reg: @Model.RegistrationNumber</span>
                         </div>
                         <div class="text-end">
                             <div class="hc-price-tag-large">R @Model.PricePerTrip.ToString("N2")</div>
                             <small class="text-muted">per trip</small>
+                            @if (Model.TotalRatings > 0)
+                            {
+                                <div class="mt-1 hc-star-block">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        if (s <= (int)Math.Round(Model.AverageRating))
+                                        { <span class="hc-star-lg filled">&#9733;</span> }
+                                        else
+                                        { <span class="hc-star-lg">&#9734;</span> }
+                                    }
+                                </div>
+                                <div class="text-muted small">@Model.AverageRating.ToString("0.0") / 5 &bull; @Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews")</div>
+                            }
+                            else
+                            {
+                                <div class="text-muted small mt-1">No ratings yet — be the first!</div>
+                            }
                         </div>
                     </div>
 
                     @if (!string.IsNullOrEmpty(Model.Description))
                     {
-                        <p class="mt-3">@Model.Description</p>
+                        <p class="mt-2">@Model.Description</p>
                     }
 
+                    @* Specifications *@
                     <h6 class="hc-form-section-title mt-3">Boat Specifications</h6>
                     <div class="row">
                         <div class="col-md-6">
                             <ul class="list-unstyled">
                                 <li><strong>Registration No:</strong> @Model.RegistrationNumber</li>
                                 <li><strong>Max Passengers:</strong> @Model.MaxPassengers</li>
-                                <li><strong>Life Jackets:</strong> @Model.LifeJacketQuantity</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <ul class="list-unstyled">
-                                <li><strong>Fishing Equipment:</strong> @(Model.HasFishingEquipment ? "Yes &#10003;" : "No")</li>
-                                <li><strong>Decoration:</strong> @(Model.HasDecoration ? "Yes &#10003;" : "No")</li>
-                                <li><strong>Sound System:</strong> @(Model.HasSoundSystem ? "Yes &#10003;" : "No")</li>
+                                <li><strong>Type:</strong> @Model.BoatType</li>
+                                <li><strong>Location:</strong> @Model.HarbourLocation</li>
                             </ul>
                         </div>
                     </div>
 
+                    @* Safety Equipment cards *@
+                    <h6 class="hc-form-section-title mt-3">&#9875; Safety Equipment</h6>
+                    <div class="row g-3 mb-3">
+
+                        @* Life Jackets *@
+                        <div class="col-6 col-md-4">
+                            <div class="hc-equip-display @(Model.LifeJacketQuantity > 0 ? "hc-equip-yes" : "hc-equip-no")">
+                                @if (!string.IsNullOrEmpty(Model.LifeJacketImagePath))
+                                {
+                                    <img src="@Url.Content(Model.LifeJacketImagePath)"
+                                         class="hc-equip-display-img hc-equip-real-photo" alt="Life Jacket" />
+                                    <div class="hc-equip-photo-badge">Owner Photo</div>
+                                }
+                                else
+                                {
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972158.png"
+                                         class="hc-equip-display-img" alt="Life Jacket" />
+                                }
+                                <div class="hc-equip-label">Life Jackets</div>
+                                <div class="hc-equip-value">
+                                    @if (Model.LifeJacketQuantity > 0)
+                                    { <text>&#10003; @Model.LifeJacketQuantity on board</text> }
+                                    else
+                                    { <text>&#10007; None listed</text> }
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Medical Kit *@
+                        <div class="col-6 col-md-4">
+                            <div class="hc-equip-display @(Model.HasMedKit ? "hc-equip-yes" : "hc-equip-no")">
+                                @if (!string.IsNullOrEmpty(Model.MedKitImagePath))
+                                {
+                                    <img src="@Url.Content(Model.MedKitImagePath)"
+                                         class="hc-equip-display-img hc-equip-real-photo" alt="Medical Kit" />
+                                    <div class="hc-equip-photo-badge">Owner Photo</div>
+                                }
+                                else
+                                {
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+                                         class="hc-equip-display-img" alt="Medical Kit" />
+                                }
+                                <div class="hc-equip-label">Medical Kit</div>
+                                <div class="hc-equip-value">
+                                    @(Model.HasMedKit ? "&#10003; On board" : "&#10007; Not listed")
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Fire Extinguisher *@
+                        <div class="col-6 col-md-4">
+                            <div class="hc-equip-display @(Model.HasFireExtinguisher ? "hc-equip-yes" : "hc-equip-no")">
+                                @if (!string.IsNullOrEmpty(Model.FireExtImagePath))
+                                {
+                                    <img src="@Url.Content(Model.FireExtImagePath)"
+                                         class="hc-equip-display-img hc-equip-real-photo" alt="Fire Extinguisher" />
+                                    <div class="hc-equip-photo-badge">Owner Photo</div>
+                                }
+                                else
+                                {
+                                    <img src="https://cdn-icons-png.flaticon.com/512/3774/3774278.png"
+                                         class="hc-equip-display-img" alt="Fire Extinguisher" />
+                                }
+                                <div class="hc-equip-label">Fire Extinguisher</div>
+                                <div class="hc-equip-value">
+                                    @(Model.HasFireExtinguisher ? "&#10003; On board" : "&#10007; Not listed")
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Accessibility *@
+                        <div class="col-6 col-md-4">
+                            <div class="hc-equip-display @(!string.IsNullOrEmpty(Model.DisabilityAccommodation) ? "hc-equip-yes" : "hc-equip-no")">
+                                <div style="font-size:2.4rem; line-height:1; margin-bottom:4px;">&#9855;</div>
+                                <div class="hc-equip-label">Accessibility</div>
+                                <div class="hc-equip-value">
+                                    @(!string.IsNullOrEmpty(Model.DisabilityAccommodation) ? "&#10003; Available" : "&#10007; Not listed")
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.DisabilityAccommodation))
+                    {
+                        <div class="alert alert-primary py-2 px-3 mb-3">
+                            <strong>&#9855; Disability Accommodations:</strong> @Model.DisabilityAccommodation
+                        </div>
+                    }
+
+                    @* Features & Extras *@
+                    <h6 class="hc-form-section-title mt-2">&#127775; Features &amp; Extras</h6>
+                    @if (Model.HasFishingEquipment || Model.HasDecoration || Model.HasSoundSystem)
+                    {
+                        <div class="row g-3 mb-3">
+                            @if (Model.HasFishingEquipment)
+                            {
+                                <div class="col-6 col-md-4">
+                                    <div class="hc-equip-display hc-equip-yes">
+                                        @if (!string.IsNullOrEmpty(Model.FishingImagePath))
+                                        {
+                                            <img src="@Url.Content(Model.FishingImagePath)"
+                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Fishing Equipment" />
+                                            <div class="hc-equip-photo-badge">Owner Photo</div>
+                                        }
+                                        else
+                                        {
+                                            <img src="https://cdn-icons-png.flaticon.com/512/1988/1988592.png"
+                                                 class="hc-equip-display-img" alt="Fishing Equipment" />
+                                        }
+                                        <div class="hc-equip-label">Fishing Equipment</div>
+                                        <div class="hc-equip-value">&#10003; Available</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.HasDecoration)
+                            {
+                                <div class="col-6 col-md-4">
+                                    <div class="hc-equip-display hc-equip-yes">
+                                        @if (!string.IsNullOrEmpty(Model.DecorationImagePath))
+                                        {
+                                            <img src="@Url.Content(Model.DecorationImagePath)"
+                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Decoration" />
+                                            <div class="hc-equip-photo-badge">Owner Photo</div>
+                                        }
+                                        else
+                                        {
+                                            <img src="https://cdn-icons-png.flaticon.com/512/3050/3050434.png"
+                                                 class="hc-equip-display-img" alt="Decoration" />
+                                        }
+                                        <div class="hc-equip-label">Decoration</div>
+                                        <div class="hc-equip-value">&#10003; Available</div>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.HasSoundSystem)
+                            {
+                                <div class="col-6 col-md-4">
+                                    <div class="hc-equip-display hc-equip-yes">
+                                        @if (!string.IsNullOrEmpty(Model.SoundSystemImagePath))
+                                        {
+                                            <img src="@Url.Content(Model.SoundSystemImagePath)"
+                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Sound System" />
+                                            <div class="hc-equip-photo-badge">Owner Photo</div>
+                                        }
+                                        else
+                                        {
+                                            <img src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png"
+                                                 class="hc-equip-display-img" alt="Sound System" />
+                                        }
+                                        <div class="hc-equip-label">Sound System</div>
+                                        <div class="hc-equip-value">&#10003; Available</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-3">No extras listed.</p>
+                    }
+
+                    @* Owner info *@
                     <h6 class="hc-form-section-title mt-3">Owner Information</h6>
                     <p>
                         <strong>@Model.BoatOwner.BusinessName</strong><br />
                         <span class="text-muted">@Model.BoatOwner.PhoneNumber &nbsp;&bull;&nbsp; @Model.BoatOwner.Email</span>
                     </p>
 
+                    @* Ratings section *@
+                    <h6 class="hc-form-section-title mt-3">&#11088; Customer Ratings</h6>
+                    @if (Model.TotalRatings == 0)
+                    {
+                        <p class="text-muted">No ratings yet. Book this boat and be the first to rate it!</p>
+                    }
+                    else
+                    {
+                        <div class="hc-rating-summary mb-3">
+                            <div class="hc-rating-big">@Model.AverageRating.ToString("0.0")</div>
+                            <div>
+                                <div class="hc-star-block">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        if (s <= (int)Math.Round(Model.AverageRating))
+                                        { <span class="hc-star-lg filled">&#9733;</span> }
+                                        else
+                                        { <span class="hc-star-lg">&#9734;</span> }
+                                    }
+                                </div>
+                                <small class="text-muted">Based on @Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews")</small>
+                            </div>
+                        </div>
+
+                        if (recentRatings != null && recentRatings.Any())
+                        {
+                            <div class="hc-reviews-list">
+                                        @foreach (var rating in recentRatings)
+                                        {
+                                            <div class="hc-review-item">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <strong>@rating.Customer.FullName</strong>
+                                                    <small class="text-muted">@rating.DateRated.ToString("dd MMM yyyy")</small>
+                                                </div>
+                                                <div class="hc-star-block my-1">
+                                                    @for (int s = 1; s <= 5; s++)
+                                                    {
+                                                        if (s <= rating.Stars)
+                                                        { <span class="hc-star-md filled">&#9733;</span> }
+                                                        else
+                                                        { <span class="hc-star-md">&#9734;</span> }
+                                                    }
+                                                </div>
+                                                if (!string.IsNullOrEmpty(rating.Comment))
+                                                {
+                                                    <p class="mb-0 text-muted small">&ldquo;@rating.Comment&rdquo;</p>
+                                                }
+                                            </div>
+                                        }
+                            </div>
+                        }
+                    }
+
                     <div class="d-flex gap-2 mt-4">
                         @Html.ActionLink("Book This Boat", "BookBoat", "Customer", new { id = Model.BoatID }, new { @class = "btn btn-success btn-lg" })
                         @Html.ActionLink("Back to Boats", "Boats", "Customer", null, new { @class = "btn btn-outline-secondary btn-lg" })
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hc-detail-main-img  { width:100%; max-height:340px; object-fit:cover; border-radius:8px 8px 0 0; }
+    .hc-detail-thumb     { width:72px; height:56px; object-fit:cover; border-radius:6px; cursor:pointer;
+                           border:2px solid transparent; transition:border-color 0.2s; opacity:0.7; }
+    .hc-detail-thumb:hover,
+    .hc-detail-thumb.active { border-color:var(--hc-teal); opacity:1; }
+    .hc-equip-display    { border-radius:10px; padding:12px 8px; text-align:center; }
+    .hc-equip-yes        { background:#e8f5e9; border:1px solid #a5d6a7; }
+    .hc-equip-no         { background:#fafafa; border:1px dashed #ddd; }
+    .hc-equip-display-img{ width:48px; height:48px; object-fit:contain; }
+    .hc-equip-label      { font-size:0.8rem; font-weight:600; margin-top:6px; }
+    .hc-equip-value      { font-size:0.76rem; margin-top:3px; }
+    .hc-equip-yes .hc-equip-value { color:#2e7d32; }
+    .hc-equip-no  .hc-equip-value { color:#9e9e9e; }
+    .hc-star-block  { display:flex; align-items:center; gap:1px; }
+    .hc-star-lg     { font-size:1.3rem; color:#ddd; }
+    .hc-star-lg.filled { color:#f9a825; }
+    .hc-star-md     { font-size:1rem; color:#ddd; }
+    .hc-star-md.filled { color:#f9a825; }
+    .hc-rating-summary { display:flex; align-items:center; gap:16px; }
+    .hc-rating-big     { font-size:3rem; font-weight:800; color:var(--hc-navy); line-height:1; }
+    .hc-reviews-list  { display:flex; flex-direction:column; gap:0; }
+    .hc-review-item   { padding:12px 0; border-bottom:1px solid #eee; }
+    .hc-review-item:last-child { border-bottom:none; }
+</style>
+
+@section scripts {
+    <script>
+        function switchImg(thumb, src) {
+            document.getElementById('mainImg').src = src;
+            document.querySelectorAll('.hc-detail-thumb').forEach(function(t) {
+                t.classList.remove('active');
+            });
+            thumb.classList.add('active');
+        }
+    </script>
+}

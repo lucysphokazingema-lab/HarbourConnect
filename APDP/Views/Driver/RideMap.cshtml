@@ -1,0 +1,278 @@
+@model APDP.Models.Booking
+@{
+    ViewBag.Title = "Ride in Progress";
+    // Harbour location centre coordinates for the map
+    var harbourCoords = new Dictionary<string, string>
+    {
+        { "Durban Harbour",    "-29.8679,31.0292" },
+        { "Cape Town Harbour", "-33.9065,18.4239" },
+        { "Port Elizabeth",    "-33.9581,25.6290" },
+        { "East London",       "-33.0153,27.9116" },
+        { "Richards Bay",      "-28.7972,32.0833" }
+    };
+    string location   = Model.Boat != null ? Model.Boat.HarbourLocation : "Durban Harbour";
+    string coords     = harbourCoords.ContainsKey(location) ? harbourCoords[location] : "-29.8679,31.0292";
+    string[] latLng   = coords.Split(',');
+    string   lat      = latLng[0];
+    string   lng      = latLng[1];
+    TimeSpan elapsed  = DateTime.Now - Model.RideStartedAt.Value;
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>&#128205; Ride in Progress</h2>
+        <span class="badge bg-success fs-6 px-3 py-2">&#9679; Active</span>
+    </div>
+
+    @* Trip Summary Strip *@
+    <div class="card hc-card mb-4 p-3">
+        <div class="row text-center g-2">
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small">Boat</div>
+                <div class="fw-semibold">@Model.Boat.BoatName</div>
+            </div>
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small">Passengers</div>
+                <div class="fw-semibold">@Model.NumberOfPassengers</div>
+            </div>
+            <div class="col-6 col-md-3 border-end">
+                <div class="text-muted small">Customer</div>
+                <div class="fw-semibold">@Model.Customer.FullName</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="text-muted small">Elapsed</div>
+                <div class="fw-semibold" id="elapsedTimer">
+                    @elapsed.Hours.ToString("D2"):@elapsed.Minutes.ToString("D2"):@elapsed.Seconds.ToString("D2")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Live Map *@
+    <div class="card hc-card mb-4">
+        <div class="card-header d-flex align-items-center gap-2 py-2 px-3">
+            <span>&#128205;</span>
+            <strong>Live Boat Location — @location</strong>
+            <span class="badge bg-success ms-auto">&#9679; Tracking Active</span>
+        </div>
+        <div id="rideMap" style="height: 400px; width: 100%;"></div>
+        <div class="px-3 py-2 bg-light border-top text-muted small">
+            &#9432; The map shows the harbour area. Location updates every 5 seconds.
+        </div>
+    </div>
+
+    @* End Ride Checklist *@
+    <div class="card hc-card mb-4">
+        <div class="card-header hc-form-header">
+            <h5 class="mb-0">&#9989; End Ride — Safety Checklist</h5>
+            <p class="mb-0 small">All required items must be confirmed before the ride can be ended.</p>
+        </div>
+        <div class="card-body p-4">
+
+            @using (Html.BeginForm("EndRide", "Driver", FormMethod.Post, new { id = "endRideForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="bookingId" value="@Model.BookingID" />
+
+                <div class="hc-checklist mb-4">
+
+                    @* Required checks *@
+                    <div class="hc-check-item hc-check-required">
+                        <input type="checkbox" class="form-check-input hc-check-cb" id="lifeJacketsReturned"
+                               name="lifeJacketsReturned" value="true" required />
+                        <label for="lifeJacketsReturned" class="hc-check-label">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2972/2972158.png"
+                                 alt="" class="hc-check-icon" />
+                            <div>
+                                <div class="fw-semibold">All life jackets returned and accounted for</div>
+                                <div class="text-muted small">@Model.Boat.LifeJacketQuantity jackets must all be back on board</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="hc-check-item hc-check-required">
+                        <input type="checkbox" class="form-check-input hc-check-cb" id="passengersSafe"
+                               name="passengersSafe" value="true" required />
+                        <label for="passengersSafe" class="hc-check-label">
+                            <span class="hc-check-emoji">&#128101;</span>
+                            <div>
+                                <div class="fw-semibold">All passengers safely disembarked</div>
+                                <div class="text-muted small">Confirm all @Model.NumberOfPassengers @(Model.NumberOfPassengers == 1 ? "passenger has" : "passengers have") left the boat safely</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="hc-check-item hc-check-required">
+                        <input type="checkbox" class="form-check-input hc-check-cb" id="boatSecured"
+                               name="boatSecured" value="true" required />
+                        <label for="boatSecured" class="hc-check-label">
+                            <span class="hc-check-emoji">&#9875;</span>
+                            <div>
+                                <div class="fw-semibold">Boat secured at the dock</div>
+                                <div class="text-muted small">Boat is properly moored and engines off</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="hc-check-item hc-check-required">
+                        <input type="checkbox" class="form-check-input hc-check-cb" id="noIncidents"
+                               name="noIncidents" value="true" required />
+                        <label for="noIncidents" class="hc-check-label">
+                            <span class="hc-check-emoji">&#128203;</span>
+                            <div>
+                                <div class="fw-semibold">No incidents to report</div>
+                                <div class="text-muted small">If there was an incident, do not check this and contact your boat owner immediately</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    @* Optional / informational checks *@
+                    @if (Model.Boat.HasMedKit)
+                    {
+                        <div class="hc-check-item">
+                            <input type="checkbox" class="form-check-input hc-check-cb" id="medKitCheck" />
+                            <label for="medKitCheck" class="hc-check-label">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
+                                     alt="" class="hc-check-icon" />
+                                <div>
+                                    <div class="fw-semibold">Medical kit checked <span class="badge bg-secondary ms-1">Optional</span></div>
+                                    <div class="text-muted small">Verify the medical kit is intact and complete</div>
+                                </div>
+                            </label>
+                        </div>
+                    }
+                    @if (Model.Boat.HasFireExtinguisher)
+                    {
+                        <div class="hc-check-item">
+                            <input type="checkbox" class="form-check-input hc-check-cb" id="fireCheck" />
+                            <label for="fireCheck" class="hc-check-label">
+                                <img src="https://cdn-icons-png.flaticon.com/512/3774/3774278.png"
+                                     alt="" class="hc-check-icon" />
+                                <div>
+                                    <div class="fw-semibold">Fire extinguisher checked <span class="badge bg-secondary ms-1">Optional</span></div>
+                                    <div class="text-muted small">Verify the extinguisher is still sealed and in place</div>
+                                </div>
+                            </label>
+                        </div>
+                    }
+
+                </div>
+
+                <div class="mb-3">
+                    <label for="endNotes" class="form-label fw-semibold">Additional Notes (optional)</label>
+                    <textarea name="endNotes" id="endNotes" class="form-control" rows="3"
+                              placeholder="Any notes about the trip, passengers, or boat condition..."></textarea>
+                </div>
+
+                <div id="checklistWarning" class="alert alert-warning d-none" role="alert">
+                    &#9888; Please check all <strong>required</strong> items before ending the ride.
+                </div>
+
+                <button type="submit" class="btn btn-danger btn-lg w-100 fw-semibold" id="endRideBtn"
+                        onclick="return confirmEnd()">
+                    &#9632; End Ride &amp; Complete Trip
+                </button>
+            }
+
+        </div>
+    </div>
+
+    <div class="mt-3">
+        @Html.ActionLink("Back to Dashboard", "Dashboard", "Driver", null, new { @class = "btn btn-outline-secondary" })
+    </div>
+</div>
+
+@section scripts {
+    @* Leaflet map — open source, no API key required *@
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // ── Elapsed timer ────────────────────────────────────────
+        var startMs = @((long)(Model.RideStartedAt.Value - new DateTime(1970, 1, 1)).TotalMilliseconds);
+        function updateTimer() {
+            var elapsed = Math.floor((Date.now() - startMs) / 1000);
+            var h = Math.floor(elapsed / 3600);
+            var m = Math.floor((elapsed % 3600) / 60);
+            var s = elapsed % 60;
+            document.getElementById('elapsedTimer').textContent =
+                String(h).padStart(2,'0') + ':' +
+                String(m).padStart(2,'0') + ':' +
+                String(s).padStart(2,'0');
+        }
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // ── Leaflet map ──────────────────────────────────────────
+        var baseLat  = @lat;
+        var baseLng  = @lng;
+        var map      = L.map('rideMap').setView([baseLat, baseLng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Boat marker — starts at harbour, drifts slowly to simulate movement
+        var boatIcon = L.divIcon({
+            html: '<div style="font-size:2rem; line-height:1;">&#128674;</div>',
+            className: '',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
+        var boatMarker = L.marker([baseLat, baseLng], { icon: boatIcon })
+            .addTo(map)
+            .bindPopup('<strong>@Model.Boat.BoatName</strong><br/>Ride in progress')
+            .openPopup();
+
+        // Harbour marker
+        L.marker([baseLat, baseLng])
+            .addTo(map)
+            .bindPopup('<strong>@Html.Raw(location)</strong><br/>Home Harbour');
+
+        // Simulate gradual movement (random drift within 0.02 degrees)
+        var driftLat = baseLat, driftLng = baseLng;
+        var driftDir = 1;
+        setInterval(function() {
+            driftLat += (Math.random() - 0.5) * 0.0008;
+            driftLng += (Math.random() - 0.5) * 0.0008;
+            boatMarker.setLatLng([driftLat, driftLng]);
+        }, 5000);
+
+        // ── Checklist validation ─────────────────────────────────
+        function confirmEnd() {
+            var required = ['lifeJacketsReturned', 'passengersSafe', 'boatSecured', 'noIncidents'];
+            var allChecked = required.every(function(id) {
+                return document.getElementById(id).checked;
+            });
+            if (!allChecked) {
+                document.getElementById('checklistWarning').classList.remove('d-none');
+                document.getElementById('checklistWarning').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+            return confirm('End the ride and mark this trip as completed?');
+        }
+
+        // Live feedback on checkbox state
+        document.querySelectorAll('.hc-check-cb').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                var item = this.closest('.hc-check-item');
+                item.classList.toggle('hc-check-done', this.checked);
+            });
+        });
+    </script>
+
+    <style>
+        .hc-checklist       { display: flex; flex-direction: column; gap: 12px; }
+        .hc-check-item      { border: 2px solid #e0e0e0; border-radius: 10px; padding: 14px 16px;
+                              transition: all 0.2s; background: #fafafa; }
+        .hc-check-item.hc-check-done { border-color: #2e7d32; background: #f1f8e9; }
+        .hc-check-required  { border-color: #ef9a9a; }
+        .hc-check-required.hc-check-done { border-color: #2e7d32; }
+        .hc-check-label     { display: flex; align-items: center; gap: 14px; cursor: pointer; margin: 0; }
+        .hc-check-icon      { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+        .hc-check-emoji     { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 40px; text-align: center; }
+        .hc-check-cb        { width: 1.4rem; height: 1.4rem; flex-shrink: 0; cursor: pointer; }
+    </style>
+}

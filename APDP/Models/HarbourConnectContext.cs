@@ -1,4 +1,5 @@
 ﻿using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 
 namespace APDP.Models
 {
@@ -7,14 +8,18 @@ namespace APDP.Models
         public HarbourConnectContext()
             : base("HarbourConnectDB")
         {
+            // Increase command timeout to 120 seconds (default is 30)
+            // Prevents timeout errors when LocalDB is slow to respond
+            this.Database.CommandTimeout = 120;
         }
 
-        public DbSet<BoatOwner> BoatOwners { get; set; }
-        public DbSet<Boat>      Boats      { get; set; }
-        public DbSet<TnpaAdmin> TnpaAdmins { get; set; }
-        public DbSet<Customer>  Customers  { get; set; }
-        public DbSet<Booking>   Bookings   { get; set; }
-        public DbSet<Driver>    Drivers    { get; set; }
+        public DbSet<BoatOwner>  BoatOwners  { get; set; }
+        public DbSet<Boat>       Boats       { get; set; }
+        public DbSet<TnpaAdmin>  TnpaAdmins  { get; set; }
+        public DbSet<Customer>   Customers   { get; set; }
+        public DbSet<Booking>    Bookings    { get; set; }
+        public DbSet<Driver>     Drivers     { get; set; }
+        public DbSet<BoatRating> BoatRatings { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -27,8 +32,7 @@ namespace APDP.Models
                         .Property(b => b.TotalPrice)
                         .HasPrecision(18, 2);
 
-            // Driver → AssignedBoat: no cascade delete to avoid multiple
-            // cascade paths
+            // Driver → AssignedBoat: no cascade delete to avoid multiple cascade paths
             modelBuilder.Entity<Driver>()
                         .HasOptional(d => d.AssignedBoat)
                         .WithMany()
@@ -39,6 +43,20 @@ namespace APDP.Models
                         .HasOptional(d => d.BoatOwner)
                         .WithMany()
                         .HasForeignKey(d => d.BoatOwnerID)
+                        .WillCascadeOnDelete(false);
+
+            // BoatRating → Customer: no cascade delete to avoid multiple cascade paths
+            modelBuilder.Entity<BoatRating>()
+                        .HasRequired(r => r.Customer)
+                        .WithMany()
+                        .HasForeignKey(r => r.CustomerID)
+                        .WillCascadeOnDelete(false);
+
+            // BoatRating → Booking: optional, no cascade delete
+            modelBuilder.Entity<BoatRating>()
+                        .HasOptional(r => r.Booking)
+                        .WithMany()
+                        .HasForeignKey(r => r.BookingID)
                         .WillCascadeOnDelete(false);
 
             base.OnModelCreating(modelBuilder);

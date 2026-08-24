@@ -1235,3 +1235,198 @@ body::before {
 .container.py-5 {
     position: relative;
 }
+
+
+/* ============================================================
+   HarbourConnect — Additional styles for major feature update
+   ============================================================ */
+
+/* ── Page titles (always dark/navy, readable on any bg) ─────── */
+.hc-page-title {
+    color: var(--hc-navy);
+    font-weight: 700;
+}
+
+/* Ensure table text is always dark — prevents unreadable text
+   when Bootstrap's .hc-table navy header bleeds into rows */
+.hc-table tbody tr td,
+.hc-table tbody tr th {
+    color: #212529 !important;
+    background-color: #ffffff;
+}
+.hc-table tbody tr:hover td,
+.hc-table tbody tr:hover th {
+    background-color: #f0f4fa !important;
+    color: #212529 !important;
+}
+.hc-table thead tr th {
+    color: #ffffff !important;
+    background-color: var(--hc-navy) !important;
+}
+
+/* ── Equipment visual cards (used in AddBoat/EditBoat) ─────── */
+/* Styles are inlined per-view for encapsulation; kept here as
+   a fallback if loaded outside a @section scripts block. */
+
+/* ── Star rating (customer-facing) ─────────────────────────── */
+.hc-star-rating-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    flex-shrink: 0;
+}
+.hc-star-rating-sm .hc-star         { color: #ccc; font-size: 0.9rem; }
+.hc-star-rating-sm .hc-star.filled  { color: #f9a825; }
+.hc-star-rating-sm .hc-rating-count { font-size: 0.72rem; color: #888; margin-left: 2px; }
+
+/* ── Safety / accessibility badges ─────────────────────────── */
+.hc-badge-safety  { background-color: #1b5e20; color: #fff; }
+.hc-badge-access  { background-color: #1565c0; color: #fff; }
+
+/* ── Booking card that needs rating (golden border) ─────────── */
+.hc-card-rate-prompt {
+    border: 2px solid #f9a825 !important;
+    box-shadow: 0 0 0 3px rgba(249,168,37,0.15) !important;
+}
+
+/* ── Driver notification banners ────────────────────────────── */
+.hc-active-ride-banner {
+    background: linear-gradient(135deg, #1b5e20, #2e7d32);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.hc-active-ride-banner h5 { color: #fff; }
+
+.hc-trip-today {
+    background: linear-gradient(135deg, #b71c1c, #c62828);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.hc-trip-today h5 { color: #fff; }
+
+.hc-trip-upcoming {
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.hc-trip-upcoming h5 { color: #fff; }
+
+/* ── Login code display (ManageDrivers) ─────────────────────── */
+.hc-login-code {
+    background: #eef2ff;
+    color: #1565c0;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+}
+
+/* ── Equipment display (BoatDetails read-only view) ─────────── */
+.hc-equip-display     { border-radius: 10px; padding: 12px 8px; text-align: center; transition: all 0.2s; }
+.hc-equip-yes         { background: #e8f5e9; border: 1px solid #a5d6a7; }
+.hc-equip-no          { background: #fafafa; border: 1px dashed #ddd; }
+.hc-equip-display-img { width: 48px; height: 48px; object-fit: contain; }
+.hc-equip-label       { font-size: 0.8rem; font-weight: 600; margin-top: 6px; }
+.hc-equip-value       { font-size: 0.76rem; margin-top: 3px; }
+.hc-equip-yes .hc-equip-value { color: #2e7d32; }
+.hc-equip-no  .hc-equip-value { color: #9e9e9e; }
+
+/* ── Star rating blocks (BoatDetails, RateBoat) ─────────────── */
+.hc-star-block      { display: flex; align-items: center; gap: 1px; }
+.hc-star-lg         { font-size: 1.3rem; color: #ddd; }
+.hc-star-lg.filled  { color: #f9a825; }
+.hc-star-md         { font-size: 1rem; color: #ddd; }
+.hc-star-md.filled  { color: #f9a825; }
+
+/* ── Rating summary block ───────────────────────────────────── */
+.hc-rating-summary { display: flex; align-items: center; gap: 16px; }
+.hc-rating-big     { font-size: 3rem; font-weight: 800; color: var(--hc-navy); line-height: 1; }
+
+/* ── Reviews list ───────────────────────────────────────────── */
+.hc-reviews-list  { display: flex; flex-direction: column; gap: 0; }
+.hc-review-item   { padding: 12px 0; border-bottom: 1px solid #eee; }
+.hc-review-item:last-child { border-bottom: none; }
+
+/* ── Interactive star picker (RateBoat) ─────────────────────── */
+.hc-star-picker   { display: flex; justify-content: center; gap: 6px; }
+.hc-pick-star     { font-size: 3rem; color: #ddd; cursor: pointer; transition: color 0.15s, transform 0.15s; }
+.hc-pick-star.hover,
+.hc-pick-star.selected { color: #f9a825; }
+.hc-pick-star:hover { transform: scale(1.2); }
+
+/* ── Ride checklist (RideMap / EndRide) ─────────────────────── */
+.hc-checklist       { display: flex; flex-direction: column; gap: 12px; }
+.hc-check-item      { border: 2px solid #e0e0e0; border-radius: 10px; padding: 14px 16px;
+                      transition: all 0.2s; background: #fafafa; }
+.hc-check-item.hc-check-done { border-color: #2e7d32; background: #f1f8e9; }
+.hc-check-required  { border-color: #ef9a9a; }
+.hc-check-required.hc-check-done { border-color: #2e7d32; }
+.hc-check-label     { display: flex; align-items: center; gap: 14px; cursor: pointer; margin: 0; }
+.hc-check-icon      { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+.hc-check-emoji     { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 40px; text-align: center; }
+.hc-check-cb        { width: 1.4rem; height: 1.4rem; flex-shrink: 0; cursor: pointer; }
+
+/* ── Image gallery (BoatDetails) ────────────────────────────── */
+.hc-detail-main-img { width: 100%; max-height: 340px; object-fit: cover; border-radius: 8px 8px 0 0; }
+.hc-detail-thumb    { width: 72px; height: 56px; object-fit: cover; border-radius: 6px; cursor: pointer;
+                      border: 2px solid transparent; transition: border-color 0.2s; opacity: 0.7; }
+.hc-detail-thumb:hover,
+.hc-detail-thumb.active { border-color: var(--hc-teal); opacity: 1; }
+
+/* ── Equipment real photo styles (BoatDetails customer view) ── */
+.hc-equip-display {
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.hc-equip-display-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.hc-equip-real-photo {
+    width: 100% !important;
+    height: 110px !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+    border: 2px solid #a5d6a7;
+    margin-bottom: 4px;
+}
+.hc-equip-photo-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: rgba(30, 136, 229, 0.88);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ── Booking confirmation print styles ─────────────────────── */
+@media print {
+    .hc-navbar, .hc-footer, footer, .btn,
+    .alert, nav, #hc-chatbot-wrapper { display: none !important; }
+    .hc-slip-card  { box-shadow: none !important; border: 1px solid #ccc !important; }
+    body           { background: white !important; }
+    .container     { max-width: 100% !important; }
+    .hc-main-content { padding: 0 !important; }
+}
+
+/* ── Weather widget separator fix ──────────────────────────── */
+/* Remove any unwanted divider lines inside the weather widget */
+.hc-phone-weather hr { display: none !important; }
+.weather-main        { border-bottom: none !important; }
+.weather-desc        { border: none !important; }

@@ -40,24 +40,39 @@
     @* Navigation Cards *@
     <div class="row g-3">
         <div class="col-md-4">
-            <div class="card hc-card h-100 p-3">
+            <div class="card hc-card h-100 p-3 d-flex flex-column">
                 <h5>&#128674; My Boats</h5>
-                <p class="text-muted small">View and manage all your registered boats.</p>
+                <p class="text-muted small flex-grow-1">View and manage all your registered boats.</p>
                 @Html.ActionLink("View My Boats", "MyBoats", "BoatOwner", null, new { @class = "btn btn-primary mt-auto" })
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card hc-card h-100 p-3">
+            <div class="card hc-card h-100 p-3 d-flex flex-column">
                 <h5>&#10133; Add New Boat</h5>
-                <p class="text-muted small">Submit a new boat for TNPA approval.</p>
+                <p class="text-muted small flex-grow-1">Submit a new boat for TNPA approval.</p>
                 @Html.ActionLink("Add Boat", "AddBoat", "BoatOwner", null, new { @class = "btn btn-success mt-auto" })
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card hc-card h-100 p-3">
+            <div class="card hc-card h-100 p-3 d-flex flex-column">
                 <h5>&#128203; Bookings</h5>
-                <p class="text-muted small">View all customer bookings for your boats.</p>
+                <p class="text-muted small flex-grow-1">View all customer bookings for your boats.</p>
                 @Html.ActionLink("View Bookings", "Bookings", "BoatOwner", null, new { @class = "btn btn-info mt-auto" })
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card hc-card h-100 p-3 d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <h5 class="mb-0">&#128663; Manage Drivers</h5>
+                    @if (ViewBag.TotalDrivers != null && (int)ViewBag.TotalDrivers > 0)
+                    {
+                        <span class="badge bg-secondary">@ViewBag.TotalDrivers</span>
+                    }
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Add drivers, assign them to boats, and manage their login credentials.
+                </p>
+                @Html.ActionLink("Manage Drivers", "ManageDrivers", "BoatOwner", null, new { @class = "btn btn-warning mt-auto" })
             </div>
         </div>
     </div>

@@ -1,4 +1,6 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -11,20 +13,49 @@ namespace APDP
     {
         protected void Application_Start()
         {
-            // Set the initializer — drops and recreates DB if model changed
+            // Register the EF initializer (drops & recreates DB if model changes)
             Database.SetInitializer(new HarbourConnectInitializer());
 
-            // Force initialization now so the DB and tables exist before
-            // any request comes in
-            using (var db = new HarbourConnectContext())
-            {
-                db.Database.Initialize(force: true);
-            }
+            // Initialize the database with retry logic.
+            // The "model" lock error happens when SQL Server LocalDB is briefly
+            // busy — retrying a few times resolves it without any code changes.
+            InitializeDatabaseWithRetry(maxAttempts: 5, delayMs: 1500);
 
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+        }
+
+        private static void InitializeDatabaseWithRetry(int maxAttempts, int delayMs)
+        {
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                try
+                {
+                    using (var db = new HarbourConnectContext())
+                    {
+                        db.Database.Initialize(force: false);
+                    }
+                    return; // success — exit the loop
+                }
+                catch (Exception ex) when (attempt < maxAttempts &&
+                    (ex.Message.Contains("exclusive lock") ||
+                     ex.Message.Contains("CREATE DATABASE") ||
+                     ex.Message.Contains("model")))
+                {
+                    // Brief pause then retry
+                    Thread.Sleep(delayMs);
+                }
+                // On the final attempt let the exception bubble up naturally
+            }
+
+            // Final attempt outside the loop so any exception is unhandled
+            // and shows the real error if all retries failed
+            using (var db = new HarbourConnectContext())
+            {
+                db.Database.Initialize(force: false);
+            }
         }
     }
 }
