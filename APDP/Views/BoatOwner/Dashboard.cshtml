@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "Boat Owner Dashboard";
 }
 
@@ -23,7 +23,7 @@
                     <div class="list-group">
                         @foreach (var b in awaiting)
                         {
-                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
                                 <div>
                                     <strong>@b.BoatName</strong>
                                     <div class="small text-info">TNPA approved &mdash; registration fee required</div>
@@ -38,7 +38,7 @@
 
                         @foreach (var b in rejected)
                         {
-                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="list-group-item d-flex justify-content-between align-items-start gap-3">
                                 <div>
                                     <strong>@b.BoatName</strong>
                                     <div class="small text-danger">TNPA rejected &mdash; @Html.Raw(HttpUtility.HtmlEncode(b.RejectionReason ?? "No reason provided"))</div>

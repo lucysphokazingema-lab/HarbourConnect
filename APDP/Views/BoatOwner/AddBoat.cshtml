@@ -546,36 +546,54 @@
         function toggleDisabilityDetails(cb) {
             document.getElementById('disabilityDetails').style.display = cb.checked ? 'block' : 'none';
         }
+
+        // ── Re-attach files to inputs before form submit ──────────────
+        // The file inputs are cleared after selection so previews work,
+        // but we need to put the files back so the server receives them.
+        document.querySelector('form').addEventListener('submit', function () {
+            try {
+                var dtPhoto = new DataTransfer();
+                photoFiles.forEach(function (f) { dtPhoto.items.add(f); });
+                document.getElementById('photoFileInput').files = dtPhoto.files;
+
+                var dtVideo = new DataTransfer();
+                videoFiles.forEach(function (f) { dtVideo.items.add(f); });
+                document.getElementById('videoFileInput').files = dtVideo.files;
+            } catch (e) {
+                // DataTransfer not supported (very old browsers) — files may not upload
+                console.warn('Could not re-attach files before submit:', e);
+            }
+        });
     </script>
 
     <style>
         /* ── Checkbox tile ──────────────────────────────────────── */
-        .hc-check-tile           { display:flex; align-items:center; gap:12px; border:2px solid #dee2e6; border-radius:10px; padding:14px 16px; cursor:pointer; user-select:none; transition:all 0.18s; background:#fff; width:100%; }
-        .hc-check-tile:hover     { border-color:#1565c0; background:#f0f4ff; }
-        .hc-tile-checked         { border-color:#2e7d32 !important; background:#e8f5e9 !important; }
-        .hc-check-tile-required  { border-color:#ef9a9a; }
-        .hc-tile-checked.hc-check-tile-required { border-color:#2e7d32 !important; }
-        .hc-tile-cb              { width:1.3rem; height:1.3rem; flex-shrink:0; cursor:pointer; accent-color:#2e7d32; }
+        .hc-check-tile           { display:flex; align-items:center; gap:12px; border:2px solid var(--hc-border-strong); border-radius:var(--hc-radius-sm); padding:14px 16px; cursor:pointer; user-select:none; transition:all 0.18s; background:var(--hc-surface); width:100%; }
+        .hc-check-tile:hover     { border-color:var(--hc-primary); background:var(--hc-primary-soft); }
+        .hc-tile-checked         { border-color:var(--hc-success) !important; background:var(--hc-success-soft) !important; }
+        .hc-check-tile-required  { border-color:var(--hc-danger); }
+        .hc-tile-checked.hc-check-tile-required { border-color:var(--hc-success) !important; }
+        .hc-tile-cb              { width:1.3rem; height:1.3rem; flex-shrink:0; cursor:pointer; accent-color:var(--hc-success); }
         .hc-tile-body            { display:flex; align-items:center; gap:10px; }
         .hc-tile-icon            { font-size:1.6rem; line-height:1; }
-        .hc-tile-name            { font-weight:600; font-size:0.9rem; color:#212529; }
+        .hc-tile-name            { font-weight:600; font-size:0.9rem; color:var(--hc-heading); }
 
         /* ── Document cards ─────────────────────────────────────── */
-        .hc-doc-card  { border:2px solid #dee2e6; border-radius:10px; padding:14px; background:#fafafa; height:100%; }
+        .hc-doc-card  { border:2px solid var(--hc-border); border-radius:var(--hc-radius-sm); padding:14px; background:var(--hc-surface-2); height:100%; }
         .hc-doc-icon  { font-size:1.8rem; margin-bottom:4px; }
-        .hc-doc-title { font-weight:700; font-size:0.86rem; margin-bottom:4px; color:#212529; }
+        .hc-doc-title { font-weight:700; font-size:0.86rem; margin-bottom:4px; color:var(--hc-heading); }
         .hc-doc-desc  { line-height:1.4; }
 
         /* ── Upload drop zone ───────────────────────────────────── */
-        .hc-upload-zone           { border:2px dashed #b0bec5; border-radius:12px; background:#f9fafb; padding:24px 20px; text-align:center; transition:border-color 0.2s, background 0.2s; }
-        .hc-upload-zone-hover     { border-color:#1565c0; background:#f0f4ff; }
+        .hc-upload-zone           { border:2px dashed var(--hc-border-strong); border-radius:12px; background:var(--hc-surface-2); padding:24px 20px; text-align:center; transition:border-color 0.2s, background 0.2s; }
+        .hc-upload-zone-hover     { border-color:var(--hc-primary); background:var(--hc-primary-soft); }
 
         /* ── Thumbnail grid ─────────────────────────────────────── */
         .hc-thumb-wrap            { position:relative; width:160px; }
-        .hc-thumb-img             { width:160px; height:120px; object-fit:cover; border-radius:8px; border:2px solid #e0e0e0; display:block; }
+        .hc-thumb-img             { width:160px; height:120px; object-fit:cover; border-radius:8px; border:2px solid var(--hc-border); display:block; }
         video.hc-thumb-img        { object-fit:contain; background:#000; }
-        .hc-thumb-del             { display:block; width:100%; margin-top:6px; background:none; border:none; color:#e53935; font-size:0.78rem; font-weight:600; cursor:pointer; padding:0; text-align:center; }
-        .hc-thumb-del:hover       { color:#b71c1c; text-decoration:underline; }
+        .hc-thumb-del             { display:block; width:100%; margin-top:6px; background:none; border:none; color:var(--hc-danger); font-size:0.78rem; font-weight:600; cursor:pointer; padding:0; text-align:center; }
+        .hc-thumb-del:hover       { color:var(--hc-danger); filter:brightness(0.85); text-decoration:underline; }
 
         /* ── Extras builder ─────────────────────────────────────── */
         .hc-extra-row input[type="text"]   { min-width:0; }

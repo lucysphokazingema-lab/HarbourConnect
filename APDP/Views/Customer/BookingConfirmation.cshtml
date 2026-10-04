@@ -161,23 +161,23 @@
 </div>
 
 <style>
-    .hc-slip-card          { border: 2px solid #e0e0e0; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
-    .hc-slip-header        { background: linear-gradient(135deg, #0d2c54, #1565c0); color: #fff; padding: 24px 28px; }
+    .hc-slip-card          { border: 2px solid var(--hc-border); border-radius: var(--hc-radius); overflow: hidden; box-shadow: var(--hc-shadow); }
+    .hc-slip-header        { background: var(--hc-header-bg); color: #fff; padding: 24px 28px; }
     .hc-slip-sub           { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
     .hc-slip-booking-id    { font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; }
     .hc-slip-section       { margin-bottom: 18px; }
-    .hc-slip-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: #1565c0; border-bottom: 1px solid #e3f2fd; padding-bottom: 4px; margin-bottom: 8px; }
-    .hc-slip-table th      { font-weight: 600; color: #555; width: 38%; font-size: 0.82rem; }
-    .hc-slip-table td      { font-size: 0.85rem; color: #212529; }
+    .hc-slip-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--hc-primary); border-bottom: 1px solid var(--hc-border); padding-bottom: 4px; margin-bottom: 8px; }
+    .hc-slip-table th      { font-weight: 600; color: var(--hc-text-muted); width: 38%; font-size: 0.82rem; }
+    .hc-slip-table td      { font-size: 0.85rem; color: var(--hc-text); }
     .hc-slip-total th,
-    .hc-slip-total td      { padding-top: 10px; border-top: 2px solid #1565c0; }
-    .hc-qr-container       { background: #f8faff; border: 2px solid #e3f2fd; border-radius: 12px; padding: 16px 20px; text-align: center; }
-    .hc-qr-label           { font-weight: 700; font-size: 0.82rem; color: #0d2c54; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .hc-slip-total td      { padding-top: 10px; border-top: 2px solid var(--hc-primary); }
+    .hc-qr-container       { background: var(--hc-surface-2); border: 2px solid var(--hc-border); border-radius: 12px; padding: 16px 20px; text-align: center; }
+    .hc-qr-label           { font-weight: 700; font-size: 0.82rem; color: var(--hc-heading); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
     #qrcode                { display: inline-block; }
     #qrcode img            { border-radius: 6px; }
-    .hc-qr-sublabel        { font-size: 0.72rem; color: #888; margin-top: 10px; line-height: 1.5; }
-    .hc-qr-note        { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #0d47a1; }
-    .hc-slip-footer        { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #6d4c00; }
+    .hc-qr-sublabel        { font-size: 0.72rem; color: var(--hc-text-muted); margin-top: 10px; line-height: 1.5; }
+    .hc-qr-note        { background: var(--hc-info-soft); border: 1px solid var(--hc-border); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--hc-text); }
+    .hc-slip-footer        { background: var(--hc-warning-soft); border: 1px solid var(--hc-border); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--hc-text); }
 </style>
 
 @* Print styles live in Site.css to avoid Razor parsing @media as code *@

@@ -1,4 +1,4 @@
-@model IEnumerable<APDP.Models.Boat>
+﻿@model IEnumerable<APDP.Models.Boat>
 @{
     ViewBag.Title = "My Boats";
 }
@@ -107,6 +107,7 @@
                                 }
                             </td>
                             <td>
+                                <div class="d-flex flex-wrap gap-1 align-items-center">
                                 @if (boat.Status == APDP.Models.BoatStatus.AwaitingPayment)
                                 {
                                     @Html.ActionLink("Pay Now", "PayRegistrationFee", "BoatOwner",
@@ -163,6 +164,7 @@
                                         new { id = boat.BoatID },
                                         new { @class = "btn btn-sm btn-outline-primary" })
                                 }
+                                </div>
                             </td>
                         </tr>
                     }

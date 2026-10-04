@@ -1,10 +1,10 @@
-﻿﻿@{
+﻿@{
     ViewBag.Title = "About Durban Harbour";
 }
 
 <style>
     body {
-        background-color: #f4f7fc !important;
+        background-color: var(--hc-bg) !important;
         background-image: none !important;
     }
 
@@ -37,25 +37,27 @@
     }
 
     .hc-about-body {
-        background: #ffffff;
-        border-radius: 16px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+        background: var(--hc-surface);
+        color: var(--hc-text);
+        border: 1px solid var(--hc-border);
+        border-radius: var(--hc-radius);
+        box-shadow: var(--hc-shadow);
         padding: 2.2rem 2.5rem;
     }
 
     .hc-about-body h3 {
-        color: #0d2c54;
+        color: var(--hc-heading);
         font-weight: 700;
         margin-top: 1.8rem;
         margin-bottom: 0.5rem;
-        border-left: 4px solid #00897b;
+        border-left: 4px solid var(--hc-primary);
         padding-left: 0.75rem;
         font-size: 1.15rem;
     }
 
     .hc-about-body p,
     .hc-about-body li {
-        color: #3d3d3d;
+        color: var(--hc-text);
         font-size: 0.97rem;
         line-height: 1.85;
     }
@@ -76,8 +78,8 @@
     }
 
     .hc-fact-box {
-        background: #f0f7f5;
-        border: 1px solid #b2dfdb;
+        background: var(--hc-primary-soft);
+        border: 1px solid var(--hc-primary-border);
         border-radius: 12px;
         padding: 1.1rem 0.8rem;
         text-align: center;
@@ -86,13 +88,13 @@
     .hc-fact-box .hc-fact-num {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #00897b;
+        color: var(--hc-primary);
         line-height: 1;
     }
 
     .hc-fact-box .hc-fact-lbl {
         font-size: 0.8rem;
-        color: #555;
+        color: var(--hc-text-muted);
         margin-top: 5px;
     }
 
@@ -101,8 +103,8 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: #0d2c54;
-        color: #ffffff;
+        background: var(--hc-primary);
+        color: var(--hc-on-primary);
         border-radius: 30px;
         padding: 8px 18px;
         font-size: 0.9rem;
@@ -120,7 +122,8 @@
         position: relative;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        border: 1px solid var(--hc-border);
+        box-shadow: var(--hc-shadow);
     }
 
     .hc-map-label {

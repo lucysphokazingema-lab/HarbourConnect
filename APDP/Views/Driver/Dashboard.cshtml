@@ -1,4 +1,4 @@
-@model APDP.Models.Driver
+﻿@model APDP.Models.Driver
 @{
     ViewBag.Title = "Driver Dashboard";
     var nextBooking = ViewBag.NextBooking as APDP.Models.Booking;
@@ -206,7 +206,7 @@
     <div class="card hc-card mb-4">
 
         <div class="card-header d-flex align-items-center justify-content-between py-2 px-3"
-             style="background:#0d2c54; color:#fff;">
+             style="background:var(--hc-header-bg); color:#fff;">
 
             <div class="d-flex align-items-center gap-2">
                 <span>&#128205;</span>
@@ -786,5 +786,10 @@
             font-size: 0.82rem !important;
             border-radius: 6px !important;
         }
+
+        /* Highlight "MINE" rows in the activity feed (theme-aware) */
+        .list-group-item.list-group-item-success { background-color: var(--hc-success-soft); color: var(--hc-text); }
+        .list-group-item.list-group-item-primary { background-color: var(--hc-primary-soft); color: var(--hc-text); }
+        .list-group-item.list-group-item-warning { background-color: var(--hc-warning-soft); color: var(--hc-text); }
     </style>
 }

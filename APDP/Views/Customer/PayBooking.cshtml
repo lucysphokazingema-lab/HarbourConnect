@@ -1,4 +1,4 @@
-@model APDP.Models.Booking
+﻿@model APDP.Models.Booking
 @{
     ViewBag.Title = "Pay for Booking";
     DateTime holdExpires = ViewBag.HoldExpires is DateTime ? (DateTime)ViewBag.HoldExpires : DateTime.Now;
@@ -76,6 +76,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Bootstrap's .table-success is a pale green with black text; tone it down in dark mode */
+    html.dark .table-success { --bs-table-color: var(--hc-heading); --bs-table-bg: var(--hc-success-soft); --bs-table-border-color: var(--hc-border); color: var(--hc-heading); }
+</style>
 
 @section scripts {
     <script>

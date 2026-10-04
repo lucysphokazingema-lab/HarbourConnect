@@ -1,4 +1,4 @@
-@model IEnumerable<APDP.Models.Driver>
+﻿@model IEnumerable<APDP.Models.Driver>
 @{
     ViewBag.Title = "Manage Drivers";
     var ownerBoats = ViewBag.OwnerBoats as IEnumerable<APDP.Models.Boat>;
@@ -119,8 +119,8 @@
 
 <style>
     .hc-login-code {
-        background: #eef2ff;
-        color: #1565c0;
+        background: var(--hc-primary-soft);
+        color: var(--hc-primary);
         padding: 2px 7px;
         border-radius: 5px;
         font-size: 0.85rem;

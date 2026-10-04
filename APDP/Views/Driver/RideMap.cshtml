@@ -268,11 +268,13 @@
 
     <style>
         .hc-checklist       { display: flex; flex-direction: column; gap: 12px; }
-        .hc-check-item      { border: 2px solid #e0e0e0; border-radius: 10px; padding: 14px 16px;
-                              transition: all 0.2s; background: #fafafa; }
-        .hc-check-item.hc-check-done { border-color: #2e7d32; background: #f1f8e9; }
-        .hc-check-required  { border-color: #ef9a9a; }
-        .hc-check-required.hc-check-done { border-color: #2e7d32; }
+        .hc-check-item      { border: 2px solid var(--hc-border-strong); border-radius: var(--hc-radius-sm); padding: 14px 16px;
+                              transition: all 0.2s; background: var(--hc-surface-2); color: var(--hc-text);
+                              display: flex; align-items: center; gap: 14px; }
+        .hc-check-item .hc-check-cb { margin-top: 0; }
+        .hc-check-item.hc-check-done { border-color: var(--hc-success); background: var(--hc-success-soft); }
+        .hc-check-required  { border-color: var(--hc-danger); }
+        .hc-check-required.hc-check-done { border-color: var(--hc-success); }
         .hc-check-label     { display: flex; align-items: center; gap: 14px; cursor: pointer; margin: 0; }
         .hc-check-icon      { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
         .hc-check-emoji     { font-size: 2rem; line-height: 1; flex-shrink: 0; width: 40px; text-align: center; }

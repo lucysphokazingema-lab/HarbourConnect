@@ -497,7 +497,7 @@
             @if (Model.Status == APDP.Models.BoatStatus.Pending)
             {
                 <div class="card hc-form-card mb-4 border-warning">
-                    <div class="card-header" style="background:#fff8e1; border-bottom:2px solid #ffe082;">
+                    <div class="card-header" style="background:var(--hc-warning-soft); border-bottom:2px solid var(--hc-warning);">
                         <h5 class="mb-0">&#9878; Make a Decision</h5>
                         <p class="mb-0 small text-muted">Review all sections above before approving or rejecting.</p>
                     </div>
@@ -643,16 +643,16 @@
 
 <style>
     /* ── Section headers ───────────────────────────────────────── */
-    .hc-section-header           { background: #f5f7fa; border-bottom: 2px solid #dee2e6; padding: 12px 20px; }
-    .hc-section-header h5        { color: #0d2c54; font-weight: 700; }
+    .hc-section-header           { background: var(--hc-surface-2); border-bottom: 2px solid var(--hc-border); padding: 12px 20px; }
+    .hc-section-header h5        { color: var(--hc-heading); font-weight: 700; }
 
     /* ── Detail table ──────────────────────────────────────────── */
-    .hc-detail-table th          { background: #f8f9fa; font-weight: 600; color: #495057; padding: 10px 14px; }
+    .hc-detail-table th          { background: var(--hc-surface-2); font-weight: 600; color: var(--hc-text-muted); padding: 10px 14px; }
     .hc-detail-table td          { padding: 10px 14px; }
 
     /* ── Boat photos ───────────────────────────────────────────── */
-    .tnpa-photo-card             { border: 2px solid #dee2e6; border-radius: 10px; overflow: hidden; background: #fafafa; }
-    .tnpa-photo-label            { background: #0d2c54; color: #fff; font-size: 0.78rem; font-weight: 700;
+    .tnpa-photo-card             { border: 2px solid var(--hc-border); border-radius: var(--hc-radius-sm); overflow: hidden; background: var(--hc-surface-2); }
+    .tnpa-photo-label            { background: var(--hc-header-bg); color: #fff; font-size: 0.78rem; font-weight: 700;
                                    text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; }
     .tnpa-photo-img              { width: 100%; height: 200px; object-fit: cover; display: block;
                                    transition: opacity 0.2s; }
@@ -661,32 +661,32 @@
     /* ── Equipment cards (now replaced by check items below) ──────── */
     .tnpa-equip-card             { border-radius: 10px; padding: 14px; text-align: center; min-height: 130px;
                                    display: flex; flex-direction: column; align-items: center; }
-    .tnpa-equip-yes              { background: #e8f5e9; border: 2px solid #a5d6a7; }
-    .tnpa-equip-no               { background: #fafafa; border: 2px dashed #ccc; }
-    .tnpa-equip-title            { font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; color: #212529; }
+    .tnpa-equip-yes              { background: var(--hc-success-soft); border: 2px solid var(--hc-success); }
+    .tnpa-equip-no               { background: var(--hc-surface-2); border: 2px dashed var(--hc-border-strong); }
+    .tnpa-equip-title            { font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; color: var(--hc-heading); }
     .tnpa-equip-status           { font-size: 0.82rem; margin-bottom: 8px; }
     .tnpa-equip-photo            { width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px;
-                                   border: 1px solid #ccc; margin-top: 4px; display: block; }
+                                   border: 1px solid var(--hc-border-strong); margin-top: 4px; display: block; }
     .tnpa-equip-photo:hover      { opacity: 0.88; }
-    .tnpa-photo-badge            { font-size: 0.68rem; background: #1565c0; color: #fff;
+    .tnpa-photo-badge            { font-size: 0.68rem; background: var(--hc-primary); color: var(--hc-on-primary);
                                    border-radius: 8px; padding: 1px 8px; margin-top: 4px; display: inline-block; }
 
     /* ── Checkbox check items ──────────────────────────────────── */
     .tnpa-check-item  { display: flex; align-items: center; border-radius: 8px; padding: 10px 14px;
                         font-size: 0.88rem; }
-    .tnpa-check-yes   { background: #e8f5e9; border: 1px solid #a5d6a7; }
-    .tnpa-check-no    { background: #fafafa; border: 1px dashed #ccc; }
+    .tnpa-check-yes   { background: var(--hc-success-soft); border: 1px solid var(--hc-success); }
+    .tnpa-check-no    { background: var(--hc-surface-2); border: 1px dashed var(--hc-border-strong); }
 
     /* ── Document cards ────────────────────────────────────────── */
     .tnpa-doc-card               { border-radius: 10px; padding: 16px; text-align: center;
                                    min-height: 120px; display: flex; flex-direction: column; align-items: center; }
-    .tnpa-doc-present            { background: #e3f2fd; border: 2px solid #90caf9; }
-    .tnpa-doc-missing            { background: #fff3e0; border: 2px dashed #ffcc80; }
+    .tnpa-doc-present            { background: var(--hc-primary-soft); border: 2px solid var(--hc-primary-border); }
+    .tnpa-doc-missing            { background: var(--hc-warning-soft); border: 2px dashed var(--hc-warning); }
     .tnpa-doc-icon               { font-size: 2rem; line-height: 1; margin-bottom: 6px; }
-    .tnpa-doc-label              { font-weight: 700; font-size: 0.84rem; color: #212529; margin-bottom: 4px; }
+    .tnpa-doc-label              { font-weight: 700; font-size: 0.84rem; color: var(--hc-heading); margin-bottom: 4px; }
     .tnpa-doc-status             { font-size: 0.78rem; font-weight: 600; }
     .tnpa-doc-img                { width: 100%; max-height: 90px; object-fit: cover; border-radius: 6px;
-                                   border: 1px solid #ccc; margin-top: 4px; display: block; }
+                                   border: 1px solid var(--hc-border-strong); margin-top: 4px; display: block; }
     .tnpa-doc-img:hover          { opacity: 0.88; }
 
     /* ── Fullscreen button on videos ───────────────────────────── */

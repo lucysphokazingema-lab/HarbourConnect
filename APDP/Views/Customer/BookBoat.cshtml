@@ -465,57 +465,57 @@
 
     <style>
         /* Sailing hours chips */
-        .hc-hours-chip     { background:#e8f5e9; border:1px solid #a5d6a7; border-radius:6px; padding:3px 8px; }
-        .hc-hours-closed   { background:#f1f3f5; border-color:#dee2e6; color:#868e96; }
+        .hc-hours-chip     { background:var(--hc-success-soft); color:var(--hc-text); border:1px solid var(--hc-border); border-radius:6px; padding:3px 8px; }
+        .hc-hours-closed   { background:var(--hc-surface-2); border-color:var(--hc-border); color:var(--hc-text-muted); }
 
         /* Day strip */
         .hc-day-strip      { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; }
-        .hc-day-btn        { flex:0 0 auto; width:58px; border-radius:10px; border:2px solid #dee2e6; background:#fff;
+        .hc-day-btn        { flex:0 0 auto; width:58px; border-radius:10px; border:2px solid var(--hc-border-strong); background:var(--hc-surface); color:var(--hc-text);
                              display:flex; flex-direction:column; align-items:center; padding:6px 0; line-height:1.15; cursor:pointer; }
         .hc-day-btn:disabled { cursor:not-allowed; }
-        .hc-day-dow        { font-size:0.7rem; text-transform:uppercase; color:#6c757d; }
+        .hc-day-dow        { font-size:0.7rem; text-transform:uppercase; color:var(--hc-text-muted); }
         .hc-day-num        { font-size:1.15rem; font-weight:700; }
-        .hc-day-mon        { font-size:0.7rem; color:#6c757d; }
-        .hc-day-open       { border-color:#a5d6a7; }
-        .hc-day-open:hover { background:#e8f5e9; }
-        .hc-day-full       { background:#fff3e0; border-color:#ffcc80; opacity:0.7; }
+        .hc-day-mon        { font-size:0.7rem; color:var(--hc-text-muted); }
+        .hc-day-open       { border-color:var(--hc-success); }
+        .hc-day-open:hover { background:var(--hc-success-soft); }
+        .hc-day-full       { background:var(--hc-warning-soft); border-color:var(--hc-warning); opacity:0.7; }
         .hc-day-closed,
-        .hc-day-blocked    { background:#f1f3f5; color:#adb5bd; opacity:0.6; }
+        .hc-day-blocked    { background:var(--hc-surface-2); color:var(--hc-text-muted); opacity:0.6; }
         .hc-day-selected   { background:#2e7d32 !important; border-color:#2e7d32 !important; color:#fff !important; }
         .hc-day-selected span { color:#fff !important; }
-        .hc-legend         { display:inline-block; width:12px; height:12px; border-radius:3px; border:2px solid #dee2e6; vertical-align:-1px; }
+        .hc-legend         { display:inline-block; width:12px; height:12px; border-radius:3px; border:2px solid var(--hc-border-strong); vertical-align:-1px; }
 
         /* Passenger selector tiles */
-        .hc-pax-row        { background:#f8f9fa; border-radius:10px; padding:14px 16px; margin-bottom:0; }
+        .hc-pax-row        { background:var(--hc-surface-2); border-radius:10px; padding:14px 16px; margin-bottom:0; }
         .hc-pax-label      { margin-bottom:8px; }
         .hc-pax-age        { font-size:0.82rem; margin-left:6px; }
         .hc-pax-selector   { display:flex; flex-wrap:wrap; gap:6px; }
         .hc-pax-num        { display:inline-flex; align-items:center; justify-content:center;
                              width:42px; height:42px; border-radius:8px; font-weight:700;
-                             font-size:0.95rem; cursor:pointer; border:2px solid #dee2e6;
-                             background:#fff; transition:all 0.15s; user-select:none; }
-        .hc-pax-num:hover  { border-color:#1565c0; background:#e8f0fe; }
-        .hc-pax-selected   { border-color:#1565c0 !important; background:#1565c0 !important; color:#fff !important; }
+                             font-size:0.95rem; cursor:pointer; border:2px solid var(--hc-border-strong);
+                             background:var(--hc-surface); color:var(--hc-text); transition:all 0.15s; user-select:none; }
+        .hc-pax-num:hover  { border-color:var(--hc-primary); background:var(--hc-primary-soft); }
+        .hc-pax-selected   { border-color:var(--hc-primary) !important; background:var(--hc-primary) !important; color:var(--hc-on-primary) !important; }
         .hc-pax-radio      { display:none; }
 
         /* Time slot tiles */
         .hc-slot-btn       { display:inline-flex; align-items:center; justify-content:center;
-                             padding:8px 16px; border-radius:8px; border:2px solid #dee2e6;
-                             background:#fff; font-weight:600; font-size:0.88rem;
+                             padding:8px 16px; border-radius:8px; border:2px solid var(--hc-border-strong);
+                             background:var(--hc-surface); color:var(--hc-text); font-weight:600; font-size:0.88rem;
                              cursor:pointer; transition:all 0.15s; user-select:none; }
-        .hc-slot-btn:hover { border-color:#1565c0; background:#e8f0fe; }
+        .hc-slot-btn:hover { border-color:var(--hc-primary); background:var(--hc-primary-soft); }
         .hc-slot-selected  { border-color:#2e7d32 !important; background:#2e7d32 !important; color:#fff !important; }
-        .hc-slot-taken     { background:#f0f0f0 !important; color:#aaa !important;
-                             border-color:#ddd !important; cursor:not-allowed; opacity:0.6; }
+        .hc-slot-taken     { background:var(--hc-surface-3) !important; color:var(--hc-text-muted) !important;
+                             border-color:var(--hc-border) !important; cursor:not-allowed; opacity:0.6; }
         .hc-slot-radio     { display:none; }
 
         /* Price summary */
-        .hc-price-summary  { background:#f8fff8; border:2px solid #a5d6a7; border-radius:10px; padding:16px 20px; }
+        .hc-price-summary  { background:var(--hc-success-soft); border:2px solid var(--hc-success); border-radius:10px; padding:16px 20px; }
         .hc-price-row      { display:flex; justify-content:space-between; align-items:center; padding:4px 0; }
-        .hc-price-total    { border-top:2px solid #a5d6a7; margin-top:8px; padding-top:10px; }
+        .hc-price-total    { border-top:2px solid var(--hc-success); margin-top:8px; padding-top:10px; }
 
         /* Extras */
-        .hc-extra-pick     { background:#fff; cursor:pointer; transition:all 0.18s; user-select:none; border-radius:8px !important; }
-        .hc-extra-pick:hover { border-color:#1565c0 !important; background:#f0f4ff; }
+        .hc-extra-pick     { background:var(--hc-surface); cursor:pointer; transition:all 0.18s; user-select:none; border-radius:8px !important; }
+        .hc-extra-pick:hover { border-color:var(--hc-primary) !important; background:var(--hc-primary-soft); }
     </style>
 }

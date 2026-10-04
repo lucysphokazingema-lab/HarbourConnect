@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     /* ── Remove default page padding for login ───────────── */
     .hc-main-content { padding: 0 !important; }
 
@@ -50,6 +50,7 @@
         font-weight: 800;
         margin: 6px 0 4px 0;
         letter-spacing: -0.3px;
+        color: #fff;
         text-shadow: 0 2px 8px rgba(0,0,0,0.35);
     }
 
@@ -82,29 +83,30 @@
         align-items: center;
         justify-content: center;
         padding: 48px 32px;
-        background: #f0f4ff;
+        background: var(--hc-bg);
     }
 
     .lp-form-box {
         width: 100%;
         max-width: 400px;
-        background: #fff;
-        border-radius: 16px;
+        background: var(--hc-surface);
+        border: 1px solid var(--hc-border);
+        border-radius: var(--hc-radius);
         padding: 40px 36px;
-        box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+        box-shadow: var(--hc-shadow);
     }
 
     /* Title */
     .lp-form-title {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #111;
+        color: var(--hc-heading);
         margin: 0 0 4px 0;
     }
 
     .lp-form-sub {
         font-size: 0.88rem;
-        color: #999;
+        color: var(--hc-text-muted);
         margin-bottom: 28px;
     }
 
@@ -112,25 +114,25 @@
     .lp-field {
         display: flex;
         align-items: center;
-        border: 1.5px solid #e0e3ea;
-        border-radius: 10px;
+        border: 1.5px solid var(--hc-border-strong);
+        border-radius: var(--hc-radius-sm);
         padding: 0 16px;
         margin-bottom: 16px;
         height: 54px;
-        background: #f7f9fc;
+        background: var(--hc-surface-2);
         transition: border-color 0.18s, box-shadow 0.18s;
     }
 
     .lp-field:focus-within {
-        border-color: #1a56db;
-        background: #fff;
-        box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+        border-color: var(--hc-primary);
+        background: var(--hc-surface);
+        box-shadow: var(--hc-focus-ring);
     }
 
     .lp-field-icon {
         font-size: 1rem;
         margin-right: 10px;
-        color: #bbb;
+        color: var(--hc-text-muted);
         flex-shrink: 0;
     }
 
@@ -140,23 +142,23 @@
         outline: none;
         flex: 1;
         font-size: 0.93rem;
-        color: #222;
+        color: var(--hc-text);
     }
 
-    .lp-input::placeholder { color: #bbb; }
+    .lp-input::placeholder { color: var(--hc-text-muted); opacity: 0.8; }
 
     .lp-toggle-pass {
         background: none;
         border: none;
         cursor: pointer;
-        color: #bbb;
+        color: var(--hc-text-muted);
         font-size: 0.95rem;
         padding: 0;
         line-height: 1;
         transition: color 0.15s;
     }
 
-    .lp-toggle-pass:hover { color: #555; }
+    .lp-toggle-pass:hover { color: var(--hc-text); }
 
     /* ── Remember / forgot row ───────────────────────────── */
     .lp-row {
@@ -167,18 +169,18 @@
         font-size: 0.83rem;
     }
 
-    .lp-remember { display: flex; align-items: center; gap: 6px; color: #555; cursor: pointer; }
-    .lp-remember input { accent-color: #1a56db; width: 14px; height: 14px; cursor: pointer; }
+    .lp-remember { display: flex; align-items: center; gap: 6px; color: var(--hc-text-muted); cursor: pointer; }
+    .lp-remember input { accent-color: var(--hc-primary); width: 14px; height: 14px; cursor: pointer; }
 
     /* ── Login button ────────────────────────────────────── */
     .lp-btn-primary {
         display: block;
         width: 100%;
         padding: 15px;
-        background: #1a56db;
-        color: #fff;
+        background: var(--hc-primary);
+        color: var(--hc-on-primary);
         border: none;
-        border-radius: 10px;
+        border-radius: var(--hc-radius-sm);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
@@ -187,7 +189,7 @@
         letter-spacing: 0.03em;
     }
 
-    .lp-btn-primary:hover  { background: #1446b8; transform: translateY(-1px); }
+    .lp-btn-primary:hover  { background: var(--hc-primary-hover); transform: translateY(-1px); }
     .lp-btn-primary:active { transform: translateY(0); }
 
     /* ── Divider ─────────────────────────────────────────── */
@@ -196,7 +198,7 @@
         align-items: center;
         gap: 10px;
         margin: 20px 0;
-        color: #ccc;
+        color: var(--hc-text-muted);
         font-size: 0.8rem;
     }
 
@@ -205,7 +207,7 @@
         content: '';
         flex: 1;
         height: 1px;
-        background: #e8eaed;
+        background: var(--hc-border);
     }
 
     /* ── Secondary / outline button ─────────────────────── */
@@ -216,28 +218,28 @@
         gap: 8px;
         width: 100%;
         padding: 13px;
-        border: 1.5px solid #e0e3ea;
-        border-radius: 10px;
+        border: 1.5px solid var(--hc-border-strong);
+        border-radius: var(--hc-radius-sm);
         text-align: center;
         font-size: 0.92rem;
         font-weight: 600;
-        color: #333;
+        color: var(--hc-text);
         text-decoration: none;
-        background: #fff;
+        background: var(--hc-surface);
         transition: border-color 0.18s, background 0.18s, color 0.18s;
     }
 
-    .lp-btn-outline:hover { border-color: #1a56db; color: #1a56db; background: #f4f8ff; }
+    .lp-btn-outline:hover { border-color: var(--hc-primary); color: var(--hc-primary); background: var(--hc-primary-soft); }
 
     /* ── Footer note ─────────────────────────────────────── */
     .lp-footer-note {
         text-align: center;
         font-size: 0.8rem;
-        color: #bbb;
+        color: var(--hc-text-muted);
         margin-top: 22px;
     }
 
-    .lp-footer-note a { color: #1a56db; text-decoration: none; font-weight: 500; }
+    .lp-footer-note a { color: var(--hc-primary); text-decoration: none; font-weight: 500; }
     .lp-footer-note a:hover { text-decoration: underline; }
 
     /* ── Responsive ──────────────────────────────────────── */

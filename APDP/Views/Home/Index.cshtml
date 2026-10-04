@@ -1,4 +1,4 @@
-﻿﻿@{
+﻿@{
     ViewBag.Title = "Welcome to HarbourConnect";
 }
 
@@ -32,7 +32,7 @@
 
     /* Section title white on the photo */
     .hc-home-wrapper .hc-section-title {
-        color: #ffffff;
+        color: #ffffff !important;
         text-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
 
@@ -42,8 +42,8 @@
 
     /* Cards - compact size so background image is visible */
     .hc-home-wrapper .hc-card {
-        background: #ffffff !important;
-        border: none !important;
+        background: var(--hc-surface) !important;
+        border: 1px solid var(--hc-border) !important;
         box-shadow: 0 8px 32px rgba(0,0,0,0.30) !important;
         transition: transform 0.25s, box-shadow 0.25s;
     }
@@ -70,7 +70,7 @@
         padding: 3rem 0;
     }
 
-    .hc-home-features .hc-section-title       { color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+    .hc-home-features .hc-section-title       { color: #ffffff !important; text-shadow: 0 2px 6px rgba(0,0,0,0.5); }
     .hc-home-features .hc-section-title::after { background: #4dd0e1; }
     .hc-home-features h6                       { color: #e3f2fd; font-weight: 600; }
     .hc-home-features .text-muted              { color: #90caf9 !important; }

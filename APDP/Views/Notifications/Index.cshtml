@@ -1,4 +1,4 @@
-@model IEnumerable<APDP.Models.Notification>
+﻿@model IEnumerable<APDP.Models.Notification>
 @{
     ViewBag.Title = "Notifications";
 }
@@ -68,9 +68,9 @@
 </div>
 
 <style>
-    .hc-notif-card         { border: 1px solid #dee2e6; border-radius: 10px;
-                             background: #fff; transition: all 0.2s; }
-    .hc-notif-unread       { border-left: 4px solid #1565c0 !important;
-                             background: #f0f4ff !important; }
-    .hc-notif-card:hover   { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .hc-notif-card         { border: 1px solid var(--hc-border); border-radius: var(--hc-radius-sm);
+                             background: var(--hc-surface); color: var(--hc-text); transition: all 0.2s; }
+    .hc-notif-unread       { border-left: 4px solid var(--hc-primary) !important;
+                             background: var(--hc-primary-soft) !important; }
+    .hc-notif-card:hover   { box-shadow: var(--hc-shadow-hover); }
 </style>

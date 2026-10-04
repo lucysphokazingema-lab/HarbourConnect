@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "Customer Dashboard";
 }
 
@@ -109,117 +109,139 @@
 </div>
 
 <style>
-    /* ── Hero wrapper ─────────────────────────────────── */
+    /* ── Hero: rounded card, search left, harbour photo right ── */
     .hc-hero {
         display: flex;
-        min-height: 520px;
-        width: 100%;
+        min-height: 480px;
+        max-width: 1296px;
+        margin: 24px auto 0;
+        background: var(--hc-surface);
+        border: 1px solid var(--hc-border);
+        border-radius: var(--hc-radius);
+        box-shadow: var(--hc-shadow);
+        overflow: hidden;
+    }
+    @@media (max-width: 1320px) {
+        .hc-hero { margin-left: 12px; margin-right: 12px; }
     }
 
     /* ── Left panel ───────────────────────────────────── */
     .hc-hero-panel {
-        width: 42%;
-        background: #fff;
-        padding: 50px 40px;
+        width: 44%;
+        padding: 44px 40px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        z-index: 2;
     }
 
     .hc-hero-title {
         font-size: 2rem;
         font-weight: 800;
-        color: #0a1e3d;
-        line-height: 1.25;
+        color: var(--hc-heading);
+        line-height: 1.2;
+        letter-spacing: -0.02em;
         margin-bottom: 6px;
     }
 
     .hc-hero-sub {
-        color: #555;
+        color: var(--hc-text-muted);
         margin-bottom: 24px;
         font-size: 1rem;
     }
+    .hc-hero-sub strong { color: var(--hc-heading); }
 
     /* ── Search form ──────────────────────────────────── */
-    .hc-hero-form {
+    /* Html.BeginForm wraps the fields in <form>, so the gap belongs on the form itself */
+    .hc-hero-form { margin-bottom: 24px; }
+    .hc-hero-form form {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        margin-bottom: 28px;
+        margin: 0;
     }
 
     .hc-search-field {
         display: flex;
         align-items: center;
-        border: 1.5px solid #dde1e9;
-        border-radius: 10px;
+        gap: 10px;
+        border: 1px solid var(--hc-border-strong);
+        border-radius: var(--hc-radius-sm);
         padding: 0 14px;
-        background: #f8f9fb;
+        background: var(--hc-surface-2);
         height: 48px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .hc-search-field:focus-within {
+        border-color: var(--hc-primary);
+        box-shadow: var(--hc-focus-ring);
     }
 
     .hc-search-icon {
         font-size: 1rem;
-        margin-right: 10px;
+        line-height: 1;
         flex-shrink: 0;
     }
 
     .hc-search-input {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
         border: none;
         background: transparent;
         outline: none;
-        width: 100%;
         font-size: 0.95rem;
-        color: #333;
-        height: 100%;
+        color: var(--hc-text);
+        padding: 0;
     }
+    .hc-search-input::placeholder { color: var(--hc-text-muted); }
+    .hc-search-input option { background: var(--hc-surface); color: var(--hc-text); }
 
     .hc-type-btns {
-        display: flex;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
     }
 
     .hc-type-btn {
-        flex: 1;
-        border: 1.5px solid #dde1e9;
-        border-radius: 10px;
-        background: #f8f9fb;
-        padding: 10px;
-        font-size: 0.88rem;
+        height: 44px;
+        border: 1px solid var(--hc-border-strong);
+        border-radius: var(--hc-radius-sm);
+        background: var(--hc-surface);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--hc-text);
         cursor: pointer;
-        color: #333;
-        transition: all 0.2s;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
-
     .hc-type-btn:hover {
-        background: #e8f0fe;
-        border-color: #1a73e8;
-        color: #1a73e8;
+        background: var(--hc-primary-soft);
+        border-color: var(--hc-primary);
+        color: var(--hc-primary);
     }
 
     .hc-search-btn {
-        background: #f5a623;
-        color: #fff;
+        height: 48px;
+        background: var(--hc-primary);
+        color: var(--hc-on-primary);
         border: none;
-        border-radius: 10px;
-        padding: 14px;
+        border-radius: var(--hc-radius-sm);
         font-size: 1rem;
         font-weight: 700;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: background 0.15s;
     }
+    .hc-search-btn:hover { background: var(--hc-primary-hover); }
 
-    .hc-search-btn:hover {
-        background: #e09417;
-    }
+    .hc-type-btn:focus-visible,
+    .hc-search-btn:focus-visible { outline: none; box-shadow: var(--hc-focus-ring); }
 
     /* ── Stats row ────────────────────────────────────── */
     .hc-hero-stats {
         display: flex;
         align-items: center;
         gap: 16px;
-        background: #f8f9fb;
+        background: var(--hc-surface-2);
+        border: 1px solid var(--hc-border);
         border-radius: 12px;
         padding: 16px 20px;
     }
@@ -234,46 +256,37 @@
     .hc-hero-stat-num {
         font-size: 1.6rem;
         font-weight: 800;
-        color: #0a1e3d;
+        color: var(--hc-heading);
         line-height: 1;
     }
 
     .hc-hero-stat-lbl {
-        font-size: 0.72rem;
-        color: #888;
+        font-size: 0.75rem;
+        color: var(--hc-text-muted);
         text-align: center;
-        margin-top: 3px;
+        margin-top: 4px;
     }
 
     .hc-hero-stat-divider {
         width: 1px;
         height: 36px;
-        background: #dde1e9;
+        background: var(--hc-border);
     }
 
     /* ── Right image panel ────────────────────────────── */
     .hc-hero-image {
         flex: 1;
+        background: linear-gradient(135deg, #0a3d6b 0%, #1565c0 50%, #0288d1 100%);
         background-image: url('/Content/hero-bg.jpg');
         background-size: cover;
         background-position: center;
-        position: relative;
-    }
-
-    /* Fallback gradient if image not yet added */
-    .hc-hero-image::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, #0a3d6b 0%, #1565c0 50%, #0288d1 100%);
-        opacity: 0;
     }
 
     /* ── Responsive ───────────────────────────────────── */
     @@media (max-width: 768px) {
         .hc-hero { flex-direction: column; }
-        .hc-hero-panel { width: 100%; padding: 30px 20px; }
-        .hc-hero-image { min-height: 220px; }
+        .hc-hero-panel { width: 100%; padding: 28px 20px; }
+        .hc-hero-image { min-height: 200px; }
         .hc-hero-title { font-size: 1.5rem; }
     }
 </style>

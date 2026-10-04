@@ -1,4 +1,4 @@
-@model APDP.Models.Boat
+﻿@model APDP.Models.Boat
 @{
     ViewBag.Title = "Registration Certificate";
     decimal registrationFee = 500.00m;
@@ -115,18 +115,23 @@
 </div>
 
 <style>
-    .hc-cert-card        { border: 2px solid #dee2e6; border-radius: 14px; overflow: hidden;
-                           box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+    /* The certificate is a printable document: it stays a white sheet with
+       dark text in both themes, so these colours are deliberately hardcoded. */
+    .hc-cert-card        { border: 2px solid var(--hc-border); border-radius: 14px; overflow: hidden;
+                           box-shadow: var(--hc-shadow); background: #fff !important; color: #212529; }
     .hc-cert-header      { background: linear-gradient(135deg, #0d2c54, #1565c0); color: #fff;
                            padding: 24px 28px; }
+    .hc-cert-header h3   { color: #fff; }
     .hc-cert-sub         { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
     .hc-cert-number      { font-size: 1.3rem; font-weight: 800; letter-spacing: 1px; }
     .hc-cert-section     { margin-bottom: 12px; }
     .hc-cert-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase;
                              letter-spacing: 0.8px; color: #1565c0;
                              border-bottom: 1px solid #e3f2fd; padding-bottom: 4px; margin-bottom: 8px; }
-    .hc-cert-table th    { font-weight: 600; color: #555; width: 40%; font-size: 0.82rem; }
-    .hc-cert-table td    { font-size: 0.85rem; color: #212529; }
+    .hc-cert-table       { --bs-table-color: #212529; --bs-table-bg: transparent; --bs-table-border-color: #dee2e6; }
+    .hc-cert-card .hc-cert-table th { font-weight: 600; color: #555; width: 40%; font-size: 0.82rem; border-bottom-color: #dee2e6; }
+    .hc-cert-card .hc-cert-table td { font-size: 0.85rem; color: #212529; border-bottom-color: #dee2e6; }
+    .hc-cert-card code   { color: #d63384; }
     .hc-cert-footer      { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px;
                            padding: 10px 14px; font-size: 0.82rem; color: #2e7d32; }
 </style>

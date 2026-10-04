@@ -1290,6 +1290,23 @@
             });
         });
 
+        // ── Re-attach files to inputs before form submit ──────────────
+        // The file inputs are cleared after selection so previews work,
+        // but we need to put the files back so the server receives them.
+        document.querySelector('form').addEventListener('submit', function () {
+            try {
+                var dtPhoto = new DataTransfer();
+                editPhotoFiles.forEach(function (f) { dtPhoto.items.add(f); });
+                document.getElementById('editPhotoFileInput').files = dtPhoto.files;
+
+                var dtVideo = new DataTransfer();
+                editVideoFiles.forEach(function (f) { dtVideo.items.add(f); });
+                document.getElementById('editVideoFileInput').files = dtVideo.files;
+            } catch (e) {
+                console.warn('Could not re-attach files before submit:', e);
+            }
+        });
+
         // Paid extras builder
         var extraCount = 0;
 
@@ -1336,7 +1353,7 @@
 
             .hc-thumb:hover,
             .hc-thumb.active {
-                border-color: #0d6efd;
+                border-color: var(--hc-primary);
                 opacity: 1;
             }
 
@@ -1348,13 +1365,13 @@
         }
 
         .hc-equip-yes {
-            background: #e8f5e9;
-            border: 1px solid #a5d6a7;
+            background: var(--hc-success-soft);
+            border: 1px solid var(--hc-success);
         }
 
         .hc-equip-no {
-            background: #fafafa;
-            border: 1px dashed #ddd;
+            background: var(--hc-surface-2);
+            border: 1px dashed var(--hc-border-strong);
         }
 
         .hc-equip-display-img {
@@ -1375,11 +1392,11 @@
         }
 
         .hc-equip-yes .hc-equip-value {
-            color: #2e7d32;
+            color: var(--hc-success);
         }
 
         .hc-equip-no .hc-equip-value {
-            color: #9e9e9e;
+            color: var(--hc-text-muted);
         }
 
         /* Ratings */
@@ -1391,7 +1408,7 @@
 
         .hc-star {
             font-size: 0.95rem;
-            color: #ddd;
+            color: var(--hc-border-strong);
         }
 
             .hc-star.filled {
@@ -1400,9 +1417,9 @@
 
         /* Equipment cards */
         .hc-eq-card {
-            border: 2px dashed #90a4ae;
-            border-radius: 10px;
-            background: #fff;
+            border: 2px dashed var(--hc-border-strong);
+            border-radius: var(--hc-radius-sm);
+            background: var(--hc-surface);
             cursor: pointer;
             transition: all 0.2s;
             text-align: center;
@@ -1414,41 +1431,41 @@
         }
 
             .hc-eq-card:hover {
-                border-color: #00897b;
-                background: #f0faf9;
+                border-color: var(--hc-success);
+                background: var(--hc-success-soft);
             }
 
         .hc-eq-active {
-            border: 2px solid #00897b !important;
-            background: #e8f5e9 !important;
+            border: 2px solid var(--hc-success) !important;
+            background: var(--hc-success-soft) !important;
         }
 
         .hc-eq-always {
-            border: 2px solid #1565c0 !important;
-            background: #e3f2fd !important;
+            border: 2px solid var(--hc-primary) !important;
+            background: var(--hc-primary-soft) !important;
             cursor: default;
         }
 
         .hc-eq-name {
             font-weight: 700;
             font-size: 0.82rem;
-            color: #212529;
+            color: var(--hc-heading);
         }
 
         .hc-eq-status {
             font-size: 0.74rem;
-            color: #666;
+            color: var(--hc-text-muted);
         }
 
         .hc-eq-active .hc-eq-status {
-            color: #2e7d32;
+            color: var(--hc-success);
             font-weight: 700;
         }
 
         .hc-eq-uploaded {
             object-fit: cover !important;
             border-radius: 6px !important;
-            border: 2px solid #00897b;
+            border: 2px solid var(--hc-success);
         }
 
         /* Paid extras */
@@ -1461,32 +1478,32 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
+            border: 2px solid var(--hc-border-strong);
+            border-radius: var(--hc-radius-sm);
             padding: 10px 12px;
             cursor: pointer;
             user-select: none;
             transition: all 0.18s;
-            background: #fff;
+            background: var(--hc-surface);
             width: 100%;
         }
 
             .hc-check-tile:hover {
-                border-color: #1565c0;
-                background: #f0f4ff;
+                border-color: var(--hc-primary);
+                background: var(--hc-primary-soft);
             }
 
         .hc-tile-checked {
-            border-color: #2e7d32 !important;
-            background: #e8f5e9 !important;
+            border-color: var(--hc-success) !important;
+            background: var(--hc-success-soft) !important;
         }
 
         .hc-check-tile-required {
-            border-color: #ef9a9a;
+            border-color: var(--hc-danger);
         }
 
         .hc-tile-checked.hc-check-tile-required {
-            border-color: #2e7d32 !important;
+            border-color: var(--hc-success) !important;
         }
 
         .hc-tile-cb {
@@ -1494,7 +1511,7 @@
             height: 1.2rem;
             flex-shrink: 0;
             cursor: pointer;
-            accent-color: #2e7d32;
+            accent-color: var(--hc-success);
         }
 
         .hc-tile-body {
@@ -1511,22 +1528,22 @@
         .hc-tile-name {
             font-weight: 600;
             font-size: 0.84rem;
-            color: #212529;
+            color: var(--hc-heading);
         }
 
         /* Upload zones and thumbnails */
         .hc-upload-zone {
-            border: 2px dashed #b0bec5;
+            border: 2px dashed var(--hc-border-strong);
             border-radius: 12px;
-            background: #f9fafb;
+            background: var(--hc-surface-2);
             padding: 20px;
             text-align: center;
             transition: border-color 0.2s, background 0.2s;
         }
 
         .hc-upload-zone-hover {
-            border-color: #1565c0;
-            background: #f0f4ff;
+            border-color: var(--hc-primary);
+            background: var(--hc-primary-soft);
         }
 
         .hc-thumb-wrap {
@@ -1539,7 +1556,7 @@
             height: 105px;
             object-fit: cover;
             border-radius: 8px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--hc-border);
             display: block;
         }
 
@@ -1554,7 +1571,7 @@
             margin-top: 4px;
             background: none;
             border: none;
-            color: #e53935;
+            color: var(--hc-danger);
             font-size: 0.75rem;
             font-weight: 600;
             cursor: pointer;
@@ -1563,7 +1580,8 @@
         }
 
             .hc-thumb-del:hover {
-                color: #b71c1c;
+                color: var(--hc-danger);
+                filter: brightness(0.85);
                 text-decoration: underline;
             }
     </style>

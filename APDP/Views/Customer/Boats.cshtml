@@ -1,4 +1,4 @@
-@model IEnumerable<APDP.Models.Boat>
+﻿@model IEnumerable<APDP.Models.Boat>
 @{
     ViewBag.Title = "Available Boats";
 }
@@ -60,7 +60,7 @@
                 <h2 class="sb-results-title">Available Boats in Durban Harbour</h2>
                 <p class="sb-results-count">@Model.Count() boats available</p>
             </div>
-            @Html.ActionLink("← Back to Dashboard", "Dashboard", "Customer", null, new { @class = "sb-back-link" })
+            <a href="@Url.Action("Dashboard", "Customer")" class="sb-back-link">&larr; Back to Dashboard</a>
         </div>
 
         @* ── No Results ───────────────────────────────────────────── *@
@@ -177,13 +177,13 @@
     /* ── Page wrapper ─────────────────────────────────────── */
     .sb-page {
         min-height: 100vh;
-        background: #f5f6f8;
+        background: var(--hc-bg);
     }
 
     /* ── Filter bar ───────────────────────────────────────── */
     .sb-filterbar {
-        background: #fff;
-        border-bottom: 1px solid #e5e7eb;
+        background: var(--hc-surface);
+        border-bottom: 1px solid var(--hc-border);
         padding: 0 24px;
         position: sticky;
         top: 0;
@@ -211,7 +211,7 @@
     .sb-filter-label {
         font-size: 0.68rem;
         font-weight: 700;
-        color: #888;
+        color: var(--hc-text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 2px;
@@ -221,22 +221,24 @@
         border: none;
         outline: none;
         font-size: 0.9rem;
-        color: #222;
+        color: var(--hc-text);
         background: transparent;
         padding: 0;
         width: 100%;
     }
 
+    .sb-filter-input option { background: var(--hc-surface); color: var(--hc-text); }
+
     .sb-filter-divider {
         width: 1px;
         height: 36px;
-        background: #e5e7eb;
+        background: var(--hc-border);
         flex-shrink: 0;
     }
 
     .sb-filter-btn {
-        background: #1a56db;
-        color: #fff;
+        background: var(--hc-primary);
+        color: var(--hc-on-primary);
         border: none;
         border-radius: 8px;
         padding: 10px 22px;
@@ -248,17 +250,17 @@
         transition: background 0.2s;
     }
 
-    .sb-filter-btn:hover { background: #1446b8; }
+    .sb-filter-btn:hover { background: var(--hc-primary-hover); }
 
     .sb-clear-btn {
-        color: #666;
+        color: var(--hc-text-muted);
         font-size: 0.85rem;
         margin-left: 12px;
         text-decoration: none;
         white-space: nowrap;
     }
 
-    .sb-clear-btn:hover { color: #222; }
+    .sb-clear-btn:hover { color: var(--hc-heading); }
 
     /* ── Content area ─────────────────────────────────────── */
     .sb-content {
@@ -278,40 +280,41 @@
     .sb-results-title {
         font-size: 1.3rem;
         font-weight: 700;
-        color: #111;
+        color: var(--hc-heading);
         margin: 0 0 4px 0;
     }
 
     .sb-results-count {
         font-size: 0.88rem;
-        color: #1a56db;
+        color: var(--hc-primary);
         margin: 0;
         font-weight: 500;
     }
 
     .sb-back-link {
         font-size: 0.85rem;
-        color: #555;
+        color: var(--hc-text-muted);
         text-decoration: none;
         padding: 8px 14px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--hc-border-strong);
         border-radius: 8px;
     }
 
-    .sb-back-link:hover { background: #f0f0f0; color: #222; }
+    .sb-back-link:hover { background: var(--hc-surface-3); color: var(--hc-heading); }
 
     /* ── Boat card ────────────────────────────────────────── */
     .sb-card {
         display: flex;
-        background: #fff;
-        border-radius: 14px;
+        background: var(--hc-surface);
+        border-radius: var(--hc-radius);
         overflow: hidden;
         margin-bottom: 18px;
-        border: 1px solid #e8eaed;
+        border: 1px solid var(--hc-border);
+        box-shadow: var(--hc-shadow);
         transition: box-shadow 0.2s;
     }
 
-    .sb-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .sb-card:hover { box-shadow: var(--hc-shadow-hover); }
 
     /* Image */
     .sb-card-img-wrap {
@@ -332,12 +335,12 @@
     .sb-card-img-placeholder {
         width: 100%;
         height: 100%;
-        background: #dbe4f0;
+        background: var(--hc-primary-soft);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 3.5rem;
-        color: #6b8cba;
+        color: var(--hc-primary);
     }
 
     /* Body */
@@ -358,7 +361,7 @@
     .sb-card-title {
         font-size: 1.15rem;
         font-weight: 700;
-        color: #111;
+        color: var(--hc-heading);
         margin: 0;
     }
 
@@ -369,20 +372,20 @@
     }
 
     .sb-star { color: #f9a825; font-size: 1rem; }
-    .sb-rating-num { font-weight: 700; font-size: 0.9rem; color: #111; }
-    .sb-rating-count { font-size: 0.8rem; color: #888; }
-    .sb-no-rating { font-size: 0.8rem; color: #aaa; }
+    .sb-rating-num { font-weight: 700; font-size: 0.9rem; color: var(--hc-heading); }
+    .sb-rating-count { font-size: 0.8rem; color: var(--hc-text-muted); }
+    .sb-no-rating { font-size: 0.8rem; color: var(--hc-text-muted); }
 
     .sb-card-location {
         font-size: 0.85rem;
-        color: #1a56db;
+        color: var(--hc-primary);
         margin: 0;
         font-weight: 500;
     }
 
     .sb-card-meta {
         font-size: 0.82rem;
-        color: #666;
+        color: var(--hc-text-muted);
         margin: 0;
     }
 
@@ -401,9 +404,9 @@
         font-weight: 500;
     }
 
-    .sb-badge-green { background: #e6f4ea; color: #1b5e20; }
-    .sb-badge-blue  { background: #e3f0ff; color: #1565c0; }
-    .sb-badge-grey  { background: #f0f0f0; color: #555; }
+    .sb-badge-green { background: var(--hc-success-soft); color: var(--hc-success); }
+    .sb-badge-blue  { background: var(--hc-primary-soft); color: var(--hc-primary); }
+    .sb-badge-grey  { background: var(--hc-surface-3); color: var(--hc-text-muted); }
 
     /* Footer */
     .sb-card-footer {
@@ -412,49 +415,49 @@
         align-items: center;
         margin-top: auto;
         padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
+        border-top: 1px solid var(--hc-border);
     }
 
     .sb-price { display: flex; align-items: baseline; gap: 5px; }
-    .sb-price-from { font-size: 0.78rem; color: #888; }
-    .sb-price-amount { font-size: 1.2rem; font-weight: 800; color: #111; }
-    .sb-price-unit { font-size: 0.78rem; color: #888; }
+    .sb-price-from { font-size: 0.78rem; color: var(--hc-text-muted); }
+    .sb-price-amount { font-size: 1.2rem; font-weight: 800; color: var(--hc-heading); }
+    .sb-price-unit { font-size: 0.78rem; color: var(--hc-text-muted); }
 
     .sb-card-actions { display: flex; gap: 10px; align-items: center; }
 
     .sb-btn-outline {
         padding: 8px 18px;
-        border: 1.5px solid #1a56db;
+        border: 1.5px solid var(--hc-primary);
         border-radius: 8px;
-        color: #1a56db;
+        color: var(--hc-primary);
         font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
-        background: #fff;
+        background: transparent;
         transition: all 0.2s;
     }
 
-    .sb-btn-outline:hover { background: #1a56db; color: #fff; }
+    .sb-btn-outline:hover { background: var(--hc-primary); color: var(--hc-on-primary); }
 
     .sb-btn-primary {
         padding: 8px 18px;
-        background: #1a56db;
+        background: var(--hc-primary);
         border: none;
         border-radius: 8px;
-        color: #fff;
+        color: var(--hc-on-primary);
         font-size: 0.85rem;
         font-weight: 600;
         text-decoration: none;
         transition: background 0.2s;
     }
 
-    .sb-btn-primary:hover { background: #1446b8; color: #fff; }
+    .sb-btn-primary:hover { background: var(--hc-primary-hover); color: var(--hc-on-primary); }
 
     .sb-btn-disabled {
         padding: 8px 18px;
-        background: #e0e0e0;
+        background: var(--hc-surface-3);
         border-radius: 8px;
-        color: #999;
+        color: var(--hc-text-muted);
         font-size: 0.85rem;
         font-weight: 600;
         cursor: not-allowed;
@@ -464,15 +467,15 @@
     .sb-no-results {
         text-align: center;
         padding: 60px 20px;
-        background: #fff;
-        border-radius: 14px;
-        border: 1px solid #e8eaed;
+        background: var(--hc-surface);
+        border-radius: var(--hc-radius);
+        border: 1px solid var(--hc-border);
     }
 
     .sb-no-results-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #333;
+        color: var(--hc-heading);
         margin-bottom: 8px;
     }
 </style>

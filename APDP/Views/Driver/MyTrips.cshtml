@@ -1,4 +1,4 @@
-@model IEnumerable<APDP.Models.Booking>
+﻿@model IEnumerable<APDP.Models.Booking>
 @{
     ViewBag.Title = "My Trips";
 }
@@ -80,3 +80,8 @@
         </div>
     }
 </div>
+
+<style>
+    /* Keep the "today" row highlight visible in both themes */
+    .hc-table tbody tr.table-warning td { background-color: var(--hc-warning-soft) !important; }
+</style>

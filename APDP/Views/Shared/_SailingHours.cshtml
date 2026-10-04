@@ -1,4 +1,4 @@
-@model List<APDP.Helpers.DayHours>
+﻿@model List<APDP.Helpers.DayHours>
 @* Read-only weekly timetable. Optional ViewData: "BufferMinutes" (int). *@
 @{
     int buffer = ViewData["BufferMinutes"] is int ? (int)ViewData["BufferMinutes"] : 0;
@@ -11,7 +11,7 @@
             {
                 <tr class="@(d.IsOpen ? "" : "text-muted")">
                     <td class="fw-semibold" style="width:45%">@d.Name</td>
-                    <td>@(d.IsOpen ? d.OpenText + " – " + d.CloseText : "Closed")</td>
+                    <td>@if (d.IsOpen) {<text>@d.OpenText &ndash; @d.CloseText</text>} else {<text>Closed</text>}</td>
                 </tr>
             }
         </tbody>
