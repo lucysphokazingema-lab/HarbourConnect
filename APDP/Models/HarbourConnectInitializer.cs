@@ -21,7 +21,7 @@ namespace APDP.Models
         public HarbourConnectMigrationsConfiguration()
         {
             AutomaticMigrationsEnabled        = true;
-            AutomaticMigrationDataLossAllowed = false;
+            AutomaticMigrationDataLossAllowed = true;
             ContextKey                        = "APDP.Models.HarbourConnectContext";
         }
 
