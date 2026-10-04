@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APDP.Models
 {
@@ -21,6 +22,11 @@ namespace APDP.Models
         [Required]
         [StringLength(100)]
         [DataType(DataType.Password)]
+        [NotMapped]
         public string Password { get; set; }
+
+        // Salted PBKDF2 hash (see Helpers.PasswordHasher); the plain Password is never stored.
+        [StringLength(256)]
+        public string PasswordHash { get; set; }
     }
 }

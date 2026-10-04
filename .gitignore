@@ -361,3 +361,15 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Local secrets (see APDP/AppSecrets.example.config)
+APDP/AppSecrets.config
+
+# Photos/documents uploaded through the site (user data, not source)
+APDP/Content/BoatImages/????????-????-????-????-????????????.*
+
+# Deployment artefacts and database exports (may contain user data)
+*.bacpac
+apdp_deploy.zip
+build_*.txt
+msbuild_result.txt
+Output-Build.txt

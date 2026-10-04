@@ -1,4 +1,4 @@
-@model APDP.Models.BoatRating
+﻿@model APDP.Models.BoatRating
 @{
     ViewBag.Title = "Rate Your Trip";
     var booking = ViewBag.Booking as APDP.Models.Booking;
@@ -36,7 +36,9 @@
                                 </div>
                                 <div class="col-6">
                                     <small class="text-muted">Passengers</small>
-                                    <p class="fw-semibold mb-1">@booking.NumberOfPassengers</p>
+                                    <p class="fw-semibold mb-1">
+                                        @booking.NumberOfPassengers adult@(booking.NumberOfPassengers == 1 ? "" : "s")@(booking.ChildPassengers > 0 ? ", " + booking.ChildPassengers + (booking.ChildPassengers == 1 ? " child" : " children") : "")
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -93,9 +95,9 @@
 
 @section scripts {
     <script>
-        var starLabels = ['', 'Poor — not what I expected', 'Fair — room for improvement',
-                          'Good — enjoyed the trip', 'Very Good — great experience!',
-                          'Excellent — absolutely loved it!'];
+        var starLabels = ['', 'Poor - not what I expected', 'Fair - room for improvement',
+                          'Good - enjoyed the trip', 'Very Good - great experience!',
+                          'Excellent - absolutely loved it!'];
 
         function setRating(val) {
             document.getElementById('starsInput').value = val;

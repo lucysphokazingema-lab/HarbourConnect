@@ -13,12 +13,8 @@ namespace APDP
     {
         protected void Application_Start()
         {
-            // Register the EF initializer (drops & recreates DB if model changes)
+            // Register the EF initializer (migrates the schema in place; never drops the DB)
             Database.SetInitializer(new HarbourConnectInitializer());
-
-            // Initialize the database with retry logic.
-            // The "model" lock error happens when SQL Server LocalDB is briefly
-            // busy — retrying a few times resolves it without any code changes.
             InitializeDatabaseWithRetry(maxAttempts: 5, delayMs: 1500);
 
             AreaRegistration.RegisterAllAreas();

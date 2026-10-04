@@ -1,4 +1,4 @@
-@model APDP.Models.BoatOwner
+﻿@model APDP.Models.BoatOwner
 @{
     ViewBag.Title = "Boat Owner Registration";
 }
@@ -21,35 +21,31 @@
                         @* Full Name *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "e.g. Lucy Ngema" })
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control", placeholder = "Enter your full name" })
                             @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
                         </div>
 
                         @* Business Name *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.BusinessName, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.BusinessName, new { @class = "form-control", placeholder = "e.g. Ngema Marine Services" })
+                            @Html.TextBoxFor(m => m.BusinessName, new { @class = "form-control", placeholder = "Enter your business or trading name" })
                             @Html.ValidationMessageFor(m => m.BusinessName, "", new { @class = "text-danger small" })
                         </div>
 
-                        @* Phone Number — SA format with +27 prefix *@
+                        @* Phone Number - SA format with +27 prefix *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
                             <div class="input-group">
                                 <span class="input-group-text hc-sa-flag" title="South Africa">
                                     &#127480;&#127462; +27
                                 </span>
-                                @Html.TextBoxFor(m => m.PhoneNumber, new
-                                {
-                                    @class       = "form-control",
-                                    placeholder  = "e.g. 0821234567 or +27821234567",
-                                    id           = "phoneInput",
-                                    maxlength    = "15",
-                                    type         = "tel"
-                                })
+                                <input type="tel" id="boPhoneLocal" class="form-control"
+                                       placeholder="Enter 9 digits"
+                                       maxlength="9" inputmode="numeric" />
+                                @Html.HiddenFor(m => m.PhoneNumber, new { id = "boPhoneHidden" })
                             </div>
+                            <small class="text-muted">Enter 9 digits after +27</small>
                             @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
-                            <small class="text-muted">South African numbers only. Use format: 0821234567 or +27821234567</small>
                         </div>
 
                         @* Email *@
@@ -57,30 +53,23 @@
                             @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
                             <div class="input-group">
                                 <span class="input-group-text">&#9993;</span>
-                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "e.g. lucy@email.com", type = "email" })
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Enter your email address", type = "email" })
                             </div>
                             @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger small" })
-                            <small class="text-muted">We will use this to send you booking notifications.</small>
                         </div>
 
                         @* Password *@
                         <div class="mb-2">
                             @Html.LabelFor(m => m.Password, new { @class = "form-label fw-semibold" })
-                            <div class="input-group">
-                                @Html.TextBoxFor(m => m.Password, new
-                                {
-                                    @class      = "form-control",
-                                    type        = "password",
-                                    id          = "passwordInput",
-                                    placeholder = "Create a strong password",
-                                    oninput     = "checkStrength(this.value)"
-                                })
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePwd('passwordInput', 'pwdEye1')"
-                                        tabindex="-1">
-                                    <span id="pwdEye1">&#128065;</span>
-                                </button>
-                            </div>
+                            @Html.TextBoxFor(m => m.Password, new
+                            {
+                                @class       = "form-control",
+                                type         = "password",
+                                id           = "passwordInput",
+                                placeholder  = "Create a password",
+                                oninput      = "checkStrength(this.value)",
+                                autocomplete = "new-password"
+                            })
                             @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger small" })
 
                             @* Password strength bar *@
@@ -90,30 +79,15 @@
                                 </div>
                                 <small id="strengthLabel" class="text-muted">Password strength: enter a password above</small>
                             </div>
-
-                            @* Requirements checklist *@
-                            <ul class="list-unstyled mt-2 mb-0 hc-pwd-rules small">
-                                <li id="r-len">&#10007; At least 8 characters</li>
-                                <li id="r-upper">&#10007; At least one uppercase letter (A–Z)</li>
-                                <li id="r-lower">&#10007; At least one lowercase letter (a–z)</li>
-                                <li id="r-num">&#10007; At least one number (0–9)</li>
-                                <li id="r-special">&#10007; At least one special character (&#64;&#36;!%*?&amp;_#-)</li>
-                            </ul>
                         </div>
 
                         @* Confirm Password *@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Confirm Password</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="confirmPassword"
-                                       placeholder="Re-enter your password"
-                                       oninput="checkMatch()" />
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePwd('confirmPassword', 'pwdEye2')"
-                                        tabindex="-1">
-                                    <span id="pwdEye2">&#128065;</span>
-                                </button>
-                            </div>
+                            <input type="password" class="form-control" id="confirmPassword"
+                                   placeholder="Re-enter your password"
+                                   autocomplete="new-password"
+                                   oninput="checkMatch()" />
                             <small id="matchMsg" class="text-muted">Re-enter the password above to confirm.</small>
                         </div>
 
@@ -139,50 +113,43 @@
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
     <script>
-        function togglePwd(inputId, eyeId) {
-            var input = document.getElementById(inputId);
-            input.type = (input.type === 'password') ? 'text' : 'password';
+        // ── Phone: combine +27 + local digits into hidden field ────
+        function buildBoPhone() {
+            var local = document.getElementById('boPhoneLocal').value.replace(/\D/g,'');
+            if (local.startsWith('0')) local = local.substring(1);
+            document.getElementById('boPhoneHidden').value = local ? '+27' + local : '';
+        }
+        var boPhoneEl = document.getElementById('boPhoneLocal');
+        if (boPhoneEl) {
+            boPhoneEl.addEventListener('input', buildBoPhone);
+            document.querySelector('form').addEventListener('submit', buildBoPhone);
         }
 
-        // hex escapes: \x40 = at-sign, \x24 = dollar — avoids Razor parser conflicts
-        var specialCharRegex = /[\x40\x24!%*?&_#\-]/;
-
         function checkStrength(val) {
-            var rules = {
-                len:     val.length >= 8,
-                upper:   /[A-Z]/.test(val),
-                lower:   /[a-z]/.test(val),
-                num:     /\d/.test(val),
-                special: specialCharRegex.test(val)
-            };
+            var score = 0;
+            if (val.length >= 8)      score++;
+            if (/[A-Z]/.test(val))    score++;
+            if (/[a-z]/.test(val))    score++;
+            if (/\d/.test(val))       score++;
 
-            // Update rule indicators
-            setRule('r-len',     rules.len);
-            setRule('r-upper',   rules.upper);
-            setRule('r-lower',   rules.lower);
-            setRule('r-num',     rules.num);
-            setRule('r-special', rules.special);
-
-            // Strength score
-            var score = Object.values(rules).filter(Boolean).length;
-            var bar   = document.getElementById('strengthBar');
-            var lbl   = document.getElementById('strengthLabel');
-            var pct   = (score / 5) * 100;
+            var bar = document.getElementById('strengthBar');
+            var lbl = document.getElementById('strengthLabel');
+            var pct = (score / 4) * 100;
             bar.style.width = pct + '%';
 
-            if (score <= 1) {
+            if (score === 0) {
+                bar.className = 'progress-bar bg-danger';
+                lbl.textContent = 'Password strength: Very Weak';
+                lbl.className = 'text-danger small';
+            } else if (score === 1) {
                 bar.className = 'progress-bar bg-danger';
                 lbl.textContent = 'Password strength: Very Weak';
                 lbl.className = 'text-danger small';
             } else if (score === 2) {
                 bar.className = 'progress-bar bg-warning';
-                lbl.textContent = 'Password strength: Weak';
+                lbl.textContent = 'Password strength: Fair';
                 lbl.className = 'text-warning small';
             } else if (score === 3) {
-                bar.className = 'progress-bar bg-info';
-                lbl.textContent = 'Password strength: Fair';
-                lbl.className = 'text-info small';
-            } else if (score === 4) {
                 bar.className = 'progress-bar bg-primary';
                 lbl.textContent = 'Password strength: Good';
                 lbl.className = 'text-primary small';
@@ -195,17 +162,6 @@
             checkMatch();
         }
 
-        function setRule(id, passed) {
-            var el = document.getElementById(id);
-            if (passed) {
-                el.innerHTML = el.innerHTML.replace('✗', '✓').replace('&#10007;', '&#10003;');
-                el.style.color = '#2e7d32';
-            } else {
-                el.innerHTML = el.innerHTML.replace('✓', '✗').replace('&#10003;', '&#10007;');
-                el.style.color = '#9e9e9e';
-            }
-        }
-
         function checkMatch() {
             var pwd     = document.getElementById('passwordInput').value;
             var confirm = document.getElementById('confirmPassword').value;
@@ -214,10 +170,10 @@
                 msg.textContent = 'Re-enter the password above to confirm.';
                 msg.className   = 'text-muted small';
             } else if (pwd === confirm) {
-                msg.textContent = '✓ Passwords match!';
+                msg.textContent = 'Passwords match';
                 msg.className   = 'text-success small fw-semibold';
             } else {
-                msg.textContent = '✗ Passwords do not match.';
+                msg.textContent = 'Passwords do not match.';
                 msg.className   = 'text-danger small fw-semibold';
             }
         }

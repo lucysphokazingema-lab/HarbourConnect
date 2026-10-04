@@ -1,52 +1,507 @@
-@model APDP.Models.Boat
+﻿@model APDP.Models.Boat
 @{
     ViewBag.Title = "Boat Application Details";
+
+    // Helper: returns true if the path points to a PDF
+    Func<string, bool> isPdf = path =>
+        !string.IsNullOrEmpty(path) &&
+        path.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container py-4">
     <div class="row">
-        <div class="col-lg-8 mx-auto">
+        <div class="col-lg-10 mx-auto">
 
-            <div class="card hc-form-card">
-                <div class="card-header hc-form-header-dark">
-                    <h4 class="mb-0">&#128674; @Model.BoatName — Application Details</h4>
-                    <p class="mb-0 small">Submitted by @Model.BoatOwner.FullName on @Model.DateAdded.ToString("dd MMM yyyy")</p>
+            @* ── Page Header ──────────────────────────────────────────── *@
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h3 class="mb-0">&#128674; @Model.BoatName</h3>
+                    <p class="text-muted mb-0 small">
+                        <strong>Application submitted by:</strong> @Model.BoatOwner.FullName<br />
+                        <strong>Date submitted:</strong> @Model.DateAdded.ToString("dd MMMM yyyy 'at' HH:mm")
+                    </p>
                 </div>
-                <div class="card-body p-4">
+                @if (Model.Status == APDP.Models.BoatStatus.Pending)
+                {
+                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">&#9203; Pending Review</span>
+                }
+                else if (Model.Status == APDP.Models.BoatStatus.AwaitingPayment)
+                {
+                    <span class="badge bg-info text-dark fs-6 px-3 py-2">&#128179; Awaiting Payment</span>
+                }
+                else if (Model.Status == APDP.Models.BoatStatus.Active)
+                {
+                    <span class="badge bg-success fs-6 px-3 py-2">&#10003; Active</span>
+                }
+                else if (Model.Status == APDP.Models.BoatStatus.Approved)
+                {
+                    <span class="badge bg-success fs-6 px-3 py-2">&#10003; Approved</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger fs-6 px-3 py-2">&#10007; Rejected</span>
+                }
+            </div>
 
-                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+            @* ── Rejection reason banner (if already rejected) ────────── *@
+            @if (Model.Status == APDP.Models.BoatStatus.Rejected && !string.IsNullOrEmpty(Model.RejectionReason))
+            {
+                <div class="alert alert-danger mb-3">
+                    <strong>&#10007; Rejection Reason:</strong> @Model.RejectionReason
+                </div>
+            }
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 1 - BOAT PHOTOS
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#128247; Boat Photos</h5>
+                </div>
+                <div class="card-body p-3">
+                    @{
+                        var photos = new[]
+                        {
+                            new { Path = Model.ImagePath,  Label = "Main Photo"      },
+                            new { Path = Model.ImagePath2, Label = "Side View"       },
+                            new { Path = Model.ImagePath3, Label = "Interior / Deck" },
+                            new { Path = Model.ImagePath4, Label = "Photo 4"         },
+                            new { Path = Model.ImagePath5, Label = "Photo 5"         },
+                            new { Path = Model.ImagePath6, Label = "Photo 6"         }
+                        };
+                        bool anyPhoto = System.Array.Exists(photos, p => !string.IsNullOrEmpty(p.Path));
+
+                        var videos = new[]
+                        {
+                            new { Path = Model.VideoPath1, Label = "Video 1" },
+                            new { Path = Model.VideoPath2, Label = "Video 2" },
+                            new { Path = Model.VideoPath3, Label = "Video 3" }
+                        };
+                        bool anyVideo = System.Array.Exists(videos, v => !string.IsNullOrEmpty(v.Path));
+                    }
+
+                    @if (anyPhoto)
                     {
-                        <div class="text-center mb-4">
-                            <img src="@Url.Content(Model.ImagePath)" class="img-fluid rounded hc-boat-detail-img" alt="@Model.BoatName" />
+                        @* ── Photo Carousel ──────────────────────────────── *@
+                        var photoList = photos.Where(p => !string.IsNullOrEmpty(p.Path)).ToArray();
+                        <div id="boatPhotoCarousel" class="carousel slide mb-3" data-bs-ride="false">
+                            @* Indicators *@
+                            @if (photoList.Length > 1)
+                            {
+                                <div class="carousel-indicators">
+                                    @for (int i = 0; i < photoList.Length; i++)
+                                    {
+                                        string indCls = (i == 0) ? "active" : "";
+                                        <button type="button" data-bs-target="#boatPhotoCarousel"
+                                                data-bs-slide-to="@i"
+                                                class="@indCls"
+                                                aria-label="Photo @(i+1)"></button>
+                                    }
+                                </div>
+                            }
+                            @* Slides *@
+                            <div class="carousel-inner" style="border-radius:10px; overflow:hidden;">
+                                @for (int i = 0; i < photoList.Length; i++)
+                                {
+                                    string slideCls = (i == 0) ? "carousel-item active" : "carousel-item";
+                                    <div class="@slideCls">
+                                        <a href="@Url.Content(photoList[i].Path)" target="_blank" title="Open full size">
+                                            <img src="@Url.Content(photoList[i].Path)"
+                                                 class="d-block w-100"
+                                                 style="height:320px; object-fit:cover;"
+                                                 alt="@photoList[i].Label" />
+                                        </a>
+                                        <div class="carousel-caption d-none d-md-block"
+                                             style="background:rgba(0,0,0,0.45); border-radius:6px; padding:4px 12px; bottom:12px;">
+                                            <small>@photoList[i].Label</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @* Prev / Next arrows *@
+                            @if (photoList.Length > 1)
+                            {
+                                <button class="carousel-control-prev" type="button"
+                                        data-bs-target="#boatPhotoCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button"
+                                        data-bs-target="#boatPhotoCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            }
+                        </div>
+                        <p class="text-muted small mb-0">@photoList.Length photo@(photoList.Length == 1 ? "" : "s") &nbsp;|&nbsp; Click any photo to open full size</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">&#128247; No boat photos were uploaded.</p>
+                    }
+
+                    @if (anyVideo)
+                    {
+                        @* ── Video Carousel ───────────────────────────────── *@
+                        var videoList = videos.Where(v => !string.IsNullOrEmpty(v.Path)).ToArray();
+                        <h6 class="fw-semibold mt-4 mb-2">&#127909; Videos (@videoList.Length)</h6>
+                        <div id="boatVideoCarousel" class="carousel slide" data-bs-ride="false">
+                            @if (videoList.Length > 1)
+                            {
+                                <div class="carousel-indicators">
+                                    @for (int i = 0; i < videoList.Length; i++)
+                                    {
+                                        string vidIndCls = (i == 0) ? "active" : "";
+                                        <button type="button" data-bs-target="#boatVideoCarousel"
+                                                data-bs-slide-to="@i"
+                                                class="@vidIndCls"
+                                                aria-label="Video @(i+1)"></button>
+                                    }
+                                </div>
+                            }
+                            <div class="carousel-inner" style="border-radius:10px; overflow:hidden; background:#000;">
+                                @for (int i = 0; i < videoList.Length; i++)
+                                {
+                                    string vidSlideCls = (i == 0) ? "carousel-item active" : "carousel-item";
+                                    <div class="@vidSlideCls" style="position:relative;">
+                                        <video src="@Url.Content(videoList[i].Path)"
+                                               class="d-block w-100 hc-boat-video"
+                                               style="height:320px; object-fit:contain; background:#000;"
+                                               controls muted playsinline></video>
+                                        <button type="button" onclick="hcFullscreen(this.previousElementSibling)"
+                                                class="hc-fullscreen-btn" title="Full screen">
+                                            &#9974;
+                                        </button>
+                                        <div class="carousel-caption d-none d-md-block"
+                                             style="background:rgba(0,0,0,0.5); border-radius:6px; padding:4px 12px; bottom:12px;">
+                                            <small>@videoList[i].Label</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            @if (videoList.Length > 1)
+                            {
+                                <button class="carousel-control-prev" type="button"
+                                        data-bs-target="#boatVideoCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button"
+                                        data-bs-target="#boatVideoCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 2 - BOAT DETAILS
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#128221; Boat Information</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered hc-detail-table mb-0">
+                        <tr><th width="35%">Boat Name</th><td><strong>@Model.BoatName</strong></td></tr>
+                        <tr><th>Registration Number</th><td><code>@Model.RegistrationNumber</code></td></tr>
+                        <tr><th>Boat Type</th><td>@Model.BoatType</td></tr>
+                        <tr><th>Harbour Location</th><td>@Model.HarbourLocation</td></tr>
+                        <tr><th>Maximum Passengers</th><td>@Model.MaxPassengers</td></tr>
+                        <tr><th>Hourly Rate</th><td><strong>R @Model.PriceAdult.ToString("N2")/hr</strong> (Adult) &nbsp;|&nbsp; <strong>R @Model.PriceChild.ToString("N2")/hr</strong> (Child)</td></tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>@(string.IsNullOrWhiteSpace(Model.Description) ? "-" : Model.Description)</td>
+                        </tr>
+                        @if (!string.IsNullOrWhiteSpace(Model.DisabilityAccommodation))
+                        {
+                            <tr>
+                                <th>&#9855; Disability Accommodation</th>
+                                <td class="text-success">@Model.DisabilityAccommodation</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <th>&#9855; Disability Accommodation</th>
+                                <td class="text-muted">None stated</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+
+            @* ── Sailing hours requested by the owner ─────────────────── *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#128339; Sailing Hours</h5>
+                </div>
+                <div class="card-body p-3">
+                    @Html.Partial("_SailingHours", ViewBag.Week as List<APDP.Helpers.DayHours>,
+                        new ViewDataDictionary { { "BufferMinutes", Model.BufferMinutes } })
+                    <small class="text-muted d-block">
+                        Trips of @APDP.Helpers.BoatAvailability.MinHours(Model)
+                        to @(Model.MaxBookingHours > 0 ? Model.MaxBookingHours + " hours" : "any length within these hours").
+                    </small>
+                </div>
+            </div>
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 3 - SAFETY EQUIPMENT
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#9875; Safety Equipment</h5>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4">
+                            <div class="tnpa-check-item @(Model.HasLifeJackets ? "tnpa-check-yes" : "tnpa-check-no")">
+                                <input type="checkbox" class="form-check-input me-2" @(Model.HasLifeJackets ? "checked" : "") disabled />
+                                <span class="fw-semibold">&#129399; Life Jackets</span>
+                                <span class="ms-auto small @(Model.HasLifeJackets ? "text-success" : "text-danger")">
+                                    @(Model.HasLifeJackets ? "On board" : "Not confirmed")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="tnpa-check-item @(Model.HasMedKit ? "tnpa-check-yes" : "tnpa-check-no")">
+                                <input type="checkbox" class="form-check-input me-2" @(Model.HasMedKit ? "checked" : "") disabled />
+                                <span class="fw-semibold">&#129657; Medical Kit</span>
+                                <span class="ms-auto small @(Model.HasMedKit ? "text-success" : "text-muted")">
+                                    @(Model.HasMedKit ? "On board" : "Not listed")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4">
+                            <div class="tnpa-check-item @(Model.HasFireExtinguisher ? "tnpa-check-yes" : "tnpa-check-no")">
+                                <input type="checkbox" class="form-check-input me-2" @(Model.HasFireExtinguisher ? "checked" : "") disabled />
+                                <span class="fw-semibold">&#128293; Fire Extinguisher</span>
+                                <span class="ms-auto small @(Model.HasFireExtinguisher ? "text-success" : "text-muted")">
+                                    @(Model.HasFireExtinguisher ? "On board" : "Not listed")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 4 - FEATURES & EXTRAS
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#127775; Features &amp; Extras</h5>
+                </div>
+                <div class="card-body p-3">
+
+                    @* Fixed feature checkboxes — only show what the owner ticked *@
+                    @{
+                        bool anyFeature = Model.HasFishingEquipment || Model.HasDecoration || Model.HasSoundSystem;
+                    }
+                    @if (anyFeature)
+                    {
+                        <p class="fw-semibold small mb-2">Included Features</p>
+                        <div class="row g-2 mb-3">
+                            @if (Model.HasFishingEquipment)
+                            {
+                                <div class="col-sm-6 col-md-4">
+                                    <div class="tnpa-check-item tnpa-check-yes">
+                                        <input type="checkbox" class="form-check-input me-2" checked disabled />
+                                        <span class="fw-semibold">&#127907; Fishing Equipment</span>
+                                        <span class="ms-auto small text-success">Available</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.HasDecoration)
+                            {
+                                <div class="col-sm-6 col-md-4">
+                                    <div class="tnpa-check-item tnpa-check-yes">
+                                        <input type="checkbox" class="form-check-input me-2" checked disabled />
+                                        <span class="fw-semibold">&#127881; Decoration</span>
+                                        <span class="ms-auto small text-success">Available</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (Model.HasSoundSystem)
+                            {
+                                <div class="col-sm-6 col-md-4">
+                                    <div class="tnpa-check-item tnpa-check-yes">
+                                        <input type="checkbox" class="form-check-input me-2" checked disabled />
+                                        <span class="fw-semibold">&#127925; Sound System</span>
+                                        <span class="ms-auto small text-success">Available</span>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
 
-                    <h6 class="hc-form-section-title">Boat Information</h6>
-                    <table class="table table-bordered hc-detail-table">
-                        <tr><th width="35%">Boat Name</th><td>@Model.BoatName</td></tr>
-                        <tr><th>Registration Number</th><td>@Model.RegistrationNumber</td></tr>
-                        <tr><th>Boat Type</th><td>@Model.BoatType</td></tr>
-                        <tr><th>Harbour Location</th><td>@Model.HarbourLocation</td></tr>
-                        <tr><th>Description</th><td>@(string.IsNullOrEmpty(Model.Description) ? "—" : Model.Description)</td></tr>
-                        <tr><th>Maximum Passengers</th><td>@Model.MaxPassengers</td></tr>
-                        <tr><th>Price per Trip</th><td>R @Model.PricePerTrip.ToString("N2")</td></tr>
-                        <tr><th>Life Jackets</th><td>@Model.LifeJacketQuantity</td></tr>
-                        <tr><th>Fishing Equipment</th><td>@(Model.HasFishingEquipment ? "Yes" : "No")</td></tr>
-                        <tr><th>Decoration</th><td>@(Model.HasDecoration ? "Yes" : "No")</td></tr>
-                        <tr><th>Sound System</th><td>@(Model.HasSoundSystem ? "Yes" : "No")</td></tr>
-                    </table>
+                    @* Paid extras added by the boat owner *@
+                    @if (!anyFeature && (Model.Extras == null || !Model.Extras.Any()))
+                    {
+                        <p class="text-muted small mb-0">No features or extras added by the boat owner.</p>
+                    }
+                    @if (Model.Extras != null && Model.Extras.Any())
+                    {
+                        <p class="fw-semibold small mb-2">Paid Extras</p>
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Extra Name</th>
+                                    <th width="140">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var extra in Model.Extras)
+                                {
+                                    <tr>
+                                        <td>@extra.Name</td>
+                                        <td>R @extra.Price.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
 
-                    <h6 class="hc-form-section-title mt-4">Owner Information</h6>
-                    <table class="table table-bordered hc-detail-table">
+                </div>
+            </div>
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 5 - SUPPORTING DOCUMENTS
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#128196; Supporting Documents</h5>
+                    <p class="mb-0 small text-muted">Click any document to open it in a new tab.</p>
+                </div>
+                <div class="card-body p-3">
+                    <div class="row g-3">
+
+                        @* Owner ID *@
+                        <div class="col-md-4">
+                            <div class="tnpa-doc-card @(string.IsNullOrEmpty(Model.OwnerIdDocumentPath) ? "tnpa-doc-missing" : "tnpa-doc-present")">
+                                <div class="tnpa-doc-icon">&#128100;</div>
+                                <div class="tnpa-doc-label">Owner ID Document</div>
+                                @if (!string.IsNullOrEmpty(Model.OwnerIdDocumentPath))
+                                {
+                                    if (isPdf(Model.OwnerIdDocumentPath))
+                                    {
+                                        <a href="@Url.Content(Model.OwnerIdDocumentPath)" target="_blank"
+                                           class="btn btn-sm btn-outline-primary mt-2">
+                                            &#128196; View PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Content(Model.OwnerIdDocumentPath)" target="_blank">
+                                            <img src="@Url.Content(Model.OwnerIdDocumentPath)"
+                                                 class="tnpa-doc-img" alt="Owner ID" />
+                                        </a>
+                                    }
+                                    <div class="tnpa-doc-status text-success mt-1">&#10003; Uploaded</div>
+                                }
+                                else
+                                {
+                                    <div class="tnpa-doc-status text-danger mt-2">&#10007; Not uploaded</div>
+                                }
+                            </div>
+                        </div>
+
+                        @* Boat Registration Certificate *@
+                        <div class="col-md-4">
+                            <div class="tnpa-doc-card @(string.IsNullOrEmpty(Model.BoatRegistrationCertPath) ? "tnpa-doc-missing" : "tnpa-doc-present")">
+                                <div class="tnpa-doc-icon">&#128203;</div>
+                                <div class="tnpa-doc-label">Boat Registration Certificate</div>
+                                @if (!string.IsNullOrEmpty(Model.BoatRegistrationCertPath))
+                                {
+                                    if (isPdf(Model.BoatRegistrationCertPath))
+                                    {
+                                        <a href="@Url.Content(Model.BoatRegistrationCertPath)" target="_blank"
+                                           class="btn btn-sm btn-outline-primary mt-2">
+                                            &#128196; View PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Content(Model.BoatRegistrationCertPath)" target="_blank">
+                                            <img src="@Url.Content(Model.BoatRegistrationCertPath)"
+                                                 class="tnpa-doc-img" alt="Registration Certificate" />
+                                        </a>
+                                    }
+                                    <div class="tnpa-doc-status text-success mt-1">&#10003; Uploaded</div>
+                                }
+                                else
+                                {
+                                    <div class="tnpa-doc-status text-danger mt-2">&#10007; Not uploaded</div>
+                                }
+                            </div>
+                        </div>
+
+                        @* Boat Licence *@
+                        <div class="col-md-4">
+                            <div class="tnpa-doc-card @(string.IsNullOrEmpty(Model.BoatLicencePath) ? "tnpa-doc-missing" : "tnpa-doc-present")">
+                                <div class="tnpa-doc-icon">&#128273;</div>
+                                <div class="tnpa-doc-label">Boat / Operating Licence</div>
+                                @if (!string.IsNullOrEmpty(Model.BoatLicencePath))
+                                {
+                                    if (isPdf(Model.BoatLicencePath))
+                                    {
+                                        <a href="@Url.Content(Model.BoatLicencePath)" target="_blank"
+                                           class="btn btn-sm btn-outline-primary mt-2">
+                                            &#128196; View PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Content(Model.BoatLicencePath)" target="_blank">
+                                            <img src="@Url.Content(Model.BoatLicencePath)"
+                                                 class="tnpa-doc-img" alt="Boat Licence" />
+                                        </a>
+                                    }
+                                    <div class="tnpa-doc-status text-success mt-1">&#10003; Uploaded</div>
+                                }
+                                else
+                                {
+                                    <div class="tnpa-doc-status text-danger mt-2">&#10007; Not uploaded</div>
+                                }
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 6 - OWNER INFORMATION
+               ═══════════════════════════════════════════════════════════ *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-section-header">
+                    <h5 class="mb-0">&#128100; Owner Information</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered hc-detail-table mb-0">
                         <tr><th width="35%">Full Name</th><td>@Model.BoatOwner.FullName</td></tr>
                         <tr><th>Business Name</th><td>@Model.BoatOwner.BusinessName</td></tr>
                         <tr><th>Phone Number</th><td>@Model.BoatOwner.PhoneNumber</td></tr>
                         <tr><th>Email</th><td>@Model.BoatOwner.Email</td></tr>
                     </table>
+                </div>
+            </div>
 
-                    @if (Model.Status == APDP.Models.BoatStatus.Pending)
-                    {
-                        <h6 class="hc-form-section-title mt-4">Decision</h6>
+            @* ═══════════════════════════════════════════════════════════
+               SECTION 7 - DECISION (Pending only)
+               ═══════════════════════════════════════════════════════════ *@
+            @if (Model.Status == APDP.Models.BoatStatus.Pending)
+            {
+                <div class="card hc-form-card mb-4 border-warning">
+                    <div class="card-header" style="background:#fff8e1; border-bottom:2px solid #ffe082;">
+                        <h5 class="mb-0">&#9878; Make a Decision</h5>
+                        <p class="mb-0 small text-muted">Review all sections above before approving or rejecting.</p>
+                    </div>
+                    <div class="card-body p-4">
                         <div class="row g-3">
 
                             @* Approve *@
@@ -54,48 +509,211 @@
                                 @using (Html.BeginForm("Approve", "Tnpa", new { id = Model.BoatID }, FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-success w-100"
-                                            onclick="return confirm('Approve this boat? It will become visible to customers.')">
-                                        &#10003; Approve Boat
-                                    </button>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success btn-lg"
+                                                onclick="return confirm('Approve @Model.BoatName? It will become visible to customers immediately.')">
+                                            &#10003; Approve Boat
+                                        </button>
+                                    </div>
+                                    <p class="text-muted small mt-2 mb-0 text-center">
+                                        The boat will be listed and bookable by customers.
+                                    </p>
                                 }
                             </div>
 
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <span class="text-muted fw-semibold">- OR -</span>
+                            </div>
+
                             @* Reject *@
-                            <div class="col-md-7">
+                            <div class="col-md-5">
                                 @using (Html.BeginForm("Reject", "Tnpa", new { id = Model.BoatID }, FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <div class="input-group">
-                                        <input type="text" name="rejectionReason" class="form-control"
-                                               placeholder="Reason for rejection (required)" required />
-                                        <button type="submit" class="btn btn-danger"
-                                                onclick="return confirm('Reject this boat?')">
-                                            &#10007; Reject
+                                    <div class="mb-2">
+                                        <textarea name="rejectionReason" class="form-control" rows="3"
+                                                  placeholder="State the reason for rejection (required). This will be shown to the boat owner."
+                                                  required></textarea>
+                                    </div>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-danger btn-lg"
+                                                onclick="return confirm('Reject @Model.BoatName? The owner will be notified with your reason.')">
+                                            &#10007; Reject Application
                                         </button>
                                     </div>
                                 }
                             </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="alert @(Model.Status == APDP.Models.BoatStatus.Approved ? "alert-success" : "alert-danger") mt-4">
-                            <strong>Status: @Model.Status</strong>
-                            @if (!string.IsNullOrEmpty(Model.RejectionReason))
-                            {
-                                <br /><span>Reason: @Model.RejectionReason</span>
-                            }
-                        </div>
-                    }
 
-                    <div class="mt-4">
-                        @Html.ActionLink("Back to Pending List", "PendingBoats", "Tnpa", null, new { @class = "btn btn-outline-secondary" })
+                        </div>
                     </div>
+                </div>
+            }
+            else
+            {
+                string alertClass = "alert-danger";
+                string decisionText = "Rejected";
+                if (Model.Status == APDP.Models.BoatStatus.Active)
+                { alertClass = "alert-success"; decisionText = "Active - Boat is live and bookable"; }
+                else if (Model.Status == APDP.Models.BoatStatus.AwaitingPayment)
+                { alertClass = "alert-info"; decisionText = "Approved - Awaiting registration fee payment from boat owner"; }
+                else if (Model.Status == APDP.Models.BoatStatus.Approved)
+                { alertClass = "alert-success"; decisionText = "Approved"; }
 
+                <div class="alert @alertClass mb-4">
+                    <strong>Status: @decisionText</strong>
+                    @if (!string.IsNullOrEmpty(Model.RejectionReason))
+                    {
+                        <br /><span>Reason given: @Model.RejectionReason</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CertificateNumber))
+                    {
+                        <br /><span>Certificate: <strong>@Model.CertificateNumber</strong></span>
+                    }
+                </div>
+            }
+
+            @* ── Back buttons ─────────────────────────────────────────── *@
+            <div class="d-flex gap-2 flex-wrap mb-4">
+                @Html.ActionLink("Back to Pending List", "PendingBoats", "Tnpa", null,
+                    new { @class = "btn btn-outline-secondary" })
+                @Html.ActionLink("All Boats", "AllBoats", "Tnpa", null,
+                    new { @class = "btn btn-outline-dark" })
+                @Html.ActionLink("Dashboard", "Dashboard", "Tnpa", null,
+                    new { @class = "btn btn-outline-primary" })
+                @if (Model.Status == APDP.Models.BoatStatus.Removed)
+                {
+                    <span class="badge bg-dark ms-auto align-self-center px-3 py-2">
+                        Removed by TNPA@(string.IsNullOrEmpty(Model.RejectionReason) ? "" : ": " + Model.RejectionReason)
+                    </span>
+                }
+                else
+                {
+                    @* Remove boat - available for any status except already removed *@
+                    <button type="button" class="btn btn-danger ms-auto"
+                            onclick="document.getElementById('removePanel').classList.toggle('d-none')">
+                        &#128465; Remove This Boat
+                    </button>
+                }
+            </div>
+
+            @* ── Remove panel (hidden until button clicked) ───────────── *@
+            <div id="removePanel" class="d-none card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">&#128465; Remove Boat</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger d-flex gap-2 align-items-start mb-3">
+                        <span style="font-size:1.4rem;">&#9888;</span>
+                        <div>
+                            <strong>This takes the boat off the platform.</strong><br />
+                            Removing <strong>@Model.BoatName</strong> hides it from customers, cancels its
+                            upcoming trips (customers and the owner are notified) and unassigns its drivers.
+                            Past bookings and ratings are kept on record.
+                        </div>
+                    </div>
+                    @using (Html.BeginForm("RemoveBoat", "Tnpa", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.BoatID" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Reason for Removal <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="removalReason" class="form-control" rows="3"
+                                      placeholder="Explain why this boat is being permanently removed..."
+                                      required></textarea>
+                            <div class="form-text text-muted">This reason is recorded for audit purposes.</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger fw-semibold">
+                                &#128465; Confirm - Remove Permanently
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="document.getElementById('removePanel').classList.add('d-none')">
+                                Cancel
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
 
         </div>
     </div>
 </div>
+
+<style>
+    /* ── Section headers ───────────────────────────────────────── */
+    .hc-section-header           { background: #f5f7fa; border-bottom: 2px solid #dee2e6; padding: 12px 20px; }
+    .hc-section-header h5        { color: #0d2c54; font-weight: 700; }
+
+    /* ── Detail table ──────────────────────────────────────────── */
+    .hc-detail-table th          { background: #f8f9fa; font-weight: 600; color: #495057; padding: 10px 14px; }
+    .hc-detail-table td          { padding: 10px 14px; }
+
+    /* ── Boat photos ───────────────────────────────────────────── */
+    .tnpa-photo-card             { border: 2px solid #dee2e6; border-radius: 10px; overflow: hidden; background: #fafafa; }
+    .tnpa-photo-label            { background: #0d2c54; color: #fff; font-size: 0.78rem; font-weight: 700;
+                                   text-transform: uppercase; letter-spacing: 0.5px; padding: 5px 12px; }
+    .tnpa-photo-img              { width: 100%; height: 200px; object-fit: cover; display: block;
+                                   transition: opacity 0.2s; }
+    .tnpa-photo-img:hover        { opacity: 0.88; }
+
+    /* ── Equipment cards (now replaced by check items below) ──────── */
+    .tnpa-equip-card             { border-radius: 10px; padding: 14px; text-align: center; min-height: 130px;
+                                   display: flex; flex-direction: column; align-items: center; }
+    .tnpa-equip-yes              { background: #e8f5e9; border: 2px solid #a5d6a7; }
+    .tnpa-equip-no               { background: #fafafa; border: 2px dashed #ccc; }
+    .tnpa-equip-title            { font-weight: 700; font-size: 0.88rem; margin-bottom: 6px; color: #212529; }
+    .tnpa-equip-status           { font-size: 0.82rem; margin-bottom: 8px; }
+    .tnpa-equip-photo            { width: 100%; max-height: 100px; object-fit: cover; border-radius: 6px;
+                                   border: 1px solid #ccc; margin-top: 4px; display: block; }
+    .tnpa-equip-photo:hover      { opacity: 0.88; }
+    .tnpa-photo-badge            { font-size: 0.68rem; background: #1565c0; color: #fff;
+                                   border-radius: 8px; padding: 1px 8px; margin-top: 4px; display: inline-block; }
+
+    /* ── Checkbox check items ──────────────────────────────────── */
+    .tnpa-check-item  { display: flex; align-items: center; border-radius: 8px; padding: 10px 14px;
+                        font-size: 0.88rem; }
+    .tnpa-check-yes   { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .tnpa-check-no    { background: #fafafa; border: 1px dashed #ccc; }
+
+    /* ── Document cards ────────────────────────────────────────── */
+    .tnpa-doc-card               { border-radius: 10px; padding: 16px; text-align: center;
+                                   min-height: 120px; display: flex; flex-direction: column; align-items: center; }
+    .tnpa-doc-present            { background: #e3f2fd; border: 2px solid #90caf9; }
+    .tnpa-doc-missing            { background: #fff3e0; border: 2px dashed #ffcc80; }
+    .tnpa-doc-icon               { font-size: 2rem; line-height: 1; margin-bottom: 6px; }
+    .tnpa-doc-label              { font-weight: 700; font-size: 0.84rem; color: #212529; margin-bottom: 4px; }
+    .tnpa-doc-status             { font-size: 0.78rem; font-weight: 600; }
+    .tnpa-doc-img                { width: 100%; max-height: 90px; object-fit: cover; border-radius: 6px;
+                                   border: 1px solid #ccc; margin-top: 4px; display: block; }
+    .tnpa-doc-img:hover          { opacity: 0.88; }
+
+    /* ── Fullscreen button on videos ───────────────────────────── */
+    .hc-fullscreen-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 10;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 1rem;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.15s;
+    }
+    .hc-fullscreen-btn:hover { opacity: 1; background: rgba(0,0,0,0.8); }
+</style>
+
+<script>
+    function hcFullscreen(videoEl) {
+        if (!videoEl) return;
+        if (videoEl.requestFullscreen)          videoEl.requestFullscreen();
+        else if (videoEl.webkitRequestFullscreen) videoEl.webkitRequestFullscreen();
+        else if (videoEl.mozRequestFullScreen)    videoEl.mozRequestFullScreen();
+        else if (videoEl.msRequestFullscreen)     videoEl.msRequestFullscreen();
+    }
+</script>

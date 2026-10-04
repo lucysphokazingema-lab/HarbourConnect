@@ -1,0 +1,104 @@
+@model List<APDP.Helpers.DayHours>
+@{
+    // Posted as dayN_open / dayN_from / dayN_to and read by BoatAvailability.ParseForm.
+    int bufferMinutes = ViewData["BufferMinutes"] is int ? (int)ViewData["BufferMinutes"] : 0;
+    var times = Enumerable.Range(0, 49).Select(i => APDP.Helpers.BoatAvailability.FormatTime(i * 30)).ToList();
+}
+
+<div class="mb-3" id="weeklyTimetable">
+    <label class="form-label fw-semibold">Weekly Timetable</label>
+    <p class="text-muted small mb-2">
+        Tick the days your boat takes trips and set the hours. Customers can only book trips that
+        start and finish inside these hours. Use <strong>Manage Availability</strong> later to block
+        specific dates (e.g. public holidays or maintenance).
+    </p>
+
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-2 hc-timetable">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:34%">Day</th>
+                    <th>First trip from</th>
+                    <th>Back by</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var day in Model)
+                {
+                    string prefix = "day" + day.Day;
+                    <tr data-day="@day.Day">
+                        <td>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input hc-day-open" type="checkbox"
+                                       id="@(prefix)_open" name="@(prefix)_open" value="1"
+                                       @(day.IsOpen ? "checked" : "") onchange="hcTimetableToggle(this)" />
+                                <label class="form-check-label fw-semibold" for="@(prefix)_open">@day.Name</label>
+                                <span class="badge bg-secondary ms-1 hc-closed-badge" @(day.IsOpen ? "hidden" : "")>Closed</span>
+                            </div>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm hc-day-from" name="@(prefix)_from" @(day.IsOpen ? "" : "disabled")>
+                                @foreach (var t in times.Take(48))
+                                {
+                                    <option value="@t" @(t == day.OpenText ? "selected" : "")>@t</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm hc-day-to" name="@(prefix)_to" @(day.IsOpen ? "" : "disabled")>
+                                @foreach (var t in times.Skip(1))
+                                {
+                                    <option value="@t" @(t == day.CloseText ? "selected" : "")>@t</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <button type="button" class="btn btn-sm btn-outline-secondary mb-3" onclick="hcTimetableCopyMonday()">
+        Copy Monday's hours to Tuesday&ndash;Friday
+    </button>
+
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <label class="form-label fw-semibold small mb-0" for="BufferMinutes">Break between trips</label>
+        </div>
+        <div class="col-auto">
+            <select class="form-select form-select-sm" id="BufferMinutes" name="BufferMinutes">
+                @foreach (var b in new[] { 0, 15, 30, 45, 60 })
+                {
+                    <option value="@b" @(b == bufferMinutes ? "selected" : "")>@(b == 0 ? "No break" : b + " minutes")</option>
+                }
+            </select>
+        </div>
+        <div class="col-12">
+            <small class="text-muted">Time kept free after every trip for refuelling and cleaning. Customers won't be offered start times inside it.</small>
+        </div>
+    </div>
+</div>
+
+<script>
+    function hcTimetableToggle(cb) {
+        var row = cb.closest('tr');
+        row.querySelectorAll('select').forEach(function (s) { s.disabled = !cb.checked; });
+        row.querySelector('.hc-closed-badge').hidden = cb.checked;
+    }
+    function hcTimetableCopyMonday() {
+        var mon = document.querySelector('#weeklyTimetable tr[data-day="1"]');
+        if (!mon) return;
+        var open = mon.querySelector('.hc-day-open').checked;
+        var from = mon.querySelector('.hc-day-from').value;
+        var to   = mon.querySelector('.hc-day-to').value;
+        [2, 3, 4, 5].forEach(function (d) {
+            var row = document.querySelector('#weeklyTimetable tr[data-day="' + d + '"]');
+            var cb  = row.querySelector('.hc-day-open');
+            cb.checked = open;
+            row.querySelector('.hc-day-from').value = from;
+            row.querySelector('.hc-day-to').value   = to;
+            hcTimetableToggle(cb);
+        });
+    }
+</script>

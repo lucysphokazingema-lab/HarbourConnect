@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using APDP.Helpers;
 using APDP.Models;
 
 namespace APDP.Controllers
@@ -33,8 +35,13 @@ namespace APDP.Controllers
                     return View(model);
                 }
 
+                model.PasswordHash = PasswordHasher.Hash(model.Password);
                 db.BoatOwners.Add(model);
                 db.SaveChanges();
+
+                // Clear any existing session so the new owner must log in fresh
+                Session.Clear();
+                Session.Abandon();
 
                 TempData["SuccessMessage"] = "Account created successfully! Please log in.";
                 return RedirectToAction("Login");
@@ -60,11 +67,19 @@ namespace APDP.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(string email, string password)
         {
-            var owner = db.BoatOwners
-                .FirstOrDefault(x => x.Email == email && x.Password == password);
+            var owner = db.BoatOwners.FirstOrDefault(x => x.Email == email);
 
-            if (owner != null)
+            bool valid = owner != null && PasswordHasher.Verify(password, owner.PasswordHash);
+            if (owner == null)
+                PasswordHasher.VerifyDummy(password);
+
+            if (valid)
             {
+                // Clear any other portal sessions first
+                Session.Remove("CustomerID");   Session.Remove("CustomerName");
+                Session.Remove("DriverID");     Session.Remove("DriverName");
+                Session.Remove("TnpaAdminID");  Session.Remove("TnpaAdminName");
+
                 Session["BoatOwnerID"]   = owner.BoatOwnerID;
                 Session["BoatOwnerName"] = owner.FullName;
                 Session["UserType"]      = "BoatOwner";
@@ -98,15 +113,15 @@ namespace APDP.Controllers
 
             int ownerID = (int)Session["BoatOwnerID"];
 
-            // Single query — fetch statuses once, count in memory to avoid multiple round-trips
+            // Single query - fetch statuses once, count in memory to avoid multiple round-trips
             var myBoatStatuses = db.Boats
                 .Where(b => b.BoatOwnerID == ownerID)
                 .Select(b => b.Status)
                 .ToList();
 
             ViewBag.TotalBoats    = myBoatStatuses.Count;
-            ViewBag.ApprovedBoats = myBoatStatuses.Count(s => s == BoatStatus.Approved);
-            ViewBag.PendingBoats  = myBoatStatuses.Count(s => s == BoatStatus.Pending);
+            ViewBag.ApprovedBoats = myBoatStatuses.Count(s => s == BoatStatus.Active || s == BoatStatus.Approved);
+            ViewBag.PendingBoats  = myBoatStatuses.Count(s => s == BoatStatus.Pending || s == BoatStatus.AwaitingPayment);
             ViewBag.TotalBookings = db.Bookings.Count(bk => bk.Boat.BoatOwnerID == ownerID);
             ViewBag.TotalDrivers  = db.Drivers.Count(d => d.BoatOwnerID == ownerID);
 
@@ -129,8 +144,45 @@ namespace APDP.Controllers
         }
 
         // ─────────────────────────────────────────────
-        // ADD BOAT
+        // TOGGLE ACTIVE / INACTIVE
         // ─────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ToggleActive(int id)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.FirstOrDefault(b => b.BoatID == id && b.BoatOwnerID == ownerID);
+
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Boat not found.";
+                return RedirectToAction("MyBoats");
+            }
+
+            // Only Active/Approved boats can be toggled
+            if (boat.Status == BoatStatus.Active || boat.Status == BoatStatus.Approved)
+            {
+                boat.Status = BoatStatus.Inactive;
+                TempData["SuccessMessage"] = $"'{boat.BoatName}' is now inactive and hidden from customers.";
+            }
+            else if (boat.Status == BoatStatus.Inactive)
+            {
+                boat.Status = BoatStatus.Active;
+                TempData["SuccessMessage"] = $"'{boat.BoatName}' is now active and visible to customers.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Only active boats can be toggled. Pending and rejected boats cannot be changed this way.";
+                return RedirectToAction("MyBoats");
+            }
+
+            db.SaveChanges();
+            return RedirectToAction("MyBoats");
+        }
 
         [HttpGet]
         public ActionResult AddBoat()
@@ -138,21 +190,13 @@ namespace APDP.Controllers
             if (Session["BoatOwnerID"] == null)
                 return RedirectToAction("Login");
 
+            ViewBag.Week = BoatAvailability.DefaultWeek();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AddBoat(Boat model,
-            HttpPostedFileBase imageFile,
-            HttpPostedFileBase imageFile2,
-            HttpPostedFileBase imageFile3,
-            HttpPostedFileBase eqLifeJacket,
-            HttpPostedFileBase eqMedKit,
-            HttpPostedFileBase eqFireExt,
-            HttpPostedFileBase eqFishing,
-            HttpPostedFileBase eqDecoration,
-            HttpPostedFileBase eqSoundSystem,
             HttpPostedFileBase docOwnerId,
             HttpPostedFileBase docRegCert,
             HttpPostedFileBase docLicence)
@@ -160,8 +204,6 @@ namespace APDP.Controllers
             if (Session["BoatOwnerID"] == null)
                 return RedirectToAction("Login");
 
-            // Check for duplicate registration number BEFORE ModelState.IsValid
-            // so the error always shows regardless of other validation failures
             if (!string.IsNullOrWhiteSpace(model.RegistrationNumber) &&
                 db.Boats.Any(b => b.RegistrationNumber == model.RegistrationNumber))
             {
@@ -169,15 +211,20 @@ namespace APDP.Controllers
                     "This registration number is already in use. Each boat must have a unique registration number.");
             }
 
+            string timetableError;
+            var week = ReadTimetable(model, out timetableError);
+            if (timetableError != null)
+                ModelState.AddModelError("", timetableError);
+
             if (ModelState.IsValid)
             {
-                string[] imgAllowed = { ".jpg", ".jpeg", ".png", ".gif" };
-                string[] docAllowed = { ".pdf", ".jpg", ".jpeg", ".png" };
-                string   folder     = Server.MapPath("~/Content/BoatImages/");
+                string[] imgAllowed   = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                string[] vidAllowed   = { ".mp4", ".mov", ".avi", ".webm" };
+                string[] docAllowed   = { ".pdf", ".jpg", ".jpeg", ".png" };
+                string   folder       = Server.MapPath("~/Content/BoatImages/");
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
 
-                // Save image helper
                 Func<HttpPostedFileBase, string[], string> save = (file, allowed) =>
                 {
                     if (file == null || file.ContentLength <= 0) return null;
@@ -188,23 +235,40 @@ namespace APDP.Controllers
                     return "~/Content/BoatImages/" + fn;
                 };
 
-                // Boat photos
-                model.ImagePath  = save(imageFile,  imgAllowed) ?? model.ImagePath;
-                model.ImagePath2 = save(imageFile2, imgAllowed) ?? model.ImagePath2;
-                model.ImagePath3 = save(imageFile3, imgAllowed) ?? model.ImagePath3;
+                // Read all uploaded photos from the "boatPhotos" multi-file input
+                var imgPaths = new System.Collections.Generic.List<string>();
+                var photoFiles = Request.Files.GetMultiple("boatPhotos");
+                foreach (HttpPostedFileBase f in photoFiles)
+                {
+                    if (imgPaths.Count >= 6) break;
+                    var p = save(f, imgAllowed);
+                    if (p != null) imgPaths.Add(p);
+                }
+                if (imgPaths.Count > 0) model.ImagePath  = imgPaths[0];
+                if (imgPaths.Count > 1) model.ImagePath2 = imgPaths[1];
+                if (imgPaths.Count > 2) model.ImagePath3 = imgPaths[2];
+                if (imgPaths.Count > 3) model.ImagePath4 = imgPaths[3];
+                if (imgPaths.Count > 4) model.ImagePath5 = imgPaths[4];
+                if (imgPaths.Count > 5) model.ImagePath6 = imgPaths[5];
 
-                // Equipment photos
-                model.LifeJacketImagePath  = save(eqLifeJacket,  imgAllowed) ?? model.LifeJacketImagePath;
-                model.MedKitImagePath      = save(eqMedKit,       imgAllowed) ?? model.MedKitImagePath;
-                model.FireExtImagePath     = save(eqFireExt,      imgAllowed) ?? model.FireExtImagePath;
-                model.FishingImagePath     = save(eqFishing,      imgAllowed) ?? model.FishingImagePath;
-                model.DecorationImagePath  = save(eqDecoration,   imgAllowed) ?? model.DecorationImagePath;
-                model.SoundSystemImagePath = save(eqSoundSystem,  imgAllowed) ?? model.SoundSystemImagePath;
+                // Read all uploaded videos from the "boatVideos" multi-file input
+                var vidPaths = new System.Collections.Generic.List<string>();
+                var videoFiles = Request.Files.GetMultiple("boatVideos");
+                foreach (HttpPostedFileBase f in videoFiles)
+                {
+                    if (vidPaths.Count >= 3) break;
+                    // Reject videos over 150 MB
+                    if (f != null && f.ContentLength > 150 * 1024 * 1024) continue;
+                    var p = save(f, vidAllowed);
+                    if (p != null) vidPaths.Add(p);
+                }
+                if (vidPaths.Count > 0) model.VideoPath1 = vidPaths[0];
+                if (vidPaths.Count > 1) model.VideoPath2 = vidPaths[1];
+                if (vidPaths.Count > 2) model.VideoPath3 = vidPaths[2];
 
-                // Supporting documents (PDF or image)
-                model.OwnerIdDocumentPath    = save(docOwnerId,  docAllowed) ?? model.OwnerIdDocumentPath;
-                model.BoatRegistrationCertPath = save(docRegCert, docAllowed) ?? model.BoatRegistrationCertPath;
-                model.BoatLicencePath        = save(docLicence,  docAllowed) ?? model.BoatLicencePath;
+                model.OwnerIdDocumentPath      = save(docOwnerId,  docAllowed) ?? model.OwnerIdDocumentPath;
+                model.BoatRegistrationCertPath = save(docRegCert,  docAllowed) ?? model.BoatRegistrationCertPath;
+                model.BoatLicencePath          = save(docLicence,  docAllowed) ?? model.BoatLicencePath;
 
                 model.BoatOwnerID   = (int)Session["BoatOwnerID"];
                 model.Status        = BoatStatus.Pending;
@@ -212,13 +276,45 @@ namespace APDP.Controllers
                 model.AverageRating = 0;
                 model.TotalRatings  = 0;
 
+                // Apply defaults if duration tiles were not selected
+                // (MaxBookingHours 0 = "No limit": up to the day's opening hours)
+                if (model.DefaultTripDurationMinutes <= 0) model.DefaultTripDurationMinutes = 60;
+                if (model.MaxBookingHours < 0)             model.MaxBookingHours = 0;
+
                 db.Boats.Add(model);
                 db.SaveChanges();
 
-                TempData["SuccessMessage"] = $"Boat \"{model.BoatName}\" submitted successfully! Registration: {model.RegistrationNumber}. It is now pending TNPA approval.";
+                BoatAvailability.SaveWeek(db, model, week);
+                db.SaveChanges();
+
+                // Notify all TNPA admins of new boat submission
+                var tnpaAdmins = db.TnpaAdmins.ToList();
+                foreach (var admin in tnpaAdmins)
+                {
+                    NotificationHelper.Notify(db,
+                        admin.TnpaAdminID,
+                        "TnpaAdmin",
+                        $"New boat application submitted: '{model.BoatName}' by {((BoatOwner)db.BoatOwners.Find(model.BoatOwnerID)).FullName}. Registration: {model.RegistrationNumber}.",
+                        "/Tnpa/BoatDetails/" + model.BoatID);
+                }
+
+                // Save extras posted as parallel arrays: Extras[i].Name + Extras[i].Price
+                SaveExtras(model.BoatID, Request);
+                db.SaveChanges();
+
+                // Notify boat owner their submission was received
+                NotificationHelper.Notify(db,
+                    model.BoatOwnerID,
+                    "BoatOwner",
+                    $"Your boat '{model.BoatName}' has been submitted for TNPA review. You will be notified once reviewed.",
+                    "/BoatOwner/MyBoats");
+                db.SaveChanges();
+
+                TempData["SuccessMessage"] = $"Boat \"{model.BoatName}\" submitted for TNPA review.";
                 return RedirectToAction("MyBoats");
             }
 
+            ViewBag.Week = week;
             return View(model);
         }
 
@@ -227,13 +323,24 @@ namespace APDP.Controllers
         // ─────────────────────────────────────────────
 
         [HttpGet]
-        public ActionResult EditBoat(int id)
+        public ActionResult EditBoat(int? id)
         {
             if (Session["BoatOwnerID"] == null)
                 return RedirectToAction("Login");
 
+            if (id == null)
+            {
+                TempData["ErrorMessage"] = "No boat specified.";
+                return RedirectToAction("MyBoats");
+            }
+
             int ownerID = (int)Session["BoatOwnerID"];
-            var boat = db.Boats.FirstOrDefault(b => b.BoatID == id && b.BoatOwnerID == ownerID);
+            var boat = db.Boats
+                .Include("Extras")
+                .Include("BoatOwner")
+                .Include("Ratings.Customer")
+                .FirstOrDefault(b => b.BoatID == id && b.BoatOwnerID == ownerID
+                                  && b.Status != BoatStatus.Removed);
 
             if (boat == null)
             {
@@ -241,15 +348,22 @@ namespace APDP.Controllers
                 return RedirectToAction("MyBoats");
             }
 
+            // Recent ratings for the preview panel
+            var recentRatings = db.BoatRatings
+                .Include("Customer")
+                .Where(r => r.BoatID == id)
+                .OrderByDescending(r => r.DateRated)
+                .Take(5)
+                .ToList();
+            ViewBag.RecentRatings = recentRatings;
+            ViewBag.Week          = BoatAvailability.WeekFor(db, boat);
+
             return View(boat);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditBoat(Boat model,
-            HttpPostedFileBase imageFile,
-            HttpPostedFileBase imageFile2,
-            HttpPostedFileBase imageFile3,
             HttpPostedFileBase eqLifeJacket,
             HttpPostedFileBase eqMedKit,
             HttpPostedFileBase eqFireExt,
@@ -261,7 +375,10 @@ namespace APDP.Controllers
                 return RedirectToAction("Login");
 
             int ownerID = (int)Session["BoatOwnerID"];
-            var boat = db.Boats.FirstOrDefault(b => b.BoatID == model.BoatID && b.BoatOwnerID == ownerID);
+            var boat = db.Boats
+                .Include("Extras")
+                .FirstOrDefault(b => b.BoatID == model.BoatID && b.BoatOwnerID == ownerID
+                                  && b.Status != BoatStatus.Removed);
 
             if (boat == null)
             {
@@ -276,6 +393,11 @@ namespace APDP.Controllers
                 ModelState.AddModelError("RegistrationNumber",
                     "This registration number is already in use by another boat.");
             }
+
+            string timetableError;
+            var week = ReadTimetable(model, out timetableError);
+            if (timetableError != null)
+                ModelState.AddModelError("", timetableError);
 
             if (ModelState.IsValid)
             {
@@ -295,18 +417,57 @@ namespace APDP.Controllers
                     return "~/Content/BoatImages/" + fn;
                 };
 
-                // Boat photos — only replace if a new file was uploaded
-                boat.ImagePath  = save(imageFile)  ?? boat.ImagePath;
-                boat.ImagePath2 = save(imageFile2) ?? boat.ImagePath2;
-                boat.ImagePath3 = save(imageFile3) ?? boat.ImagePath3;
+                // Boat photos - only replace if new files were uploaded
+                string[] imgAllowedE = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                string[] vidAllowedE = { ".mp4", ".mov", ".avi", ".webm" };
+                string   folderE     = Server.MapPath("~/Content/BoatImages/");
 
-                // Equipment photos — only replace if a new file was uploaded
+                Func<HttpPostedFileBase, string[], string> saveE = (file, exts) =>
+                {
+                    if (file == null || file.ContentLength <= 0) return null;
+                    string ext = Path.GetExtension(file.FileName).ToLower();
+                    if (!Array.Exists(exts, e => e == ext)) return null;
+                    string fn = Guid.NewGuid().ToString() + ext;
+                    file.SaveAs(Path.Combine(folderE, fn));
+                    return "~/Content/BoatImages/" + fn;
+                };
+
+                var newImgPaths = new System.Collections.Generic.List<string>();
+                foreach (HttpPostedFileBase f in Request.Files.GetMultiple("boatPhotos"))
+                {
+                    if (newImgPaths.Count >= 6) break;
+                    var p = saveE(f, imgAllowedE);
+                    if (p != null) newImgPaths.Add(p);
+                }
+                if (newImgPaths.Count > 0) boat.ImagePath  = newImgPaths[0];
+                if (newImgPaths.Count > 1) boat.ImagePath2 = newImgPaths[1];
+                if (newImgPaths.Count > 2) boat.ImagePath3 = newImgPaths[2];
+                if (newImgPaths.Count > 3) boat.ImagePath4 = newImgPaths[3];
+                if (newImgPaths.Count > 4) boat.ImagePath5 = newImgPaths[4];
+                if (newImgPaths.Count > 5) boat.ImagePath6 = newImgPaths[5];
+
+                var newVidPaths = new System.Collections.Generic.List<string>();
+                foreach (HttpPostedFileBase f in Request.Files.GetMultiple("boatVideos"))
+                {
+                    if (newVidPaths.Count >= 3) break;
+                    // Reject videos over 150 MB
+                    if (f != null && f.ContentLength > 150 * 1024 * 1024) continue;
+                    var p = saveE(f, vidAllowedE);
+                    if (p != null) newVidPaths.Add(p);
+                }
+                if (newVidPaths.Count > 0) boat.VideoPath1 = newVidPaths[0];
+                if (newVidPaths.Count > 1) boat.VideoPath2 = newVidPaths[1];
+                if (newVidPaths.Count > 2) boat.VideoPath3 = newVidPaths[2];
+
+                // Equipment photos - only replace if a new file was uploaded
                 boat.LifeJacketImagePath  = save(eqLifeJacket)  ?? boat.LifeJacketImagePath;
                 boat.MedKitImagePath      = save(eqMedKit)       ?? boat.MedKitImagePath;
                 boat.FireExtImagePath     = save(eqFireExt)      ?? boat.FireExtImagePath;
                 boat.FishingImagePath     = save(eqFishing)      ?? boat.FishingImagePath;
                 boat.DecorationImagePath  = save(eqDecoration)   ?? boat.DecorationImagePath;
                 boat.SoundSystemImagePath = save(eqSoundSystem)  ?? boat.SoundSystemImagePath;
+
+                bool wasActive = (boat.Status == BoatStatus.Active || boat.Status == BoatStatus.Approved);
 
                 bool requiresReview = (boat.RegistrationNumber != model.RegistrationNumber ||
                                        boat.BoatName != model.BoatName);
@@ -316,20 +477,66 @@ namespace APDP.Controllers
                 boat.BoatType                = model.BoatType;
                 boat.Description             = model.Description;
                 boat.MaxPassengers           = model.MaxPassengers;
-                boat.PricePerTrip            = model.PricePerTrip;
-                boat.HarbourLocation         = model.HarbourLocation;
-                boat.LifeJacketQuantity      = model.LifeJacketQuantity;
+
+                // Save new per-hour pricing
+                boat.PriceAdult              = model.PriceAdult;
+                boat.PriceChild              = model.PriceChild;
+
+                // Save duration limits
+                boat.DefaultTripDurationMinutes = model.DefaultTripDurationMinutes > 0 ? model.DefaultTripDurationMinutes : 60;
+                boat.MaxBookingHours            = model.MaxBookingHours > 0 ? model.MaxBookingHours : 0;
+
+                // Weekly timetable + break between trips
+                boat.BufferMinutes = model.BufferMinutes;
+                BoatAvailability.SaveWeek(db, boat, week);
+
+                boat.HarbourLocation         = !string.IsNullOrWhiteSpace(model.HarbourLocation)
+                                                   ? model.HarbourLocation
+                                                   : boat.HarbourLocation;
+
+                // Safety equipment flags
+                boat.HasLifeJackets          = model.HasLifeJackets;
                 boat.HasMedKit               = model.HasMedKit;
                 boat.HasFireExtinguisher     = model.HasFireExtinguisher;
+
                 boat.HasFishingEquipment     = model.HasFishingEquipment;
                 boat.HasDecoration           = model.HasDecoration;
                 boat.HasSoundSystem          = model.HasSoundSystem;
                 boat.DisabilityAccommodation = model.DisabilityAccommodation;
+                boat.IsDisabilityFriendly    = model.IsDisabilityFriendly;
 
                 if (requiresReview)
                 {
+                    // Name / registration number are what TNPA approved, so any change
+                    // takes the boat off the market until TNPA re-approves it.
                     boat.Status = BoatStatus.Pending;
-                    TempData["SuccessMessage"] = "Boat updated. Because key details changed, it has been resubmitted for TNPA review.";
+                    foreach (var admin in db.TnpaAdmins.ToList())
+                    {
+                        NotificationHelper.Notify(db,
+                            admin.TnpaAdminID,
+                            "TnpaAdmin",
+                            $"Boat '{boat.BoatName}' (Reg: {boat.RegistrationNumber}) changed its name or registration number and needs re-approval.",
+                            "/Tnpa/BoatDetails/" + boat.BoatID);
+                    }
+                    TempData["SuccessMessage"] = wasActive
+                        ? "Boat updated. Because the name or registration number changed, it is hidden from customers until TNPA re-approves it."
+                        : "Boat updated. Because key details changed, it has been resubmitted for TNPA review.";
+                }
+                else if (wasActive)
+                {
+                    // Boat stays Active so customers can still see it,
+                    // but TNPA is notified to review the changes.
+                    boat.Status = BoatStatus.Active;
+                    var tnpaAdmins = db.TnpaAdmins.ToList();
+                    foreach (var admin in tnpaAdmins)
+                    {
+                        NotificationHelper.Notify(db,
+                            admin.TnpaAdminID,
+                            "TnpaAdmin",
+                            $"Boat '{boat.BoatName}' (Reg: {boat.RegistrationNumber}) was edited by the owner and requires TNPA review.",
+                            "/Tnpa/BoatDetails/" + boat.BoatID);
+                    }
+                    TempData["SuccessMessage"] = "Boat updated. TNPA has been notified to review your changes.";
                 }
                 else
                 {
@@ -337,10 +544,28 @@ namespace APDP.Controllers
                 }
 
                 db.SaveChanges();
+
+                // Replace all extras with what was posted
+                var oldExtras = db.BoatExtras.Where(e => e.BoatID == boat.BoatID).ToList();
+                db.BoatExtras.RemoveRange(oldExtras);
+                db.SaveChanges();
+                SaveExtras(boat.BoatID, Request);
+
                 return RedirectToAction("MyBoats");
             }
 
+            ViewBag.Week = week;
             return View(model);
+        }
+
+        // Reads the weekly timetable posted by the Add/Edit Boat form and checks the trip-length range.
+        private List<DayHours> ReadTimetable(Boat model, out string error)
+        {
+            int minHours = BoatAvailability.MinHours(model);
+            var week = BoatAvailability.ParseForm(Request.Form, minHours, out error);
+            if (error == null && model.MaxBookingHours > 0 && model.MaxBookingHours < minHours)
+                error = "The maximum trip length must be at least the minimum trip length.";
+            return week;
         }
 
         // ─────────────────────────────────────────────
@@ -382,7 +607,7 @@ namespace APDP.Controllers
 
             // Pass owner's boats for assignment dropdown
             ViewBag.OwnerBoats = db.Boats
-                .Where(b => b.BoatOwnerID == ownerID && b.Status == BoatStatus.Approved)
+                .Where(b => b.BoatOwnerID == ownerID && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved))
                 .ToList();
 
             return View(drivers);
@@ -400,7 +625,7 @@ namespace APDP.Controllers
 
             int ownerID = (int)Session["BoatOwnerID"];
             ViewBag.OwnerBoats = new SelectList(
-                db.Boats.Where(b => b.BoatOwnerID == ownerID && b.Status == BoatStatus.Approved).ToList(),
+                db.Boats.Where(b => b.BoatOwnerID == ownerID && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved)).ToList(),
                 "BoatID", "BoatName");
 
             return View(new Driver());
@@ -420,21 +645,26 @@ namespace APDP.Controllers
                 ModelState.AddModelError("Email", "A driver with this email already exists.");
             }
 
+            if (!IsOwnBoat(model.AssignedBoatID, ownerID))
+                ModelState.AddModelError("AssignedBoatID", "You can only assign a driver to one of your own active boats.");
+
             if (ModelState.IsValid)
             {
                 model.BoatOwnerID     = ownerID;
                 model.Status          = DriverStatus.Active;
                 model.DateRegistered  = DateTime.Now;
+                model.PasswordHash    = PasswordHasher.Hash(model.Password);
 
                 db.Drivers.Add(model);
                 db.SaveChanges();
 
-                TempData["SuccessMessage"] = $"Driver {model.FullName} has been added. They can now log in with email: {model.Email}";
+                TempData["DriverAdded"] = model.FullName;
+                TempData["DriverEmail"] = model.Email;
                 return RedirectToAction("ManageDrivers");
             }
 
             ViewBag.OwnerBoats = new SelectList(
-                db.Boats.Where(b => b.BoatOwnerID == ownerID && b.Status == BoatStatus.Approved).ToList(),
+                db.Boats.Where(b => b.BoatOwnerID == ownerID && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved)).ToList(),
                 "BoatID", "BoatName");
 
             return View(model);
@@ -445,10 +675,16 @@ namespace APDP.Controllers
         // ─────────────────────────────────────────────
 
         [HttpGet]
-        public ActionResult EditDriver(int id)
+        public ActionResult EditDriver(int? id)
         {
             if (Session["BoatOwnerID"] == null)
                 return RedirectToAction("Login");
+
+            if (id == null)
+            {
+                TempData["ErrorMessage"] = "No driver specified.";
+                return RedirectToAction("ManageDrivers");
+            }
 
             int ownerID = (int)Session["BoatOwnerID"];
             var driver = db.Drivers.FirstOrDefault(d => d.DriverID == id && d.BoatOwnerID == ownerID);
@@ -460,7 +696,7 @@ namespace APDP.Controllers
             }
 
             ViewBag.OwnerBoats = new SelectList(
-                db.Boats.Where(b => b.BoatOwnerID == ownerID && b.Status == BoatStatus.Approved).ToList(),
+                db.Boats.Where(b => b.BoatOwnerID == ownerID && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved)).ToList(),
                 "BoatID", "BoatName", driver.AssignedBoatID);
 
             return View(driver);
@@ -488,6 +724,13 @@ namespace APDP.Controllers
                 ModelState.AddModelError("Email", "Another driver with this email already exists.");
             }
 
+            if (!IsOwnBoat(model.AssignedBoatID, ownerID))
+                ModelState.AddModelError("AssignedBoatID", "You can only assign a driver to one of your own active boats.");
+
+            // Password is optional on edit; blank means keep the current one.
+            if (string.IsNullOrWhiteSpace(model.Password))
+                ModelState.Remove("Password");
+
             if (ModelState.IsValid)
             {
                 driver.FullName        = model.FullName;
@@ -499,7 +742,7 @@ namespace APDP.Controllers
 
                 // Only update password if a new one was provided
                 if (!string.IsNullOrWhiteSpace(model.Password))
-                    driver.Password = model.Password;
+                    driver.PasswordHash = PasswordHasher.Hash(model.Password);
 
                 db.SaveChanges();
 
@@ -508,10 +751,170 @@ namespace APDP.Controllers
             }
 
             ViewBag.OwnerBoats = new SelectList(
-                db.Boats.Where(b => b.BoatOwnerID == ownerID && b.Status == BoatStatus.Approved).ToList(),
+                db.Boats.Where(b => b.BoatOwnerID == ownerID && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved)).ToList(),
                 "BoatID", "BoatName", model.AssignedBoatID);
 
             return View(model);
+        }
+
+        // ─────────────────────────────────────────────
+        // PAY REGISTRATION FEE
+        // ─────────────────────────────────────────────
+
+        [HttpGet]
+        public ActionResult PayRegistrationFee(int? id)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            if (id == null)
+            {
+                TempData["ErrorMessage"] = "No boat specified.";
+                return RedirectToAction("MyBoats");
+            }
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.FirstOrDefault(b => b.BoatID == id
+                                                 && b.BoatOwnerID == ownerID
+                                                 && b.Status == BoatStatus.AwaitingPayment);
+
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Boat not found or not eligible for payment.";
+                return RedirectToAction("MyBoats");
+            }
+
+            return View(boat);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult PayRegistrationFee(int? id, FormCollection form)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            if (id == null)
+                return RedirectToAction("MyBoats");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.FirstOrDefault(b => b.BoatID == id
+                                                 && b.BoatOwnerID == ownerID
+                                                 && b.Status == BoatStatus.AwaitingPayment);
+
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Boat not found or payment already completed.";
+                return RedirectToAction("MyBoats");
+            }
+
+            // Generate unique certificate number
+            string certNumber = "HC-" + DateTime.Now.Year
+                              + "-" + boat.BoatID.ToString("D5")
+                              + "-" + new Random().Next(100, 999).ToString();
+
+            // DEMO PAYMENT: replace with a real payment provider (e.g. PayFast hosted checkout)
+            // before going live. No card data is ever collected by this app.
+            boat.Status                       = BoatStatus.Active;
+            boat.CertificateNumber            = certNumber;
+            boat.RegistrationPaidDate         = DateTime.Now;
+            boat.RegistrationPaymentReference = "DEMO-REG-" + boat.BoatID.ToString("D5") + "-" + DateTime.Now.ToString("HHmmss");
+
+            db.SaveChanges();
+
+            // Notify boat owner payment confirmed + boat is live
+            NotificationHelper.Notify(db,
+                boat.BoatOwnerID,
+                "BoatOwner",
+                $"Payment confirmed! Your boat '{boat.BoatName}' is now active and visible to customers. Certificate: {certNumber}",
+                "/BoatOwner/RegistrationCertificate/" + boat.BoatID);
+
+            // Notify all TNPA admins that the boat is now live
+            var tnpaAdminsP = db.TnpaAdmins.ToList();
+            foreach (var admin in tnpaAdminsP)
+            {
+                NotificationHelper.Notify(db,
+                    admin.TnpaAdminID,
+                    "TnpaAdmin",
+                    $"Boat '{boat.BoatName}' (Reg: {boat.RegistrationNumber}) has paid the registration fee and is now active.",
+                    "/Tnpa/BoatDetails/" + boat.BoatID);
+            }
+            db.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Payment successful! Your boat '{boat.BoatName}' is now active and visible to customers.";
+            return RedirectToAction("RegistrationCertificate", new { id = boat.BoatID });
+        }
+
+        // ─────────────────────────────────────────────
+        // REGISTRATION CERTIFICATE
+        // ─────────────────────────────────────────────
+
+        [HttpGet]
+        public ActionResult RegistrationCertificate(int? id)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            if (id == null)
+                return RedirectToAction("MyBoats");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats
+                .Include("BoatOwner")
+                .FirstOrDefault(b => b.BoatID == id
+                                  && b.BoatOwnerID == ownerID
+                                  && b.Status == BoatStatus.Active
+                                  && b.CertificateNumber != null);
+
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Certificate not found.";
+                return RedirectToAction("MyBoats");
+            }
+
+            return View(boat);
+        }
+
+        // No boat (unassigned) is allowed; otherwise it must be this owner's active/approved boat.
+        private bool IsOwnBoat(int? boatId, int ownerID)
+        {
+            if (boatId == null) return true;
+            return db.Boats.Any(b => b.BoatID == boatId
+                                  && b.BoatOwnerID == ownerID
+                                  && (b.Status == BoatStatus.Active || b.Status == BoatStatus.Approved));
+        }
+
+        // ─────────────────────────────────────────────
+        // HELPER - SAVE EXTRAS FROM REQUEST
+        // ─────────────────────────────────────────────
+
+        private void SaveExtras(int boatId, HttpRequestBase request)
+        {
+            // The form posts parallel arrays: extraName[] and extraPrice[]
+            var names  = request.Form.GetValues("extraName");
+            var prices = request.Form.GetValues("extraPrice");
+
+            if (names == null || prices == null) return;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                string name = names[i]?.Trim();
+                if (string.IsNullOrEmpty(name)) continue;
+
+                decimal price = 0;
+                decimal.TryParse(prices.Length > i ? prices[i] : "0",
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out price);
+
+                db.BoatExtras.Add(new BoatExtra
+                {
+                    BoatID = boatId,
+                    Name   = name,
+                    Price  = price < 0 ? 0 : price
+                });
+            }
+            db.SaveChanges();
         }
 
         // ─────────────────────────────────────────────
@@ -523,6 +926,87 @@ namespace APDP.Controllers
             if (disposing)
                 db.Dispose();
             base.Dispose(disposing);
+        }
+
+        // ─────────────────────────────────────────────
+        // MANAGE UNAVAILABLE DATES
+        // ─────────────────────────────────────────────
+
+        [HttpGet]
+        public ActionResult ManageAvailability(int? id)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            if (id == null)
+                return RedirectToAction("MyBoats");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.FirstOrDefault(b => b.BoatID == id && b.BoatOwnerID == ownerID);
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Boat not found or access denied.";
+                return RedirectToAction("MyBoats");
+            }
+
+            var unavailable = db.BoatUnavailableDates
+                .Where(u => u.BoatID == boat.BoatID)
+                .OrderBy(u => u.Date)
+                .ToList();
+
+            ViewBag.Boat = boat;
+            return View(unavailable);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddUnavailableDate(int boatId, DateTime date, string reason)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.FirstOrDefault(b => b.BoatID == boatId && b.BoatOwnerID == ownerID);
+            if (boat == null)
+            {
+                TempData["ErrorMessage"] = "Boat not found or access denied.";
+                return RedirectToAction("MyBoats");
+            }
+
+            date = date.Date;
+            if (!db.BoatUnavailableDates.Any(u => u.BoatID == boatId && u.Date == date))
+            {
+                db.BoatUnavailableDates.Add(new BoatUnavailableDate
+                {
+                    BoatID = boatId,
+                    Date = date,
+                    Reason = reason
+                });
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("ManageAvailability", new { id = boatId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult RemoveUnavailableDate(int id)
+        {
+            if (Session["BoatOwnerID"] == null)
+                return RedirectToAction("Login");
+
+            var u = db.BoatUnavailableDates.Find(id);
+            if (u == null)
+                return RedirectToAction("MyBoats");
+
+            int ownerID = (int)Session["BoatOwnerID"];
+            var boat = db.Boats.Find(u.BoatID);
+            if (boat == null || boat.BoatOwnerID != ownerID)
+                return RedirectToAction("MyBoats");
+
+            db.BoatUnavailableDates.Remove(u);
+            db.SaveChanges();
+            return RedirectToAction("ManageAvailability", new { id = boat.BoatID });
         }
     }
 }

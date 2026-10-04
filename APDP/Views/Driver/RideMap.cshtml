@@ -1,4 +1,4 @@
-@model APDP.Models.Booking
+﻿@model APDP.Models.Booking
 @{
     ViewBag.Title = "Ride in Progress";
     // Harbour location centre coordinates for the map
@@ -15,7 +15,10 @@
     string[] latLng   = coords.Split(',');
     string   lat      = latLng[0];
     string   lng      = latLng[1];
-    TimeSpan elapsed  = DateTime.Now - Model.RideStartedAt.Value;
+    // RideStartedAt is guaranteed non-null by the controller, but guard defensively
+    // to prevent a NullReferenceException if this view is ever rendered unexpectedly.
+    DateTime rideStart = Model.RideStartedAt ?? DateTime.Now;
+    TimeSpan elapsed   = DateTime.Now - rideStart;
 }
 
 <div class="container py-4">
@@ -53,8 +56,8 @@
     <div class="card hc-card mb-4">
         <div class="card-header d-flex align-items-center gap-2 py-2 px-3">
             <span>&#128205;</span>
-            <strong>Live Boat Location — @location</strong>
-            <span class="badge bg-success ms-auto">&#9679; Tracking Active</span>
+            <strong>Approximate Boat Location - @location</strong>
+            <span class="badge bg-secondary ms-auto" title="Position is simulated around the home harbour; GPS tracking is not connected">Simulated position</span>
         </div>
         <div id="rideMap" style="height: 400px; width: 100%;"></div>
         <div class="px-3 py-2 bg-light border-top text-muted small">
@@ -65,7 +68,7 @@
     @* End Ride Checklist *@
     <div class="card hc-card mb-4">
         <div class="card-header hc-form-header">
-            <h5 class="mb-0">&#9989; End Ride — Safety Checklist</h5>
+            <h5 class="mb-0">&#9989; End Ride - Safety Checklist</h5>
             <p class="mb-0 small">All required items must be confirmed before the ride can be ended.</p>
         </div>
         <div class="card-body p-4">
@@ -86,7 +89,7 @@
                                  alt="" class="hc-check-icon" />
                             <div>
                                 <div class="fw-semibold">All life jackets returned and accounted for</div>
-                                <div class="text-muted small">@Model.Boat.LifeJacketQuantity jackets must all be back on board</div>
+                                <div class="text-muted small">All life jackets must be back on board</div>
                             </div>
                         </label>
                     </div>
@@ -184,13 +187,13 @@
 </div>
 
 @section scripts {
-    @* Leaflet map — open source, no API key required *@
+    @* Leaflet map - open source, no API key required *@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         // ── Elapsed timer ────────────────────────────────────────
-        var startMs = @((long)(Model.RideStartedAt.Value - new DateTime(1970, 1, 1)).TotalMilliseconds);
+        var startMs = @((long)(rideStart - new DateTime(1970, 1, 1)).TotalMilliseconds);
         function updateTimer() {
             var elapsed = Math.floor((Date.now() - startMs) / 1000);
             var h = Math.floor(elapsed / 3600);
@@ -213,7 +216,7 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Boat marker — starts at harbour, drifts slowly to simulate movement
+        // Boat marker - starts at harbour, drifts slowly to simulate movement
         var boatIcon = L.divIcon({
             html: '<div style="font-size:2rem; line-height:1;">&#128674;</div>',
             className: '',

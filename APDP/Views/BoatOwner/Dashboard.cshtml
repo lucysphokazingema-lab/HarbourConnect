@@ -9,6 +9,52 @@
         <p class="text-muted">Welcome back, <strong>@Session["BoatOwnerName"]</strong></p>
     </div>
 
+    @* Notification area: show items needing attention immediately after login *@
+    @{
+        var awaiting = ViewBag.AwaitingPaymentBoats as IEnumerable<APDP.Models.Boat> ?? Enumerable.Empty<APDP.Models.Boat>();
+        var rejected = ViewBag.RejectedBoats as IEnumerable<APDP.Models.Boat> ?? Enumerable.Empty<APDP.Models.Boat>();
+    }
+    @if (awaiting.Any() || rejected.Any())
+    {
+        <div class="mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-2">Notifications</h5>
+                    <div class="list-group">
+                        @foreach (var b in awaiting)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@b.BoatName</strong>
+                                    <div class="small text-info">TNPA approved &mdash; registration fee required</div>
+                                </div>
+                                <div>
+                                    @Html.ActionLink("Pay Now", "PayRegistrationFee", "BoatOwner", new { id = b.BoatID }, new { @class = "btn btn-sm btn-success" })
+                                    <br />
+                                    <small class="text-muted">Certificate will be issued after payment</small>
+                                </div>
+                            </div>
+                        }
+
+                        @foreach (var b in rejected)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@b.BoatName</strong>
+                                    <div class="small text-danger">TNPA rejected &mdash; @Html.Raw(HttpUtility.HtmlEncode(b.RejectionReason ?? "No reason provided"))</div>
+                                </div>
+                                <div>
+                                    @Html.ActionLink("Edit & Resubmit", "EditBoat", "BoatOwner", new { id = b.BoatID }, new { @class = "btn btn-sm btn-outline-primary" })
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
     @* Stats Row *@
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-lg-3">

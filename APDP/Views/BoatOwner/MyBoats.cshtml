@@ -24,7 +24,7 @@
             <table class="table table-bordered table-hover hc-table align-middle" style="min-width:900px;">
                 <thead>
                     <tr>
-                        <th style="white-space:nowrap;">Reg. Number (Primary Key)</th>
+                        <th style="white-space:nowrap;">Reg. Number</th>
                         <th style="white-space:nowrap;">Boat Name</th>
                         <th>Type</th>
                         <th>Location</th>
@@ -43,7 +43,7 @@
                             <td class="fw-semibold">@boat.BoatName</td>
                             <td>@boat.BoatType</td>
                             <td>@boat.HarbourLocation</td>
-                            <td>R @boat.PricePerTrip.ToString("N2")</td>
+                            <td>R @boat.PriceAdult.ToString("N2")/hr &nbsp;|&nbsp; R @boat.PriceChild.ToString("N2")/hr</td>
                             <td>@boat.MaxPassengers</td>
                             <td>
                                 @if (boat.TotalRatings > 0)
@@ -65,13 +65,36 @@
                                 }
                             </td>
                             <td>
-                                @if (boat.Status == APDP.Models.BoatStatus.Approved)
+                                @if (boat.Status == APDP.Models.BoatStatus.Active)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.AwaitingPayment)
+                                {
+                                    <span class="badge bg-info text-dark">Awaiting Payment</span>
+                                    <br />
+                                    <small class="text-info">TNPA approved - pay registration fee</small>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Approved)
                                 {
                                     <span class="badge bg-success">Approved</span>
                                 }
                                 else if (boat.Status == APDP.Models.BoatStatus.Pending)
                                 {
                                     <span class="badge bg-warning text-dark">Pending Review</span>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Inactive)
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Removed)
+                                {
+                                    <span class="badge bg-dark">Removed by TNPA</span>
+                                    if (!string.IsNullOrEmpty(boat.RejectionReason))
+                                    {
+                                        <br />
+                                        <small class="text-muted">@boat.RejectionReason</small>
+                                    }
                                 }
                                 else
                                 {
@@ -81,9 +104,65 @@
                                         <br />
                                         <small class="text-danger">@boat.RejectionReason</small>
                                     }
-                                }                            </td>
+                                }
+                            </td>
                             <td>
-                                @Html.ActionLink("Edit", "EditBoat", "BoatOwner", new { id = boat.BoatID }, new { @class = "btn btn-sm btn-outline-primary" })
+                                @if (boat.Status == APDP.Models.BoatStatus.AwaitingPayment)
+                                {
+                                    @Html.ActionLink("Pay Now", "PayRegistrationFee", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-success fw-semibold" })
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Active
+                                      && !string.IsNullOrEmpty(boat.CertificateNumber))
+                                {
+                                    @Html.ActionLink("Certificate", "RegistrationCertificate", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-success" })
+                                    <text> </text>
+                                    @Html.ActionLink("Edit", "EditBoat", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-primary" })
+                                    <text> </text>
+                                    @Html.ActionLink("Availability", "ManageAvailability", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-secondary" })
+                                    <text> </text>
+                                    <form method="post" action="@Url.Action("ToggleActive","BoatOwner",new{id=boat.BoatID})" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                onclick="return confirm('Set this boat to Inactive? Customers will see it as unavailable.')">
+                                            Set Inactive
+                                        </button>
+                                    </form>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Inactive)
+                                {
+                                    @Html.ActionLink("Edit", "EditBoat", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-primary" })
+                                    <text> </text>
+                                    @Html.ActionLink("Availability", "ManageAvailability", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-secondary" })
+                                    <text> </text>
+                                    <form method="post" action="@Url.Action("ToggleActive","BoatOwner",new{id=boat.BoatID})" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            Set Active
+                                        </button>
+                                    </form>
+                                }
+                                else if (boat.Status == APDP.Models.BoatStatus.Removed)
+                                {
+                                    <small class="text-muted">No actions available</small>
+                                }
+                                else
+                                {
+                                    @Html.ActionLink("Edit", "EditBoat", "BoatOwner",
+                                        new { id = boat.BoatID },
+                                        new { @class = "btn btn-sm btn-outline-primary" })
+                                }
                             </td>
                         </tr>
                     }

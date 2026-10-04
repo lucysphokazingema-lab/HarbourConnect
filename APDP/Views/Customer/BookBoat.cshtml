@@ -1,218 +1,101 @@
-@model APDP.Models.Booking
+﻿@model APDP.Models.Booking
 @{
     ViewBag.Title = "Book a Trip";
     var boat    = ViewBag.Boat    as APDP.Models.Boat;
     var weather = ViewBag.Weather as APDP.Models.WeatherViewModel;
-    string skyType  = weather != null ? weather.SkyType : "clear";
-    bool   isNight  = weather != null && weather.IsNight;
+    var extras  = ViewBag.Extras  as List<APDP.Models.BoatExtra>;
+
+    decimal priceAdult = boat != null ? boat.PriceAdult : 0;
+    decimal priceChild = boat != null ? boat.PriceChild : 0;
+    int     maxPax     = boat != null ? boat.MaxPassengers : 10;
+    // Same rules the server enforces (Helpers/BoatAvailability)
+    var week      = ViewBag.Week     as List<APDP.Helpers.DayHours> ?? new List<APDP.Helpers.DayHours>();
+    var calendar  = ViewBag.Calendar as List<APDP.Helpers.CalendarDay> ?? new List<APDP.Helpers.CalendarDay>();
+    int minDurHrs = ViewBag.MinHours is int ? (int)ViewBag.MinHours : 1;
+    int maxDurHrs = ViewBag.MaxHours is int ? (int)ViewBag.MaxHours : minDurHrs;
+    int selectedHours = Model.TripDurationHours >= minDurHrs && Model.TripDurationHours <= maxDurHrs ? Model.TripDurationHours : minDurHrs;
+
+    // Keep the customer's choices if the form is shown again after a validation error
+    string postedTime = Request.Form["SelectedTime"] ?? "";
+    int postedMinutes;
+    if (!APDP.Helpers.BoatAvailability.TryParseTime(postedTime, out postedMinutes)) { postedTime = ""; }
+    string postedDate = Model.TripDate > DateTime.MinValue && Model.TripDate >= DateTime.Today
+                        ? Model.TripDate.ToString("yyyy-MM-dd") : "";
+
+    string skyType = weather != null ? weather.SkyType : "clear";
+    bool   isNight = weather != null && weather.IsNight;
 }
 
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
 
-            @* ══════════════════════════════════════════════════════════
-               PHONE-STYLE WEATHER WIDGET
-               ══════════════════════════════════════════════════════════ *@
+            @* ── Weather widget (unchanged) ─────────────────────── *@
             @if (weather != null && !weather.HasError)
             {
                 <div class="hc-phone-weather sky-@skyType mb-4" id="weatherWidget">
-
-                    @* ── Animated Sky Layer ────────────────────────────── *@
                     <div class="sky-layer">
-
-                        @* Stars (night only) *@
-                        @if (isNight)
-                        {
+                        @if (isNight) {
                             <div class="stars">
-                                @for (int s = 0; s < 60; s++)
-                                {
-                                    <div class="star" style="
-                                        left:@(s * 1.7 % 100)%;
-                                        top:@(s * 2.3 % 60)%;
-                                        animation-delay:@(s * 0.15)s;
-                                        width:@(s % 3 + 1)px;
-                                        height:@(s % 3 + 1)px;">
-                                    </div>
+                                @for (int s = 0; s < 60; s++) {
+                                    <div class="star" style="left:@(s*1.7%100)%;top:@(s*2.3%60)%;animation-delay:@(s*0.15)s;width:@(s%3+1)px;height:@(s%3+1)px;"></div>
                                 }
                             </div>
                         }
-
-                        @* Sun (day, clear/partly cloudy) *@
-                        @if (!isNight && (skyType == "clear" || skyType == "cloudy"))
-                        {
-                            <div class="sun">
-                                <div class="sun-rays"></div>
-                            </div>
+                        @if (!isNight && (skyType=="clear"||skyType=="cloudy")) { <div class="sun"><div class="sun-rays"></div></div> }
+                        @if (isNight && (skyType=="clear-night"||skyType=="cloudy-night")) { <div class="moon"></div> }
+                        @if (skyType=="cloudy"||skyType=="cloudy-night"||skyType=="rain"||skyType=="thunder") {
+                            <div class="cloud cloud-1"></div><div class="cloud cloud-2"></div><div class="cloud cloud-3"></div>
                         }
-
-                        @* Moon (night, clear) *@
-                        @if (isNight && (skyType == "clear-night" || skyType == "cloudy-night"))
-                        {
-                            <div class="moon"></div>
-                        }
-
-                        @* Clouds *@
-                        @if (skyType == "cloudy" || skyType == "cloudy-night" ||
-                             skyType == "rain"   || skyType == "thunder")
-                        {
-                            <div class="cloud cloud-1"></div>
-                            <div class="cloud cloud-2"></div>
-                            <div class="cloud cloud-3"></div>
-                        }
-                        @if (skyType == "clear" || skyType == "clear-night")
-                        {
-                            <div class="cloud cloud-light cloud-1"></div>
-                        }
-
-                        @* Rain drops *@
-                        @if (skyType == "rain" || skyType == "thunder")
-                        {
+                        @if (skyType=="rain"||skyType=="thunder") {
                             <div class="rain-container">
-                                @for (int r = 0; r < 40; r++)
-                                {
-                                    <div class="raindrop" style="
-                                        left:@(r * 2.5)%;
-                                        animation-delay:@(r * 0.07)s;
-                                        animation-duration:@(0.6 + r % 4 * 0.1)s;">
-                                    </div>
-                                }
+                                @for (int r=0;r<40;r++) { <div class="raindrop" style="left:@(r*2.5)%;animation-delay:@(r*0.07)s;animation-duration:@(0.6+r%4*0.1)s;"></div> }
                             </div>
                         }
-
-                        @* Lightning (thunder) *@
-                        @if (skyType == "thunder")
-                        {
-                            <div class="lightning"></div>
-                        }
-
-                        @* Snow *@
-                        @if (skyType == "snow")
-                        {
-                            <div class="snow-container">
-                                @for (int sn = 0; sn < 30; sn++)
-                                {
-                                    <div class="snowflake" style="
-                                        left:@(sn * 3.3)%;
-                                        animation-delay:@(sn * 0.2)s;
-                                        animation-duration:@(2 + sn % 3)s;">
-                                        &#10052;
-                                    </div>
-                                }
-                            </div>
-                        }
+                        @if (skyType=="thunder") { <div class="lightning"></div> }
                     </div>
-
-                    @* ── Main Weather Info ─────────────────────────────── *@
                     <div class="weather-main">
-                        <div class="weather-city">
-                            &#127754; @weather.CityName, @weather.Country
-                        </div>
-                        <div class="weather-temp">
-                            @weather.TemperatureCelsius<span class="weather-deg">&deg;C</span>
-                        </div>
+                        <div class="weather-city">&#127754; @weather.CityName, @weather.Country</div>
+                        <div class="weather-temp">@weather.TemperatureCelsius<span class="weather-deg">&deg;C</span></div>
                         <div class="weather-desc">@weather.Description</div>
                         <div class="weather-hilo">
-                            H:@(weather.Forecast.Count > 0 ? weather.Forecast[0].TempMax.ToString("0") : weather.TemperatureCelsius.ToString("0"))&deg;
-                            &nbsp; L:@(weather.Forecast.Count > 0 ? weather.Forecast[0].TempMin.ToString("0") : (weather.TemperatureCelsius - 5).ToString("0"))&deg;
+                            H:@(weather.Forecast.Count>0?weather.Forecast[0].TempMax.ToString("0"):weather.TemperatureCelsius.ToString("0"))&deg;
+                            &nbsp;L:@(weather.Forecast.Count>0?weather.Forecast[0].TempMin.ToString("0"):(weather.TemperatureCelsius-5).ToString("0"))&deg;
                         </div>
                     </div>
-
-                    @* ── Stats Strip ───────────────────────────────────── *@
                     <div class="weather-stats-strip">
-                        <div class="weather-stat-item">
-                            <div class="stat-icon">&#128167;</div>
-                            <div class="stat-val">@weather.Humidity%</div>
-                            <div class="stat-lbl">Humidity</div>
-                        </div>
-                        <div class="weather-stat-item">
-                            <div class="stat-icon">&#127788;</div>
-                            <div class="stat-val">@weather.WindSpeedKmh</div>
-                            <div class="stat-lbl">km/h Wind</div>
-                        </div>
-                        <div class="weather-stat-item">
-                            <div class="stat-icon">&#127774;</div>
-                            <div class="stat-val">@weather.Sunrise.ToString("HH:mm")</div>
-                            <div class="stat-lbl">Sunrise</div>
-                        </div>
-                        <div class="weather-stat-item">
-                            <div class="stat-icon">&#127772;</div>
-                            <div class="stat-val">@weather.Sunset.ToString("HH:mm")</div>
-                            <div class="stat-lbl">Sunset</div>
-                        </div>
-                        <div class="weather-stat-item">
-                            <div class="stat-icon">&#129406;</div>
-                            <div class="stat-val">@weather.FeelsLike&deg;</div>
-                            <div class="stat-lbl">Feels Like</div>
-                        </div>
+                        <div class="weather-stat-item"><div class="stat-icon">&#128167;</div><div class="stat-val">@weather.Humidity%</div><div class="stat-lbl">Humidity</div></div>
+                        <div class="weather-stat-item"><div class="stat-icon">&#127788;</div><div class="stat-val">@weather.WindSpeedKmh</div><div class="stat-lbl">km/h Wind</div></div>
+                        <div class="weather-stat-item"><div class="stat-icon">&#127774;</div><div class="stat-val">@weather.Sunrise.ToString("HH:mm")</div><div class="stat-lbl">Sunrise</div></div>
+                        <div class="weather-stat-item"><div class="stat-icon">&#127772;</div><div class="stat-val">@weather.Sunset.ToString("HH:mm")</div><div class="stat-lbl">Sunset</div></div>
+                        <div class="weather-stat-item"><div class="stat-icon">&#129406;</div><div class="stat-val">@weather.FeelsLike&deg;</div><div class="stat-lbl">Feels Like</div></div>
                     </div>
-
-                    @* ── 7-Day Forecast ────────────────────────────────── *@
-                    @if (weather.Forecast != null && weather.Forecast.Count > 0)
-                    {
+                    @if (weather.Forecast!=null&&weather.Forecast.Count>0) {
                         <div class="forecast-strip">
-                            @foreach (var day in weather.Forecast)
-                            {
+                            @foreach (var day in weather.Forecast) {
                                 <div class="forecast-day">
                                     <div class="fc-day-name">@day.DayName</div>
                                     <img src="@day.IconUrl" class="fc-icon" alt="@day.Description" />
-                                    <div class="fc-temps">
-                                        <span class="fc-max">@day.TempMax.ToString("0")&deg;</span>
-                                        <span class="fc-min">@day.TempMin.ToString("0")&deg;</span>
-                                    </div>
+                                    <div class="fc-temps"><span class="fc-max">@day.TempMax.ToString("0")&deg;</span><span class="fc-min">@day.TempMin.ToString("0")&deg;</span></div>
                                 </div>
                             }
                         </div>
                     }
-
-                    @* ── Sailing Advice ────────────────────────────────── *@
                     <div class="sailing-advice sailing-@weather.SailingAdviceCssClass">
                         &#9875; <strong>Sailing:</strong> @weather.SailingAdvice
                     </div>
-
                 </div>
             }
 
-            @* ══════════════════════════════════════════════════════════
-               BOOKING FORM
-               ══════════════════════════════════════════════════════════ *@
+            @* ── Booking card ──────────────────────────────────────── *@
             <div class="card hc-form-card">
-                <div class="card-header hc-form-header-green">
+                <div class="card-header hc-form-header-green py-3 px-4">
                     <h4 class="mb-0">&#128197; Book a Trip</h4>
-                    @if (boat != null)
-                    {
+                    @if (boat != null) {
                         <p class="mb-0 small">@boat.BoatName &mdash; @boat.HarbourLocation</p>
                     }
                 </div>
                 <div class="card-body p-4">
-
-                    @if (boat != null)
-                    {
-                        <div class="hc-booking-summary mb-4">
-                            <div class="row">
-                                <div class="col-6">
-                                    <small class="text-muted">Boat</small>
-                                    <p class="fw-semibold mb-1">@boat.BoatName</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Type</small>
-                                    <p class="fw-semibold mb-1">@boat.BoatType</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Location</small>
-                                    <p class="fw-semibold mb-1">@boat.HarbourLocation</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Max Passengers</small>
-                                    <p class="fw-semibold mb-1">@boat.MaxPassengers</p>
-                                </div>
-                                <div class="col-12">
-                                    <small class="text-muted">Price per Trip</small>
-                                    <p class="hc-price-tag mb-0">R @boat.PricePerTrip.ToString("N2")</p>
-                                </div>
-                            </div>
-                        </div>
-                    }
 
                     @using (Html.BeginForm("BookBoat", "Customer", FormMethod.Post))
                     {
@@ -220,98 +103,192 @@
                         @Html.HiddenFor(m => m.BoatID)
                         @Html.ValidationSummary(true, "Please fix the errors below:", new { @class = "alert alert-danger" })
 
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.TripDate, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.TripDate, "{0:yyyy-MM-dd}", new
-                            {
-                                @class = "form-control",
-                                type   = "date",
-                                min    = DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")
-                            })
+                        @* ── When does this boat sail? ─────────────── *@
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">&#128339; Sailing hours</label>
+                            <div class="d-flex flex-wrap gap-2 small">
+                                @foreach (var d in week)
+                                {
+                                    <span class="hc-hours-chip @(d.IsOpen ? "" : "hc-hours-closed")">
+                                        <strong>@d.Name.Substring(0, 3)</strong>
+                                        @(d.IsOpen ? d.OpenText + "–" + d.CloseText : "Closed")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        @* ── 1. Trip Duration ──────────────────────── *@
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">1. How long is your trip?</label>
+                            <div class="d-flex flex-wrap gap-2" id="durationContainer">
+                                @for (int h = minDurHrs; h <= maxDurHrs; h++)
+                                {
+                                    <label class="hc-slot-btn @(h == selectedHours ? "hc-slot-selected" : "")">
+                                        <input type="radio" name="TripDurationHours" value="@h"
+                                               class="hc-slot-radio hc-dur-radio"
+                                               @(h == selectedHours ? "checked" : "")
+                                               onchange="onSlotSelect(this); onPaxChange(); loadTimes();" />
+                                        @h @(h == 1 ? "hour" : "hours")
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        @* ── 2. Trip Date ──────────────────────────── *@
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">2. Pick a day</label>
+                            <input type="hidden" name="TripDate" id="TripDate" value="@postedDate" />
+                            <div class="hc-day-strip" id="dayStrip">
+                                @foreach (var day in calendar)
+                                {
+                                    string iso = day.Date.ToString("yyyy-MM-dd");
+                                    bool bookable = day.Status == "open";
+                                    string label = day.Status == "closed" ? "Closed"
+                                                 : day.Status == "blocked" ? "Unavailable"
+                                                 : day.Status == "full" ? "Fully booked" : "Available";
+                                    <button type="button"
+                                            class="hc-day-btn hc-day-@day.Status @(iso == postedDate ? "hc-day-selected" : "")"
+                                            data-date="@iso" title="@label" @(bookable ? "" : "disabled")
+                                            onclick="selectDay(this)">
+                                        <span class="hc-day-dow">@day.Date.ToString("ddd")</span>
+                                        <span class="hc-day-num">@day.Date.Day</span>
+                                        <span class="hc-day-mon">@day.Date.ToString("MMM")</span>
+                                    </button>
+                                }
+                            </div>
+                            <div class="d-flex flex-wrap gap-3 small text-muted mt-2">
+                                <span><span class="hc-legend hc-day-open"></span> Available</span>
+                                <span><span class="hc-legend hc-day-full"></span> Fully booked</span>
+                                <span><span class="hc-legend hc-day-closed"></span> Closed / unavailable</span>
+                            </div>
                             @Html.ValidationMessageFor(m => m.TripDate, "", new { @class = "text-danger small" })
                         </div>
 
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.NumberOfPassengers, new { @class = "form-label fw-semibold" })
-                            @Html.TextBoxFor(m => m.NumberOfPassengers, new
-                            {
-                                @class = "form-control",
-                                type   = "number",
-                                min    = "1",
-                                max    = boat != null ? boat.MaxPassengers.ToString() : "200"
-                            })
-                            @Html.ValidationMessageFor(m => m.NumberOfPassengers, "", new { @class = "text-danger small" })
+                        @* ── 3. Start Time ─────────────────────────── *@
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">3. Choose a start time</label>
+                            <div class="d-flex flex-wrap gap-2" id="slotsContainer"></div>
+                            <small id="slotsMsg" class="text-muted d-block mt-1">Pick a day to see the free start times.</small>
+                            <small id="endTimeMsg" class="text-success fw-semibold d-block mt-1"></small>
                         </div>
 
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.SpecialRequests, new { @class = "form-label fw-semibold" })
-                            @Html.TextAreaFor(m => m.SpecialRequests, 3, 0, new
-                            {
-                                @class      = "form-control",
-                                placeholder = "Any special requests? (optional)"
-                            })
-                            @Html.ValidationMessageFor(m => m.SpecialRequests, "", new { @class = "text-danger small" })
+                        @* ── Passenger Selector (Travelstart style) ── *@
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Passengers</label>
+                            <p class="text-muted small mb-3">Select the number of passengers. Max @maxPax total.</p>
+
+                            @* Adults *@
+                            <div class="hc-pax-row mb-3">
+                                <div class="hc-pax-label">
+                                    <span class="fw-semibold">Adults</span>
+                                    <span class="hc-pax-age text-muted">(16+ yrs) &mdash; R @priceAdult.ToString("N2")/hr</span>
+                                </div>
+                                <div class="hc-pax-selector">
+                                    @for (int n = 0; n <= maxPax; n++)
+                                    {
+                                        <label class="hc-pax-num @(n == 0 ? "" : "")">
+                                            <input type="radio" name="NumberOfPassengers" value="@n"
+                                                   class="hc-pax-radio" id="adult_@n"
+                                                   @(n == Model.NumberOfPassengers ? "checked" : "")
+                                                   onchange="onPaxChange()" />
+                                            @n
+                                        </label>
+                                    }
+                                </div>
+                                @Html.ValidationMessageFor(m => m.NumberOfPassengers, "", new { @class = "text-danger small" })
+                            </div>
+
+                            @* Children *@
+                            <div class="hc-pax-row mb-3">
+                                <div class="hc-pax-label">
+                                    <span class="fw-semibold">Children</span>
+                                    <span class="hc-pax-age text-muted">(2 - 15 yrs) &mdash; R @priceChild.ToString("N2")/hr</span>
+                                </div>
+                                <div class="hc-pax-selector">
+                                    @for (int n = 0; n <= maxPax; n++)
+                                    {
+                                        <label class="hc-pax-num">
+                                            <input type="radio" name="ChildPassengers" value="@n"
+                                                   class="hc-pax-radio" id="child_@n"
+                                                   @(n == Model.ChildPassengers ? "checked" : "")
+                                                   onchange="onPaxChange()" />
+                                            @n
+                                        </label>
+                                    }
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ChildPassengers, "", new { @class = "text-danger small" })
+                            </div>
+
                         </div>
 
-                        @* ── Payment Details ───────────────────────────────── *@
-                        <hr class="my-4" />
-                        <h5 class="mb-3">&#128179; Payment Details</h5>
-                        <p class="text-muted small mb-3">Enter your card information to complete the booking. Your payment is secure and encrypted.</p>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Cardholder Name</label>
-                            <input type="text" class="form-control" id="cardName" name="CardName"
-                                   placeholder="Full name as it appears on card"
-                                   maxlength="100" required />
+                        @* ── Capacity warning ──────────────────────── *@
+                        <div id="capacityWarning" class="alert alert-danger py-2 d-none mb-3">
+                            Total passengers cannot exceed <strong>@maxPax</strong>. Please reduce your selection.
                         </div>
+                        <div id="remainingMsg" class="small text-muted mb-3"></div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Card Number</label>
-                            <div class="input-group">
-                                <span class="input-group-text">&#128179;</span>
-                                <input type="text" class="form-control" id="cardNumber" name="CardNumber"
-                                       placeholder="1234 5678 9012 3456"
-                                       maxlength="19" inputmode="numeric"
-                                       autocomplete="cc-number" required />
+                        @* ── Live Price Summary ────────────────────── *@
+                        <div class="hc-price-summary mb-4" id="priceSummary">
+                            <div class="hc-price-row">
+                                <span id="adultLine" class="text-muted small">0 adults &times; R @priceAdult.ToString("N2")/hr &times; 1 hr</span>
+                                <span id="adultAmt" class="small">R 0.00</span>
+                            </div>
+                            <div class="hc-price-row">
+                                <span id="childLine" class="text-muted small">0 children &times; R @priceChild.ToString("N2")/hr &times; 1 hr</span>
+                                <span id="childAmt" class="small">R 0.00</span>
+                            </div>
+                            <div id="extrasLines"></div>
+                            <div class="hc-price-row hc-price-total">
+                                <span class="fw-bold">Estimated Total</span>
+                                <span id="totalDisplay" class="fw-bold text-success fs-5">R 0.00</span>
                             </div>
                         </div>
 
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Expiry Date</label>
-                                <input type="text" class="form-control" id="cardExpiry" name="CardExpiry"
-                                       placeholder="MM / YY"
-                                       maxlength="7" inputmode="numeric"
-                                       autocomplete="cc-exp" required />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">CVV</label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="cardCvv" name="CardCvv"
-                                           placeholder="&bull;&bull;&bull;"
-                                           maxlength="4" inputmode="numeric"
-                                           autocomplete="cc-csc" required />
-                                    <span class="input-group-text" title="3-digit code on the back of your card (4 digits for Amex)">&#128274;</span>
+                        @* ── Optional Extras ───────────────────────── *@
+                        if (extras != null && extras.Any())
+                        {
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">&#127775; Optional Extras</label>
+                                <p class="text-muted small mb-2">Tick any add-ons to include in your booking.</p>
+                                <div class="d-flex flex-column gap-2">
+                                    @foreach (var extra in extras)
+                                    {
+                                        <label class="hc-extra-pick d-flex align-items-center gap-3 p-3 border rounded">
+                                            <input type="checkbox"
+                                                   class="form-check-input flex-shrink-0 hc-extra-cb"
+                                                   name="selectedExtras"
+                                                   value="@extra.ExtraID"
+                                                   data-price="@extra.Price.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)"
+                                                   data-name="@extra.Name"
+                                                   style="width:1.2rem;height:1.2rem;"
+                                                   onchange="onPaxChange()" />
+                                            <div class="flex-grow-1 fw-semibold">@extra.Name</div>
+                                            <span class="badge bg-success px-3 py-2">+ R @extra.Price.ToString("N2")</span>
+                                        </label>
+                                    }
                                 </div>
                             </div>
+                        }
+
+
+
+                        @* ── Payment ───────────────────────────────── *@
+                        <div class="alert alert-light border small mb-4 d-flex gap-2">
+                            <span>&#128179;</span>
+                            <span>
+                                You'll pay on the next step. Your time slot is held for
+                                <strong>15 minutes</strong> while you complete payment.
+                            </span>
                         </div>
 
-                        @* Accepted card logos *@
-                        <div class="d-flex align-items-center gap-2 mb-4">
-                            <span class="text-muted small">We accept:</span>
-                            <span class="badge bg-light text-dark border fw-bold px-2">VISA</span>
-                            <span class="badge bg-light text-dark border fw-bold px-2">Mastercard</span>
-                            <span class="badge bg-light text-dark border fw-bold px-2">Amex</span>
+                        <div class="alert alert-info py-2 small mb-4 d-flex gap-2">
+                            <span>&#8505;</span>
+                            <span>Must be at least 1 adult (16+) per booking. Children under 2 travel free.</span>
                         </div>
 
-                        <div class="alert alert-light border d-flex align-items-center gap-2 py-2 mb-4" role="alert">
-                            <span style="font-size:1.2rem;">&#128274;</span>
-                            <span class="small text-muted">Your payment is protected with 256-bit SSL encryption. We do not store your card details.</span>
-                        </div>
-
-                        <div class="d-flex gap-2 mt-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                &#128179; Pay &amp; Confirm Booking
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="bookSubmitBtn">
+                                Continue to Payment &rarr;
                             </button>
                             @Html.ActionLink("Cancel", "Boats", "Customer", null,
                                 new { @class = "btn btn-outline-secondary btn-lg" })
@@ -329,25 +306,216 @@
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
     <script>
-        // ── Card number: auto-space every 4 digits ──────────────────────
-        document.getElementById('cardNumber').addEventListener('input', function () {
-            var v = this.value.replace(/\D/g, '').substring(0, 16);
-            this.value = v.replace(/(.{4})/g, '$1 ').trim();
-        });
+        var priceAdult  = @priceAdult.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        var priceChild  = @priceChild.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        var maxCapacity = @maxPax;
+        var boatId      = @Model.BoatID;
+        var timesUrl    = '@Url.Action("GetAvailableTimes", "Customer")';
+        var postedTime  = '@postedTime';
 
-        // ── Expiry: auto-insert slash ───────────────────────────────────
-        document.getElementById('cardExpiry').addEventListener('input', function () {
-            var v = this.value.replace(/\D/g, '').substring(0, 4);
-            if (v.length >= 3) {
-                this.value = v.substring(0, 2) + ' / ' + v.substring(2);
+        // ── Tile selection (duration / start time) ────────────────
+        function onSlotSelect(radio) {
+            document.querySelectorAll('input[name="' + radio.name + '"]').forEach(function (r) {
+                r.closest('label').classList.remove('hc-slot-selected');
+            });
+            if (radio.checked) radio.closest('label').classList.add('hc-slot-selected');
+            updateEndTime();
+        }
+
+        function selectedHours() {
+            return parseInt(document.querySelector('[name="TripDurationHours"]:checked')?.value) || 1;
+        }
+
+        // ── Day strip ─────────────────────────────────────────────
+        function selectDay(btn) {
+            document.querySelectorAll('.hc-day-btn').forEach(function (b) { b.classList.remove('hc-day-selected'); });
+            btn.classList.add('hc-day-selected');
+            document.getElementById('TripDate').value = btn.getAttribute('data-date');
+            loadTimes();
+        }
+
+        // ── Free start times for the chosen day + duration (from the server) ──
+        function loadTimes() {
+            var date = document.getElementById('TripDate').value;
+            var box  = document.getElementById('slotsContainer');
+            var msg  = document.getElementById('slotsMsg');
+            var keep = (document.querySelector('[name="SelectedTime"]:checked') || {}).value || postedTime;
+            postedTime = '';
+            box.innerHTML = '';
+            updateEndTime();
+            if (!date) { msg.textContent = 'Pick a day to see the free start times.'; return; }
+
+            msg.textContent = 'Loading free times…';
+            fetch(timesUrl + '?boatId=' + boatId + '&date=' + encodeURIComponent(date) + '&hours=' + selectedHours())
+                .then(function (r) { return r.json(); })
+                .then(function (times) {
+                    if (!times.length) {
+                        msg.textContent = 'No free start times for this trip length on this day. Try a shorter trip or another day.';
+                        return;
+                    }
+                    msg.textContent = 'Times shown are when your trip starts.';
+                    times.forEach(function (t) {
+                        var label = document.createElement('label');
+                        label.className = 'hc-slot-btn';
+                        var input = document.createElement('input');
+                        input.type = 'radio'; input.name = 'SelectedTime'; input.value = t;
+                        input.className = 'hc-slot-radio';
+                        input.addEventListener('change', function () { onSlotSelect(input); });
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(t));
+                        box.appendChild(label);
+                        if (t === keep) { input.checked = true; label.classList.add('hc-slot-selected'); }
+                    });
+                    updateEndTime();
+                })
+                .catch(function () { msg.textContent = 'Could not load times. Please try again.'; });
+        }
+
+        // Show "09:00 – 11:00 (2 hours)" for the chosen start time
+        function updateEndTime() {
+            var start = document.querySelector('[name="SelectedTime"]:checked');
+            var msgEl = document.getElementById('endTimeMsg');
+            if (!start) { msgEl.textContent = ''; return; }
+            var hours   = selectedHours();
+            var parts   = start.value.split(':');
+            var endMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10) + hours * 60;
+            var endH    = Math.floor(endMins / 60).toString().padStart(2, '0');
+            var endM    = (endMins % 60).toString().padStart(2, '0');
+            msgEl.textContent = 'Your trip: ' + start.value + ' – ' + endH + ':' + endM +
+                                ' (' + hours + (hours === 1 ? ' hour' : ' hours') + ')';
+        }
+
+        // Highlight selected pax number tile
+        function updatePaxTiles() {
+            document.querySelectorAll('.hc-pax-radio').forEach(function (r) {
+                r.closest('.hc-pax-num').classList.toggle('hc-pax-selected', r.checked);
+            });
+        }
+
+        // ── Passenger change + price calculation (hourly) ──────────
+        function onPaxChange() {
+            updatePaxTiles();
+
+            var adults    = parseInt((document.querySelector('[name="NumberOfPassengers"]:checked') || {}).value) || 0;
+            var children  = parseInt((document.querySelector('[name="ChildPassengers"]:checked') || {}).value)     || 0;
+            var hours     = selectedHours();
+            var total     = adults + children;
+            var warning   = document.getElementById('capacityWarning');
+            var submitBtn = document.getElementById('bookSubmitBtn');
+            var remEl     = document.getElementById('remainingMsg');
+            var spotsLeft = maxCapacity - total;
+
+            if (total > maxCapacity) {
+                warning.classList.remove('d-none');
+                if (submitBtn) submitBtn.disabled = true;
             } else {
-                this.value = v;
+                warning.classList.add('d-none');
+                if (submitBtn) submitBtn.disabled = false;
+            }
+
+            if (remEl) {
+                if (total === 0)        remEl.textContent = 'Max ' + maxCapacity + ' passengers total.';
+                else if (spotsLeft > 0) remEl.textContent = spotsLeft + ' space' + (spotsLeft === 1 ? '' : 's') + ' remaining.';
+                else                    remEl.textContent = 'Boat is at full capacity.';
+            }
+
+            var adultTotal = adults   * priceAdult * hours;
+            var childTotal = children * priceChild * hours;
+
+            // Extras (flat per booking, not multiplied by hours). Built with textContent:
+            // extra names are written by boat owners and must not be treated as HTML.
+            var extrasTotal = 0;
+            var extrasBox   = document.getElementById('extrasLines');
+            extrasBox.innerHTML = '';
+            document.querySelectorAll('.hc-extra-cb:checked').forEach(function (cb) {
+                var p = parseFloat(cb.dataset.price) || 0;
+                extrasTotal += p;
+                var row  = document.createElement('div');  row.className  = 'hc-price-row';
+                var name = document.createElement('span'); name.className = 'text-muted small'; name.textContent = cb.dataset.name || 'Extra';
+                var amt  = document.createElement('span'); amt.className  = 'small';            amt.textContent  = 'R ' + p.toFixed(2);
+                row.appendChild(name); row.appendChild(amt); extrasBox.appendChild(row);
+            });
+
+            var grandTotal = adultTotal + childTotal + extrasTotal;
+            var hrLabel    = hours + (hours === 1 ? ' hr' : ' hrs');
+
+            document.getElementById('adultLine').textContent    = adults + ' adult' + (adults === 1 ? '' : 's') + ' × R ' + priceAdult.toFixed(2) + '/hr × ' + hrLabel;
+            document.getElementById('adultAmt').textContent     = 'R ' + adultTotal.toFixed(2);
+            document.getElementById('childLine').textContent    = children + ' child' + (children === 1 ? '' : 'ren') + ' × R ' + priceChild.toFixed(2) + '/hr × ' + hrLabel;
+            document.getElementById('childAmt').textContent     = 'R ' + childTotal.toFixed(2);
+            document.getElementById('totalDisplay').textContent = 'R ' + grandTotal.toFixed(2);
+
+            updateEndTime();
+        }
+
+        // Block submit until a day and a start time are chosen
+        document.getElementById('bookSubmitBtn').closest('form').addEventListener('submit', function (e) {
+            if (!document.getElementById('TripDate').value || !document.querySelector('[name="SelectedTime"]:checked')) {
+                e.preventDefault();
+                document.getElementById('slotsMsg').textContent = 'Please pick a day and a start time first.';
+                document.getElementById('dayStrip').scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
 
-        // ── CVV: digits only ────────────────────────────────────────────
-        document.getElementById('cardCvv').addEventListener('input', function () {
-            this.value = this.value.replace(/\D/g, '').substring(0, 4);
-        });
+        // Init
+        updatePaxTiles();
+        onPaxChange();
+        loadTimes();
     </script>
+
+    <style>
+        /* Sailing hours chips */
+        .hc-hours-chip     { background:#e8f5e9; border:1px solid #a5d6a7; border-radius:6px; padding:3px 8px; }
+        .hc-hours-closed   { background:#f1f3f5; border-color:#dee2e6; color:#868e96; }
+
+        /* Day strip */
+        .hc-day-strip      { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; }
+        .hc-day-btn        { flex:0 0 auto; width:58px; border-radius:10px; border:2px solid #dee2e6; background:#fff;
+                             display:flex; flex-direction:column; align-items:center; padding:6px 0; line-height:1.15; cursor:pointer; }
+        .hc-day-btn:disabled { cursor:not-allowed; }
+        .hc-day-dow        { font-size:0.7rem; text-transform:uppercase; color:#6c757d; }
+        .hc-day-num        { font-size:1.15rem; font-weight:700; }
+        .hc-day-mon        { font-size:0.7rem; color:#6c757d; }
+        .hc-day-open       { border-color:#a5d6a7; }
+        .hc-day-open:hover { background:#e8f5e9; }
+        .hc-day-full       { background:#fff3e0; border-color:#ffcc80; opacity:0.7; }
+        .hc-day-closed,
+        .hc-day-blocked    { background:#f1f3f5; color:#adb5bd; opacity:0.6; }
+        .hc-day-selected   { background:#2e7d32 !important; border-color:#2e7d32 !important; color:#fff !important; }
+        .hc-day-selected span { color:#fff !important; }
+        .hc-legend         { display:inline-block; width:12px; height:12px; border-radius:3px; border:2px solid #dee2e6; vertical-align:-1px; }
+
+        /* Passenger selector tiles */
+        .hc-pax-row        { background:#f8f9fa; border-radius:10px; padding:14px 16px; margin-bottom:0; }
+        .hc-pax-label      { margin-bottom:8px; }
+        .hc-pax-age        { font-size:0.82rem; margin-left:6px; }
+        .hc-pax-selector   { display:flex; flex-wrap:wrap; gap:6px; }
+        .hc-pax-num        { display:inline-flex; align-items:center; justify-content:center;
+                             width:42px; height:42px; border-radius:8px; font-weight:700;
+                             font-size:0.95rem; cursor:pointer; border:2px solid #dee2e6;
+                             background:#fff; transition:all 0.15s; user-select:none; }
+        .hc-pax-num:hover  { border-color:#1565c0; background:#e8f0fe; }
+        .hc-pax-selected   { border-color:#1565c0 !important; background:#1565c0 !important; color:#fff !important; }
+        .hc-pax-radio      { display:none; }
+
+        /* Time slot tiles */
+        .hc-slot-btn       { display:inline-flex; align-items:center; justify-content:center;
+                             padding:8px 16px; border-radius:8px; border:2px solid #dee2e6;
+                             background:#fff; font-weight:600; font-size:0.88rem;
+                             cursor:pointer; transition:all 0.15s; user-select:none; }
+        .hc-slot-btn:hover { border-color:#1565c0; background:#e8f0fe; }
+        .hc-slot-selected  { border-color:#2e7d32 !important; background:#2e7d32 !important; color:#fff !important; }
+        .hc-slot-taken     { background:#f0f0f0 !important; color:#aaa !important;
+                             border-color:#ddd !important; cursor:not-allowed; opacity:0.6; }
+        .hc-slot-radio     { display:none; }
+
+        /* Price summary */
+        .hc-price-summary  { background:#f8fff8; border:2px solid #a5d6a7; border-radius:10px; padding:16px 20px; }
+        .hc-price-row      { display:flex; justify-content:space-between; align-items:center; padding:4px 0; }
+        .hc-price-total    { border-top:2px solid #a5d6a7; margin-top:8px; padding-top:10px; }
+
+        /* Extras */
+        .hc-extra-pick     { background:#fff; cursor:pointer; transition:all 0.18s; user-select:none; border-radius:8px !important; }
+        .hc-extra-pick:hover { border-color:#1565c0 !important; background:#f0f4ff; }
+    </style>
 }

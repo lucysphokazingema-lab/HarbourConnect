@@ -1430,3 +1430,45 @@ body::before {
 .hc-phone-weather hr { display: none !important; }
 .weather-main        { border-bottom: none !important; }
 .weather-desc        { border: none !important; }
+
+/* ── Registration Certificate print styles ── */
+@media print {
+    .btn, nav, .alert, .navbar { display: none !important; }
+    .hc-cert-card { box-shadow: none; border: 1px solid #ccc; }
+}
+
+/* ── Notification bell ── */
+.hc-bell-link          { position: relative; display: inline-flex; align-items: center;
+                          font-size: 1.2rem; padding: 4px 8px !important; }
+.hc-bell-link:hover    { opacity: 0.8; }
+.hc-bell-badge         { position: absolute; top: 0; right: 0;
+                          background: #e53935; color: #fff;
+                          font-size: 0.6rem; font-weight: 700;
+                          min-width: 17px; height: 17px; line-height: 17px;
+                          border-radius: 50%; text-align: center;
+                          padding: 0 3px; }
+
+/* ── Hide browser-native password reveal button (Edge/Chrome/IE) ── */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-contacts-auto-fill-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+    display: none !important;
+    visibility: hidden;
+    pointer-events: none;
+}
+/* Also target when type switches to text during show-password */
+#passwordInput::-ms-reveal,
+#passwordInput::-ms-clear,
+#confirmPassword::-ms-reveal,
+#confirmPassword::-ms-clear {
+    display: none !important;
+}
+
+/* ── Custom password masking (type=text + CSS dot masking) ──────── */
+/* Masks the text visually like a password field but without browser native controls */
+.hc-pwd-mask {
+    -webkit-text-security: disc;
+    font-family: "text-security-disc", monospace;
+    letter-spacing: 0.15em;
+}

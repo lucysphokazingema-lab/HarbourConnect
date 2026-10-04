@@ -2,53 +2,72 @@
     ViewBag.Title = "Driver Login";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card hc-form-card">
-                <div class="card-header" style="background: linear-gradient(135deg, #1b5e20, #388e3c); color: white; padding: 1.25rem 1.5rem;">
-                    <h4 class="mb-0">&#128663; Driver Login</h4>
-                    <p class="mb-0 small">Sign in to your driver portal</p>
+<div class="lp-wrapper">
+
+    <div class="lp-left">
+        <div class="lp-left-overlay" style="background:linear-gradient(170deg,rgba(5,30,10,0.28) 0%,rgba(5,25,10,0.56) 100%);"></div>
+
+        <div class="lp-left-top">
+            <span class="lp-logo-icon">&#9875;</span>
+            <h2 class="lp-brand">Harbour Connect</h2>
+            <p class="lp-tagline">Driver Portal</p>
+        </div>
+
+        <div class="lp-left-bottom">
+            <p class="lp-hero-text">Your journey starts here.</p>
+            <p class="lp-hero-sub">View Trips &nbsp;&bull;&nbsp; Manage Passengers</p>
+        </div>
+    </div>
+
+    <div class="lp-right">
+        <div class="lp-form-box">
+
+            <h3 class="lp-form-title">Driver Login</h3>
+            <p class="lp-form-sub">Sign in to view your assigned trips</p>
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger py-2 small">@ViewBag.ErrorMessage</div>
+            }
+
+            @using (Html.BeginForm("Login", "Driver", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128231;</span>
+                    <input type="email" name="email" class="lp-input"
+                           placeholder="Email address" required autocomplete="email" />
                 </div>
-                <div class="card-body p-4">
 
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger">
-                            @ViewBag.ErrorMessage
-                        </div>
-                    }
-
-                    @using (Html.BeginForm("Login", "Driver", FormMethod.Post))
-                    {
-                        @Html.AntiForgeryToken()
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="email" class="form-control"
-                                   placeholder="Enter your email" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="Enter your password" required />
-                        </div>
-
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-lg"
-                                    style="background-color: #2e7d32; color: white;">
-                                Login
-                            </button>
-                        </div>
-                    }
-
-                    <hr class="mt-4" />
-                    <p class="text-center text-muted small mb-0">
-                        Contact your boat owner if you have trouble logging in.
-                    </p>
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128274;</span>
+                    <input type="password" name="password" id="lpPass" class="lp-input"
+                           placeholder="Password" required autocomplete="current-password" />
+                    <button type="button" class="lp-toggle-pass" onclick="lpTogglePass()" tabindex="-1">&#128065;</button>
                 </div>
-            </div>
+
+                <div class="lp-row">
+                    <label class="lp-remember">
+                        <input type="checkbox" name="rememberMe" /> Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="lp-btn-primary" style="background:#1b5e20;">Login</button>
+            }
+
+            <p class="lp-footer-note">Having trouble? Contact your boat owner. &nbsp;|&nbsp; <a href="@Url.Action("Index","Home")">Go back home</a></p>
         </div>
     </div>
 </div>
+
+@Html.Partial("_LoginStyles")
+
+@section scripts {
+    <script>
+        function lpTogglePass() {
+            var f = document.getElementById('lpPass');
+            f.type = f.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+}

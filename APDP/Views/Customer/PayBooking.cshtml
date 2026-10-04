@@ -1,0 +1,99 @@
+@model APDP.Models.Booking
+@{
+    ViewBag.Title = "Pay for Booking";
+    DateTime holdExpires = ViewBag.HoldExpires is DateTime ? (DateTime)ViewBag.HoldExpires : DateTime.Now;
+    int secondsLeft = Math.Max(0, (int)(holdExpires - DateTime.Now).TotalSeconds);
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-green py-3 px-4">
+                    <h4 class="mb-0">&#128179; Complete Your Payment</h4>
+                    <p class="mb-0 small">Booking #@Model.BookingID &mdash; @Model.Boat.BoatName</p>
+                </div>
+                <div class="card-body p-4">
+
+                    <table class="table table-sm mb-4">
+                        <tr><th class="text-muted fw-normal">Boat</th><td class="fw-semibold">@Model.Boat.BoatName, @Model.Boat.HarbourLocation</td></tr>
+                        <tr><th class="text-muted fw-normal">Date</th><td class="fw-semibold">@Model.TripDate.ToString("dddd, dd MMMM yyyy")</td></tr>
+                        <tr><th class="text-muted fw-normal">Time</th><td class="fw-semibold">@Model.TripStartTime.ToString(@"hh\:mm") &ndash; @Model.TripStartTime.Add(TimeSpan.FromHours(Model.TripDurationHours)).ToString(@"hh\:mm") (@Model.TripDurationHours h)</td></tr>
+                        <tr><th class="text-muted fw-normal">Passengers</th><td>@Model.NumberOfPassengers adult(s), @Model.ChildPassengers child(ren)</td></tr>
+                        @if (!string.IsNullOrEmpty(Model.SelectedExtras))
+                        {
+                            <tr><th class="text-muted fw-normal">Extras</th><td>@Model.SelectedExtras</td></tr>
+                        }
+                        <tr class="table-success"><th>Amount due</th><td class="fw-bold fs-5">R @Model.TotalPrice.ToString("N2")</td></tr>
+                    </table>
+
+                    @if (secondsLeft > 0)
+                    {
+                        <div class="alert alert-warning py-2 small" id="holdBox">
+                            &#9203; Your time slot is held for <strong id="holdTimer">--:--</strong>.
+                            Please complete payment before it runs out.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-secondary py-2 small">
+                            The 15-minute hold has ended. You can still pay if the slot hasn't been taken by someone else.
+                        </div>
+                    }
+
+                    <div class="alert alert-info small d-flex gap-2">
+                        <span>&#8505;</span>
+                        <span>
+                            <strong>Demo payment.</strong> Online payments are not connected yet, so no card
+                            details are needed and no money is charged. Pressing the button marks the booking as paid.
+                        </span>
+                    </div>
+
+                    @using (Html.BeginForm("PayBooking", "Customer", new { id = Model.BookingID }, FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-lg w-100 mb-2">
+                            Pay R @Model.TotalPrice.ToString("N2") (demo)
+                        </button>
+                    }
+
+                    @using (Html.BeginForm("CancelBooking", "Customer", new { id = Model.BookingID }, FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-secondary w-100"
+                                onclick="return confirm('Cancel this booking and release the time slot?')">
+                            Cancel booking
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var left = @secondsLeft;
+            var el = document.getElementById('holdTimer');
+            if (!el) return;
+            function tick() {
+                if (left <= 0) {
+                    document.getElementById('holdBox').textContent =
+                        'The 15-minute hold has ended. You can still pay if the slot has not been taken by someone else.';
+                    return;
+                }
+                el.textContent = Math.floor(left / 60) + ':' + ('0' + (left % 60)).slice(-2);
+                left--;
+                setTimeout(tick, 1000);
+            }
+            tick();
+        })();
+    </script>
+}

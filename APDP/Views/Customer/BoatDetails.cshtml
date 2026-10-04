@@ -1,360 +1,578 @@
-@model APDP.Models.Boat
+﻿@model APDP.Models.Boat
 @{
-    ViewBag.Title = Model.BoatName + " — Details";
+    ViewBag.Title = Model.BoatName + " - Details";
     var recentRatings = ViewBag.RecentRatings as IEnumerable<APDP.Models.BoatRating>;
+
+    var allPhotos = new[] {
+        Model.ImagePath, Model.ImagePath2, Model.ImagePath3,
+        Model.ImagePath4, Model.ImagePath5, Model.ImagePath6
+    }.Where(p => !string.IsNullOrEmpty(p)).ToArray();
+
+    var allVideos = new[] { Model.VideoPath1, Model.VideoPath2, Model.VideoPath3 }
+        .Where(v => !string.IsNullOrEmpty(v)).ToArray();
+
+    bool hasExtras = Model.Extras != null && Model.Extras.Any();
 }
 
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-9 mx-auto">
-            <div class="card hc-form-card">
+@* ── Hero Photo Gallery ──────────────────────────────────────────── *@
+<div class="bd-gallery">
+    @if (allPhotos.Length >= 2)
+    {
+        <div class="bd-gallery-main">
+            <img src="@Url.Content(allPhotos[0])" id="bdMainPhoto" class="bd-gallery-main-img" alt="@Model.BoatName" />
+        </div>
+        <div class="bd-gallery-grid">
+            @for (int i = 1; i < Math.Min(allPhotos.Length, 5); i++)
+            {
+                <img src="@Url.Content(allPhotos[i])"
+                     class="bd-gallery-thumb @(i == Math.Min(allPhotos.Length,5)-1 && allPhotos.Length > 5 ? "bd-gallery-more" : "")"
+                     onclick="bdSwapPhoto(this)"
+                     alt="Photo @(i+1)" />
+            }
+        </div>
+    }
+    else if (allPhotos.Length == 1)
+    {
+        <div class="bd-gallery-single">
+            <img src="@Url.Content(allPhotos[0])" class="bd-gallery-single-img" alt="@Model.BoatName" />
+        </div>
+    }
+    else
+    {
+        <div class="bd-gallery-placeholder">
+            <span>&#128674;</span>
+            <p>No photos available</p>
+        </div>
+    }
+</div>
 
-                @* Image gallery *@
-                @if (!string.IsNullOrEmpty(Model.ImagePath))
+@* ── Page Body ───────────────────────────────────────────────────── *@
+<div class="bd-body">
+    <div class="bd-main">
+
+        @* ── Title Block ─────────────────────────────────────────── *@
+        <div class="bd-title-block">
+            <div>
+                <h1 class="bd-title">@Model.BoatName</h1>
+                <p class="bd-breadcrumb">
+                    South Africa &rsaquo; KwaZulu-Natal &rsaquo; @Model.HarbourLocation &rsaquo; @Model.BoatType
+                </p>
+            </div>
+        </div>
+
+        @* ── Description ─────────────────────────────────────────── *@
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="bd-section">
+                <div class="bd-desc-item">
+                    <span class="bd-desc-icon">&#128674;</span>
+                    <p class="bd-desc-text">@Model.Description</p>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.DisabilityAccommodation) || Model.IsDisabilityFriendly)
                 {
-                    <img src="@Url.Content(Model.ImagePath)"
-                         class="hc-detail-main-img" id="mainImg" alt="@Model.BoatName" />
-                }
-                @if (!string.IsNullOrEmpty(Model.ImagePath) &&
-                     (!string.IsNullOrEmpty(Model.ImagePath2) || !string.IsNullOrEmpty(Model.ImagePath3)))
-                {
-                    <div class="hc-detail-thumbs mt-2 d-flex gap-2 px-3 pb-2">
-                        <img src="@Url.Content(Model.ImagePath)" class="hc-detail-thumb active"
-                             alt="Main view" onclick="switchImg(this,'@Url.Content(Model.ImagePath)')" />
-                        @if (!string.IsNullOrEmpty(Model.ImagePath2))
-                        {
-                            <img src="@Url.Content(Model.ImagePath2)" class="hc-detail-thumb"
-                                 alt="Side view" onclick="switchImg(this,'@Url.Content(Model.ImagePath2)')" />
-                        }
-                        @if (!string.IsNullOrEmpty(Model.ImagePath3))
-                        {
-                            <img src="@Url.Content(Model.ImagePath3)" class="hc-detail-thumb"
-                                 alt="Interior" onclick="switchImg(this,'@Url.Content(Model.ImagePath3)')" />
-                        }
-                    </div>
-                }
-
-                <div class="card-body p-4">
-
-                    @* Header — name, type, price, rating *@
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h3 class="mb-1">@Model.BoatName</h3>
-                            <p class="text-muted mb-1">@Model.BoatType &nbsp;&bull;&nbsp; @Model.HarbourLocation</p>
-                            <span class="badge bg-dark">Reg: @Model.RegistrationNumber</span>
-                        </div>
-                        <div class="text-end">
-                            <div class="hc-price-tag-large">R @Model.PricePerTrip.ToString("N2")</div>
-                            <small class="text-muted">per trip</small>
-                            @if (Model.TotalRatings > 0)
-                            {
-                                <div class="mt-1 hc-star-block">
-                                    @for (int s = 1; s <= 5; s++)
-                                    {
-                                        if (s <= (int)Math.Round(Model.AverageRating))
-                                        { <span class="hc-star-lg filled">&#9733;</span> }
-                                        else
-                                        { <span class="hc-star-lg">&#9734;</span> }
-                                    }
-                                </div>
-                                <div class="text-muted small">@Model.AverageRating.ToString("0.0") / 5 &bull; @Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews")</div>
-                            }
+                    <div class="bd-desc-item">
+                        <span class="bd-desc-icon">&#9855;</span>
+                        <p class="bd-desc-text text-success">
+                            @if (!string.IsNullOrWhiteSpace(Model.DisabilityAccommodation))
+                            { @Model.DisabilityAccommodation }
                             else
-                            {
-                                <div class="text-muted small mt-1">No ratings yet — be the first!</div>
-                            }
-                        </div>
+                            { <text>This boat accommodates people with disabilities.</text> }
+                        </p>
                     </div>
+                }
+            </div>
+        }
 
-                    @if (!string.IsNullOrEmpty(Model.Description))
-                    {
-                        <p class="mt-2">@Model.Description</p>
-                    }
-
-                    @* Specifications *@
-                    <h6 class="hc-form-section-title mt-3">Boat Specifications</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-unstyled">
-                                <li><strong>Registration No:</strong> @Model.RegistrationNumber</li>
-                                <li><strong>Max Passengers:</strong> @Model.MaxPassengers</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <ul class="list-unstyled">
-                                <li><strong>Type:</strong> @Model.BoatType</li>
-                                <li><strong>Location:</strong> @Model.HarbourLocation</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    @* Safety Equipment cards *@
-                    <h6 class="hc-form-section-title mt-3">&#9875; Safety Equipment</h6>
-                    <div class="row g-3 mb-3">
-
-                        @* Life Jackets *@
-                        <div class="col-6 col-md-4">
-                            <div class="hc-equip-display @(Model.LifeJacketQuantity > 0 ? "hc-equip-yes" : "hc-equip-no")">
-                                @if (!string.IsNullOrEmpty(Model.LifeJacketImagePath))
-                                {
-                                    <img src="@Url.Content(Model.LifeJacketImagePath)"
-                                         class="hc-equip-display-img hc-equip-real-photo" alt="Life Jacket" />
-                                    <div class="hc-equip-photo-badge">Owner Photo</div>
-                                }
-                                else
-                                {
-                                    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972158.png"
-                                         class="hc-equip-display-img" alt="Life Jacket" />
-                                }
-                                <div class="hc-equip-label">Life Jackets</div>
-                                <div class="hc-equip-value">
-                                    @if (Model.LifeJacketQuantity > 0)
-                                    { <text>&#10003; @Model.LifeJacketQuantity on board</text> }
-                                    else
-                                    { <text>&#10007; None listed</text> }
-                                </div>
-                            </div>
-                        </div>
-
-                        @* Medical Kit *@
-                        <div class="col-6 col-md-4">
-                            <div class="hc-equip-display @(Model.HasMedKit ? "hc-equip-yes" : "hc-equip-no")">
-                                @if (!string.IsNullOrEmpty(Model.MedKitImagePath))
-                                {
-                                    <img src="@Url.Content(Model.MedKitImagePath)"
-                                         class="hc-equip-display-img hc-equip-real-photo" alt="Medical Kit" />
-                                    <div class="hc-equip-photo-badge">Owner Photo</div>
-                                }
-                                else
-                                {
-                                    <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
-                                         class="hc-equip-display-img" alt="Medical Kit" />
-                                }
-                                <div class="hc-equip-label">Medical Kit</div>
-                                <div class="hc-equip-value">
-                                    @(Model.HasMedKit ? "&#10003; On board" : "&#10007; Not listed")
-                                </div>
-                            </div>
-                        </div>
-
-                        @* Fire Extinguisher *@
-                        <div class="col-6 col-md-4">
-                            <div class="hc-equip-display @(Model.HasFireExtinguisher ? "hc-equip-yes" : "hc-equip-no")">
-                                @if (!string.IsNullOrEmpty(Model.FireExtImagePath))
-                                {
-                                    <img src="@Url.Content(Model.FireExtImagePath)"
-                                         class="hc-equip-display-img hc-equip-real-photo" alt="Fire Extinguisher" />
-                                    <div class="hc-equip-photo-badge">Owner Photo</div>
-                                }
-                                else
-                                {
-                                    <img src="https://cdn-icons-png.flaticon.com/512/3774/3774278.png"
-                                         class="hc-equip-display-img" alt="Fire Extinguisher" />
-                                }
-                                <div class="hc-equip-label">Fire Extinguisher</div>
-                                <div class="hc-equip-value">
-                                    @(Model.HasFireExtinguisher ? "&#10003; On board" : "&#10007; Not listed")
-                                </div>
-                            </div>
-                        </div>
-
-                        @* Accessibility *@
-                        <div class="col-6 col-md-4">
-                            <div class="hc-equip-display @(!string.IsNullOrEmpty(Model.DisabilityAccommodation) ? "hc-equip-yes" : "hc-equip-no")">
-                                <div style="font-size:2.4rem; line-height:1; margin-bottom:4px;">&#9855;</div>
-                                <div class="hc-equip-label">Accessibility</div>
-                                <div class="hc-equip-value">
-                                    @(!string.IsNullOrEmpty(Model.DisabilityAccommodation) ? "&#10003; Available" : "&#10007; Not listed")
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.DisabilityAccommodation))
-                    {
-                        <div class="alert alert-primary py-2 px-3 mb-3">
-                            <strong>&#9855; Disability Accommodations:</strong> @Model.DisabilityAccommodation
-                        </div>
-                    }
-
-                    @* Features & Extras *@
-                    <h6 class="hc-form-section-title mt-2">&#127775; Features &amp; Extras</h6>
-                    @if (Model.HasFishingEquipment || Model.HasDecoration || Model.HasSoundSystem)
-                    {
-                        <div class="row g-3 mb-3">
-                            @if (Model.HasFishingEquipment)
-                            {
-                                <div class="col-6 col-md-4">
-                                    <div class="hc-equip-display hc-equip-yes">
-                                        @if (!string.IsNullOrEmpty(Model.FishingImagePath))
-                                        {
-                                            <img src="@Url.Content(Model.FishingImagePath)"
-                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Fishing Equipment" />
-                                            <div class="hc-equip-photo-badge">Owner Photo</div>
-                                        }
-                                        else
-                                        {
-                                            <img src="https://cdn-icons-png.flaticon.com/512/1988/1988592.png"
-                                                 class="hc-equip-display-img" alt="Fishing Equipment" />
-                                        }
-                                        <div class="hc-equip-label">Fishing Equipment</div>
-                                        <div class="hc-equip-value">&#10003; Available</div>
-                                    </div>
-                                </div>
-                            }
-                            @if (Model.HasDecoration)
-                            {
-                                <div class="col-6 col-md-4">
-                                    <div class="hc-equip-display hc-equip-yes">
-                                        @if (!string.IsNullOrEmpty(Model.DecorationImagePath))
-                                        {
-                                            <img src="@Url.Content(Model.DecorationImagePath)"
-                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Decoration" />
-                                            <div class="hc-equip-photo-badge">Owner Photo</div>
-                                        }
-                                        else
-                                        {
-                                            <img src="https://cdn-icons-png.flaticon.com/512/3050/3050434.png"
-                                                 class="hc-equip-display-img" alt="Decoration" />
-                                        }
-                                        <div class="hc-equip-label">Decoration</div>
-                                        <div class="hc-equip-value">&#10003; Available</div>
-                                    </div>
-                                </div>
-                            }
-                            @if (Model.HasSoundSystem)
-                            {
-                                <div class="col-6 col-md-4">
-                                    <div class="hc-equip-display hc-equip-yes">
-                                        @if (!string.IsNullOrEmpty(Model.SoundSystemImagePath))
-                                        {
-                                            <img src="@Url.Content(Model.SoundSystemImagePath)"
-                                                 class="hc-equip-display-img hc-equip-real-photo" alt="Sound System" />
-                                            <div class="hc-equip-photo-badge">Owner Photo</div>
-                                        }
-                                        else
-                                        {
-                                            <img src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png"
-                                                 class="hc-equip-display-img" alt="Sound System" />
-                                        }
-                                        <div class="hc-equip-label">Sound System</div>
-                                        <div class="hc-equip-value">&#10003; Available</div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted small mb-3">No extras listed.</p>
-                    }
-
-                    @* Owner info *@
-                    <h6 class="hc-form-section-title mt-3">Owner Information</h6>
-                    <p>
-                        <strong>@Model.BoatOwner.BusinessName</strong><br />
-                        <span class="text-muted">@Model.BoatOwner.PhoneNumber &nbsp;&bull;&nbsp; @Model.BoatOwner.Email</span>
-                    </p>
-
-                    @* Ratings section *@
-                    <h6 class="hc-form-section-title mt-3">&#11088; Customer Ratings</h6>
-                    @if (Model.TotalRatings == 0)
-                    {
-                        <p class="text-muted">No ratings yet. Book this boat and be the first to rate it!</p>
-                    }
-                    else
-                    {
-                        <div class="hc-rating-summary mb-3">
-                            <div class="hc-rating-big">@Model.AverageRating.ToString("0.0")</div>
-                            <div>
-                                <div class="hc-star-block">
-                                    @for (int s = 1; s <= 5; s++)
-                                    {
-                                        if (s <= (int)Math.Round(Model.AverageRating))
-                                        { <span class="hc-star-lg filled">&#9733;</span> }
-                                        else
-                                        { <span class="hc-star-lg">&#9734;</span> }
-                                    }
-                                </div>
-                                <small class="text-muted">Based on @Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews")</small>
-                            </div>
-                        </div>
-
-                        if (recentRatings != null && recentRatings.Any())
-                        {
-                            <div class="hc-reviews-list">
-                                        @foreach (var rating in recentRatings)
-                                        {
-                                            <div class="hc-review-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <strong>@rating.Customer.FullName</strong>
-                                                    <small class="text-muted">@rating.DateRated.ToString("dd MMM yyyy")</small>
-                                                </div>
-                                                <div class="hc-star-block my-1">
-                                                    @for (int s = 1; s <= 5; s++)
-                                                    {
-                                                        if (s <= rating.Stars)
-                                                        { <span class="hc-star-md filled">&#9733;</span> }
-                                                        else
-                                                        { <span class="hc-star-md">&#9734;</span> }
-                                                    }
-                                                </div>
-                                                if (!string.IsNullOrEmpty(rating.Comment))
-                                                {
-                                                    <p class="mb-0 text-muted small">&ldquo;@rating.Comment&rdquo;</p>
-                                                }
-                                            </div>
-                                        }
-                            </div>
-                        }
-                    }
-
-                    <div class="d-flex gap-2 mt-4">
-                        @Html.ActionLink("Book This Boat", "BookBoat", "Customer", new { id = Model.BoatID }, new { @class = "btn btn-success btn-lg" })
-                        @Html.ActionLink("Back to Boats", "Boats", "Customer", null, new { @class = "btn btn-outline-secondary btn-lg" })
-                    </div>
-
+        @* ── Key Details ─────────────────────────────────────────── *@
+        <div class="bd-section">
+            <h2 class="bd-section-title">Key Details</h2>
+            <div class="bd-details-grid">
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Registration</span>
+                    <span class="bd-detail-value"><code>@Model.RegistrationNumber</code></span>
+                </div>
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Boat Type</span>
+                    <span class="bd-detail-value">@Model.BoatType</span>
+                </div>
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Location</span>
+                    <span class="bd-detail-value">&#128205; @Model.HarbourLocation</span>
+                </div>
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Max Passengers</span>
+                    <span class="bd-detail-value">@Model.MaxPassengers persons</span>
+                </div>
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Adult Rate</span>
+                    <span class="bd-detail-value fw-bold">R @Model.PriceAdult.ToString("N2") / hr</span>
+                </div>
+                <div class="bd-detail-item">
+                    <span class="bd-detail-label">Child Rate</span>
+                    <span class="bd-detail-value fw-bold">R @Model.PriceChild.ToString("N2") / hr</span>
                 </div>
             </div>
+        </div>
+
+        @* ── Safety & Features ────────────────────────────────────── *@
+        @{
+            bool hasSafety   = Model.HasLifeJackets || Model.HasMedKit || Model.HasFireExtinguisher;
+            bool hasFeatures = Model.HasFishingEquipment || Model.HasDecoration || Model.HasSoundSystem;
+        }
+        <div class="bd-section">
+            <h2 class="bd-section-title">Sailing hours</h2>
+            @Html.Partial("_SailingHours", ViewBag.Week as List<APDP.Helpers.DayHours>,
+                new ViewDataDictionary { { "BufferMinutes", Model.BufferMinutes } })
+        </div>
+
+        @if (hasSafety || hasFeatures)
+        {
+            <div class="bd-section">
+                <h2 class="bd-section-title">What's on board</h2>
+                <div class="bd-chips">
+                    @if (Model.HasLifeJackets)      { <span class="bd-chip bd-chip-green">&#10003; Life Jackets</span> }
+                    @if (Model.HasMedKit)           { <span class="bd-chip bd-chip-green">&#10003; Med Kit</span> }
+                    @if (Model.HasFireExtinguisher) { <span class="bd-chip bd-chip-green">&#10003; Fire Extinguisher</span> }
+                    @if (Model.HasFishingEquipment) { <span class="bd-chip bd-chip-blue">&#10003; Fishing Equipment</span> }
+                    @if (Model.HasDecoration)       { <span class="bd-chip bd-chip-blue">&#10003; Decoration</span> }
+                    @if (Model.HasSoundSystem)      { <span class="bd-chip bd-chip-blue">&#10003; Sound System</span> }
+                </div>
+            </div>
+        }
+
+        @* ── Paid Extras ─────────────────────────────────────────── *@
+        @if (hasExtras)
+        {
+            <div class="bd-section">
+                <h2 class="bd-section-title">Paid Add-Ons <span class="bd-section-sub">(select at booking)</span></h2>
+                <div class="bd-extras-list">
+                    @foreach (var extra in Model.Extras)
+                    {
+                        <div class="bd-extra-row">
+                            <span>@extra.Name</span>
+                            <span class="bd-extra-price">+ R @extra.Price.ToString("N2")</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ── Videos ──────────────────────────────────────────────── *@
+        @if (allVideos.Length > 0)
+        {
+            <div class="bd-section">
+                <h2 class="bd-section-title">Videos</h2>
+                <div class="bd-videos">
+                    @foreach (var v in allVideos)
+                    {
+                        <video src="@Url.Content(v)" class="bd-video" controls muted playsinline></video>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ── Owner ────────────────────────────────────────────────── *@
+        <div class="bd-section">
+            <h2 class="bd-section-title">About the Owner</h2>
+            <div class="bd-owner-card">
+                <div class="bd-owner-avatar">@(string.IsNullOrWhiteSpace(Model.BoatOwner.BusinessName) ? "?" : Model.BoatOwner.BusinessName.Trim().Substring(0, 1).ToUpper())</div>
+                <div>
+                    <p class="bd-owner-name">@Model.BoatOwner.BusinessName</p>
+                    <p class="bd-owner-contact">&#128222; @Model.BoatOwner.PhoneNumber &nbsp;&bull;&nbsp; &#128231; @Model.BoatOwner.Email</p>
+                </div>
+            </div>
+        </div>
+
+        @* ── Ratings ─────────────────────────────────────────────── *@
+        <div class="bd-section">
+            @if (Model.TotalRatings > 0)
+            {
+                <h2 class="bd-section-title">
+                    &#9733; @Model.AverageRating.ToString("0.0")
+                    <span class="bd-section-sub">(@Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews"))</span>
+                </h2>
+                if (recentRatings != null)
+                {
+                    foreach (var r in recentRatings)
+                    {
+                        <div class="bd-review">
+                            <div class="bd-review-header">
+                                <strong>@r.Customer.FullName</strong>
+                                <span class="bd-review-date">@r.DateRated.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <div class="bd-review-stars">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    <span class="@(s <= r.Stars ? "bd-star filled" : "bd-star")">&#9733;</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(r.Comment))
+                            {
+                                <p class="bd-review-comment">&ldquo;@r.Comment&rdquo;</p>
+                            }
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <h2 class="bd-section-title">Reviews</h2>
+                <p class="text-muted">No ratings yet. Book this boat and be the first to review it!</p>
+            }
+        </div>
+
+    </div>
+
+    @* ── Booking Sidebar ─────────────────────────────────────────── *@
+    <div class="bd-sidebar">
+        <div class="bd-booking-card">
+            <div class="bd-booking-price">
+                <span class="bd-price-amount">R @Model.PriceAdult.ToString("N2")</span>
+                <span class="bd-price-unit">/hour adult</span>
+            </div>
+            @if (Model.TotalRatings > 0)
+            {
+                <div class="bd-booking-rating">
+                    <span class="bd-star filled">&#9733;</span>
+                    <span class="fw-bold">@Model.AverageRating.ToString("0.0")</span>
+                    <span class="text-muted small">&nbsp;(@Model.TotalRatings @(Model.TotalRatings == 1 ? "review" : "reviews"))</span>
+                </div>
+            }
+
+            <div class="bd-booking-detail-row">
+                <span>Child rate</span>
+                <span>R @Model.PriceChild.ToString("N2") /hour</span>
+            </div>
+            <div class="bd-booking-detail-row">
+                <span>Max passengers</span>
+                <span>@Model.MaxPassengers persons</span>
+            </div>
+            <div class="bd-booking-detail-row">
+                <span>Location</span>
+                <span>@Model.HarbourLocation</span>
+            </div>
+            <div class="bd-booking-detail-row">
+                <span>Type</span>
+                <span>@Model.BoatType</span>
+            </div>
+
+            @if (Model.Status == APDP.Models.BoatStatus.Inactive)
+            {
+                <div class="bd-unavailable">Currently Unavailable</div>
+            }
+            else
+            {
+                @Html.ActionLink("Book Now", "BookBoat", "Customer",
+                    new { id = Model.BoatID },
+                    new { @class = "bd-book-btn" })
+            }
+
+            @Html.ActionLink("← Back to Boats", "Boats", "Customer", null,
+                new { @class = "bd-back-btn" })
         </div>
     </div>
 </div>
 
 <style>
-    .hc-detail-main-img  { width:100%; max-height:340px; object-fit:cover; border-radius:8px 8px 0 0; }
-    .hc-detail-thumb     { width:72px; height:56px; object-fit:cover; border-radius:6px; cursor:pointer;
-                           border:2px solid transparent; transition:border-color 0.2s; opacity:0.7; }
-    .hc-detail-thumb:hover,
-    .hc-detail-thumb.active { border-color:var(--hc-teal); opacity:1; }
-    .hc-equip-display    { border-radius:10px; padding:12px 8px; text-align:center; }
-    .hc-equip-yes        { background:#e8f5e9; border:1px solid #a5d6a7; }
-    .hc-equip-no         { background:#fafafa; border:1px dashed #ddd; }
-    .hc-equip-display-img{ width:48px; height:48px; object-fit:contain; }
-    .hc-equip-label      { font-size:0.8rem; font-weight:600; margin-top:6px; }
-    .hc-equip-value      { font-size:0.76rem; margin-top:3px; }
-    .hc-equip-yes .hc-equip-value { color:#2e7d32; }
-    .hc-equip-no  .hc-equip-value { color:#9e9e9e; }
-    .hc-star-block  { display:flex; align-items:center; gap:1px; }
-    .hc-star-lg     { font-size:1.3rem; color:#ddd; }
-    .hc-star-lg.filled { color:#f9a825; }
-    .hc-star-md     { font-size:1rem; color:#ddd; }
-    .hc-star-md.filled { color:#f9a825; }
-    .hc-rating-summary { display:flex; align-items:center; gap:16px; }
-    .hc-rating-big     { font-size:3rem; font-weight:800; color:var(--hc-navy); line-height:1; }
-    .hc-reviews-list  { display:flex; flex-direction:column; gap:0; }
-    .hc-review-item   { padding:12px 0; border-bottom:1px solid #eee; }
-    .hc-review-item:last-child { border-bottom:none; }
+    /* ── Gallery ──────────────────────────────────────────── */
+    body { background: #fff !important; }
+
+    .bd-gallery {
+        display: flex;
+        height: 420px;
+        overflow: hidden;
+        background: #111;
+    }
+
+    .bd-gallery-main {
+        flex: 1;
+        overflow: hidden;
+        border-right: 3px solid #fff;
+    }
+
+    .bd-gallery-main-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+
+    .bd-gallery-main-img:hover { transform: scale(1.02); }
+
+    .bd-gallery-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        width: 340px;
+        gap: 3px;
+    }
+
+    .bd-gallery-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        display: block;
+    }
+
+    .bd-gallery-thumb:hover { opacity: 0.85; }
+
+    .bd-gallery-single { width: 100%; }
+    .bd-gallery-single-img { width: 100%; height: 420px; object-fit: cover; display: block; }
+
+    .bd-gallery-placeholder {
+        width: 100%;
+        height: 420px;
+        background: #1a3a5c;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 4rem;
+    }
+
+    .bd-gallery-placeholder p { font-size: 1rem; margin-top: 10px; opacity: 0.6; }
+
+    /* ── Body layout ──────────────────────────────────────── */
+    .bd-body {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+        background: #fff;
+    }
+
+    .bd-main { flex: 1; min-width: 0; }
+
+    /* ── Title ────────────────────────────────────────────── */
+    .bd-title-block {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e8eaed;
+    }
+
+    .bd-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 6px 0;
+    }
+
+    .bd-breadcrumb {
+        font-size: 0.85rem;
+        color: #1a56db;
+        margin: 0;
+    }
+
+    /* ── Sections ─────────────────────────────────────────── */
+    .bd-section {
+        padding: 24px 0;
+        border-bottom: 1px solid #e8eaed;
+    }
+
+    .bd-section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 16px;
+    }
+
+    .bd-section-sub {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: #888;
+    }
+
+    /* Description */
+    .bd-desc-item {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .bd-desc-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    .bd-desc-text { font-size: 0.95rem; color: #444; line-height: 1.6; margin: 0; }
+
+    /* Key details grid */
+    .bd-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .bd-detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .bd-detail-label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .bd-detail-value { font-size: 0.95rem; color: #222; }
+
+    /* Chips */
+    .bd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .bd-chip {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.83rem;
+        font-weight: 500;
+    }
+
+    .bd-chip-green { background: #e6f4ea; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .bd-chip-blue  { background: #e3f0ff; color: #1565c0; border: 1px solid #90caf9; }
+
+    /* Extras */
+    .bd-extras-list { border: 1px solid #e8eaed; border-radius: 10px; overflow: hidden; }
+    .bd-extra-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .bd-extra-row:last-child { border-bottom: none; }
+    .bd-extra-price { color: #1b5e20; font-weight: 600; }
+
+    /* Videos */
+    .bd-videos { display: flex; flex-wrap: wrap; gap: 12px; }
+    .bd-video { width: 100%; max-width: 420px; height: 240px; border-radius: 10px; background: #000; object-fit: contain; }
+
+    /* Owner */
+    .bd-owner-card { display: flex; align-items: center; gap: 16px; }
+    .bd-owner-avatar {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        background: #1a56db;
+        color: #fff;
+        font-size: 1.4rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .bd-owner-name    { font-weight: 700; font-size: 0.95rem; margin: 0 0 4px 0; }
+    .bd-owner-contact { font-size: 0.82rem; color: #666; margin: 0; }
+
+    /* Reviews */
+    .bd-review { padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
+    .bd-review:last-child { border-bottom: none; }
+    .bd-review-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .bd-review-date   { font-size: 0.8rem; color: #aaa; }
+    .bd-review-stars  { display: flex; gap: 2px; margin-bottom: 6px; }
+    .bd-star          { color: #ddd; font-size: 0.95rem; }
+    .bd-star.filled   { color: #f9a825; }
+    .bd-review-comment { font-size: 0.88rem; color: #555; margin: 0; font-style: italic; }
+
+    /* ── Sidebar booking card ─────────────────────────────── */
+    .bd-sidebar { width: 340px; flex-shrink: 0; }
+
+    .bd-booking-card {
+        position: sticky;
+        top: 80px;
+        border: 1px solid #e8eaed;
+        border-radius: 16px;
+        padding: 24px;
+        background: #fff;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    .bd-booking-price {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+
+    .bd-price-amount { font-size: 1.6rem; font-weight: 800; color: #111; }
+    .bd-price-unit   { font-size: 0.85rem; color: #888; }
+
+    .bd-booking-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 20px;
+        font-size: 0.88rem;
+    }
+
+    .bd-booking-detail-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.88rem;
+        color: #555;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .bd-booking-detail-row span:last-child { font-weight: 600; color: #222; }
+
+    .bd-book-btn {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        background: #1a56db;
+        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .bd-book-btn:hover { background: #1446b8; color: #fff; }
+
+    .bd-back-btn {
+        display: block;
+        text-align: center;
+        margin-top: 10px;
+        color: #555;
+        font-size: 0.85rem;
+        text-decoration: none;
+        padding: 8px;
+    }
+
+    .bd-back-btn:hover { color: #111; }
+
+    .bd-unavailable {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        background: #e0e0e0;
+        color: #999;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .bd-body { flex-direction: column; padding: 16px; }
+        .bd-sidebar { width: 100%; }
+        .bd-gallery { height: 260px; }
+        .bd-gallery-grid { width: 160px; }
+        .bd-details-grid { grid-template-columns: 1fr; }
+    }
 </style>
 
 @section scripts {
     <script>
-        function switchImg(thumb, src) {
-            document.getElementById('mainImg').src = src;
-            document.querySelectorAll('.hc-detail-thumb').forEach(function(t) {
-                t.classList.remove('active');
-            });
-            thumb.classList.add('active');
+        function bdSwapPhoto(thumb) {
+            var main = document.getElementById('bdMainPhoto');
+            if (!main) return;
+            var tmp = main.src;
+            main.src = thumb.src;
+            thumb.src = tmp;
         }
     </script>
 }

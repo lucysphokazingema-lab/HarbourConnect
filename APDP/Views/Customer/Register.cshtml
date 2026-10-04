@@ -1,6 +1,6 @@
-@model APDP.Models.Customer
+﻿@model APDP.Models.Customer
 @{
-    ViewBag.Title = "Customer Registration";
+    ViewBag.Title = "Create Account";
 }
 
 <div class="container py-5">
@@ -8,15 +8,18 @@
         <div class="col-md-6">
             <div class="card hc-form-card">
                 <div class="card-header hc-form-header-green">
-                    <h4 class="mb-0">&#128106; Customer Registration</h4>
-                    <p class="mb-0 small">Create your account to start booking harbour trips</p>
+                    <h4 class="mb-0">&#127754; Create Your HarbourConnect Account</h4>
+                    <p class="mb-0 small">Discover and book unforgettable boat trips in Durban Harbour.</p>
                 </div>
                 <div class="card-body p-4">
 
                     @using (Html.BeginForm("Register", "Customer", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
+                        if (!ViewData.ModelState.IsValid)
+                        {
+                            @Html.ValidationSummary(true, "Please fix the errors below:", new { @class = "alert alert-danger" })
+                        }
 
                         @* Full Name *@
                         <div class="mb-3">
@@ -25,21 +28,24 @@
                             @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger small" })
                         </div>
 
-                        @* Phone — SA format with +27 flag *@
+                        @* Phone with country code dropdown *@
                         <div class="mb-3">
                             @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
                             <div class="input-group">
-                                <span class="input-group-text" title="South Africa">&#127480;&#127462; +27</span>
-                                @Html.TextBoxFor(m => m.PhoneNumber, new
-                                {
-                                    @class      = "form-control",
-                                    placeholder = "e.g. 0821234567 or +27821234567",
-                                    type        = "tel",
-                                    maxlength   = "15"
-                                })
+                                <select id="countryCode" class="form-select hc-country-select" style="max-width:160px;">
+                                    <option value="+27"  selected>&#127480;&#127462; +27</option>
+                                    <option value="+263">&#127487;&#127484; +263</option>
+                                    <option value="+258">&#127474;&#127487; +258</option>
+                                    <option value="+268">&#127480;&#127487; +268</option>
+                                    <option value="+266">&#127473;&#127480; +266</option>
+                                    <option value="+44"> &#127468;&#127463; +44</option>
+                                </select>
+                                <input type="tel" id="phoneLocal" class="form-control"
+                                       placeholder="821234567"
+                                       maxlength="9" inputmode="numeric" />
+                                @Html.HiddenFor(m => m.PhoneNumber, new { id = "phoneHidden" })
                             </div>
                             @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger small" })
-                            <small class="text-muted">South African numbers only — 0821234567 or +27821234567</small>
                         </div>
 
                         @* Email *@
@@ -91,4 +97,39 @@
 @section scripts {
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+    <script>
+        // Combine country code + local number into the hidden PhoneNumber field before submit
+        var form = document.querySelector('form');
+        form.addEventListener('submit', function () {
+            var code  = document.getElementById('countryCode').value;
+            var local = document.getElementById('phoneLocal').value.trim();
+
+            // If user typed with leading 0, strip it before adding country code
+            // e.g. 0821234567 + +27 => +27821234567
+            if (local.startsWith('0')) {
+                local = local.substring(1);
+            }
+            // If they already typed the full number with +, use as-is
+            if (local.startsWith('+')) {
+                document.getElementById('phoneHidden').value = local;
+            } else {
+                document.getElementById('phoneHidden').value = code + local;
+            }
+        });
+
+        // Live preview of the combined number
+        ['countryCode', 'phoneLocal'].forEach(function(id) {
+            document.getElementById(id).addEventListener('input', function() {
+                var code  = document.getElementById('countryCode').value;
+                var local = document.getElementById('phoneLocal').value.trim();
+                if (local.startsWith('0')) local = local.substring(1);
+                var preview = local.startsWith('+') ? local : code + local;
+                document.getElementById('phoneHidden').value = preview;
+            });
+        });
+    </script>
+
+    <style>
+        .hc-country-select { border-right: none; border-radius: 0.375rem 0 0 0.375rem; }
+    </style>
 }

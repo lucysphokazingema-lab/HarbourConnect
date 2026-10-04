@@ -11,6 +11,32 @@
         @Html.ActionLink("+ Add New Driver", "AddDriver", "BoatOwner", null, new { @class = "btn btn-success" })
     </div>
 
+    @* ── Driver added credentials card ────────────────────────────── *@
+    @if (TempData["DriverAdded"] != null)
+    {
+        <div class="card border-success mb-4 shadow-sm">
+            <div class="card-header bg-success text-white d-flex align-items-center gap-2">
+                <span style="font-size:1.3rem;">&#10003;</span>
+                <strong>Driver added successfully!</strong>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">
+                    <strong>@TempData["DriverAdded"]</strong> can now log in to the Driver Portal
+                    using the email address provided during registration.
+                </p>
+                <table class="table table-sm table-bordered w-auto mb-3">
+                    <tr>
+                        <th class="px-3 py-2 bg-light">Login Email</th>
+                        <td class="px-3 py-2"><code>@TempData["DriverEmail"]</code></td>
+                    </tr>
+                </table>
+                <p class="text-muted small mb-0">
+                    The driver can log in at <strong>Driver Portal &rarr; Driver Login</strong>.
+                </p>
+            </div>
+        </div>
+    }
+
     @if (!Model.Any())
     {
         <div class="alert alert-info text-center p-5">
@@ -26,7 +52,7 @@
             <table class="table table-hover hc-table align-middle">
                 <thead>
                     <tr>
-                        <th>License No. (Primary Key)</th>
+                        <th>License No.</th>
                         <th>Full Name</th>
                         <th>Email (Login)</th>
                         <th>Phone</th>
@@ -81,8 +107,7 @@
         if (ownerBoats != null && !ownerBoats.Any())
         {
             <div class="alert alert-warning mt-3">
-                <strong>&#9888; Note:</strong> You have no approved boats yet. Drivers can only be assigned to approved boats.
-                Get your boats approved by TNPA first.
+                &#9888;&#65039; No approved boats available. Drivers can only be assigned to boats approved by TNPA. Once a boat is approved, you can assign a driver from Manage Drivers.
             </div>
         }
     }

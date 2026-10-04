@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APDP.Models
 {
@@ -31,13 +32,18 @@ namespace APDP.Models
         [Display(Name = "Email Address")]
         public string Email { get; set; }
 
-        // Strong password: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+        // Password: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit
         [Required(ErrorMessage = "Password is required.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_#\-])[A-Za-z\d@$!%*?&_#\-]{8,}$",
-            ErrorMessage = "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character (e.g. @$!%*?&).")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&_#\-]{8,}$",
+            ErrorMessage = "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number.")]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
+        [NotMapped]
         public string Password { get; set; }
+
+        // Salted PBKDF2 hash (see Helpers.PasswordHasher); the plain Password is never stored.
+        [StringLength(256)]
+        public string PasswordHash { get; set; }
 
         // Navigation
         public virtual ICollection<Boat> Boats { get; set; }

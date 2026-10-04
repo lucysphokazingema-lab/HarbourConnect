@@ -2,52 +2,72 @@
     ViewBag.Title = "TNPA Admin Login";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card hc-form-card">
-                <div class="card-header hc-form-header-dark">
-                    <h4 class="mb-0">&#128203; TNPA Admin Login</h4>
-                    <p class="mb-0 small">Transnet National Ports Authority Portal</p>
+<div class="lp-wrapper">
+
+    <div class="lp-left">
+        <div class="lp-left-overlay" style="background:linear-gradient(170deg,rgba(5,10,30,0.30) 0%,rgba(5,10,30,0.58) 100%);"></div>
+
+        <div class="lp-left-top">
+            <span class="lp-logo-icon">&#9875;</span>
+            <h2 class="lp-brand">Harbour Connect</h2>
+            <p class="lp-tagline">TNPA Administration Portal</p>
+        </div>
+
+        <div class="lp-left-bottom">
+            <p class="lp-hero-text">Oversee. Approve. Protect.</p>
+            <p class="lp-hero-sub">Transnet National Ports Authority</p>
+        </div>
+    </div>
+
+    <div class="lp-right">
+        <div class="lp-form-box">
+
+            <h3 class="lp-form-title">TNPA Admin Login</h3>
+            <p class="lp-form-sub">Restricted to authorised TNPA staff only</p>
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger py-2 small">@ViewBag.ErrorMessage</div>
+            }
+
+            @using (Html.BeginForm("Login", "Tnpa", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128231;</span>
+                    <input type="email" name="email" class="lp-input"
+                           placeholder="Admin email address" required autocomplete="email" />
                 </div>
-                <div class="card-body p-4">
 
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger">
-                            @ViewBag.ErrorMessage
-                        </div>
-                    }
-
-                    @using (Html.BeginForm("Login", "Tnpa", FormMethod.Post))
-                    {
-                        @Html.AntiForgeryToken()
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="email" class="form-control"
-                                   placeholder="Admin email address" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="Admin password" required />
-                        </div>
-
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-dark btn-lg">
-                                Login to TNPA Portal
-                            </button>
-                        </div>
-                    }
-
-                    <hr class="mt-4" />
-                    <p class="text-center text-muted small mb-0">
-                        This portal is restricted to authorised TNPA staff only.
-                    </p>
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128274;</span>
+                    <input type="password" name="password" id="lpPass" class="lp-input"
+                           placeholder="Admin password" required autocomplete="current-password" />
+                    <button type="button" class="lp-toggle-pass" onclick="lpTogglePass()" tabindex="-1">&#128065;</button>
                 </div>
-            </div>
+
+                <div class="lp-row">
+                    <label class="lp-remember">
+                        <input type="checkbox" name="rememberMe" /> Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="lp-btn-primary" style="background:#1a1a2e;">Login to TNPA Portal</button>
+            }
+
+            <p class="lp-footer-note">Not an admin? <a href="@Url.Action("Index","Home")">Go back home</a></p>
         </div>
     </div>
 </div>
+
+@Html.Partial("_LoginStyles")
+
+@section scripts {
+    <script>
+        function lpTogglePass() {
+            var f = document.getElementById('lpPass');
+            f.type = f.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+}

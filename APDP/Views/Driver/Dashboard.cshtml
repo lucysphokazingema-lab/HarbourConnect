@@ -2,74 +2,162 @@
 @{
     ViewBag.Title = "Driver Dashboard";
     var nextBooking = ViewBag.NextBooking as APDP.Models.Booking;
-    var activeRide  = ViewBag.ActiveRide  as APDP.Models.Booking;
+    var activeRide = ViewBag.ActiveRide as APDP.Models.Booking;
+    var ridesInProgress = ViewBag.RidesInProgress as List<APDP.Models.Booking> ?? new List<APDP.Models.Booking>();
+    var tripsToday = ViewBag.TripsToday as List<APDP.Models.Booking> ?? new List<APDP.Models.Booking>();
+    var recentlyCompleted = ViewBag.RecentlyCompleted as List<APDP.Models.Booking> ?? new List<APDP.Models.Booking>();
+    var allBoats = ViewBag.AllApprovedBoats as List<APDP.Models.Boat> ?? new List<APDP.Models.Boat>();
+    string harbourLocation = ViewBag.HarbourLocation as string ?? "Durban Harbour";
+
+    // Harbour coordinates lookup
+    var harbourCoords = new System.Collections.Generic.Dictionary<string, string>
+{
+        { "Durban Harbour", "-29.8679,31.0292" },
+        { "Cape Town Harbour", "-33.9065,18.4239" },
+        { "Port Elizabeth", "-33.9581,25.6290" },
+        { "East London", "-33.0153,27.9116" },
+        { "Richards Bay", "-28.7972,32.0833" }
+    };
+
+    string defaultCoords = harbourCoords.ContainsKey(harbourLocation)
+        ? harbourCoords[harbourLocation]
+        : "-29.8679,31.0292";
+
+    string[] dc = defaultCoords.Split(',');
+    string defLat = dc[0], defLng = dc[1];
 }
 
 <div class="container py-4">
 
-    <div class="hc-dashboard-header mb-4">
+    <div class="hc-dashboard-header mb-3">
         <h2>&#128663; Driver Dashboard</h2>
-        <p class="text-muted">Welcome, <strong>@Model.FullName</strong></p>
+        <p class="text-muted mb-0">
+            Welcome, <strong>@Model.FullName</strong> &bull; @harbourLocation
+        </p>
     </div>
 
-    @* ── Active Ride Banner ────────────────────────────────────── *@
+    @* Active Ride Banner *@
     @if (activeRide != null)
     {
-        <div class="alert hc-active-ride-banner mb-4" role="alert">
+        <div class="alert hc-active-ride-banner mb-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h5 class="mb-1">&#127945; Ride in Progress!</h5>
                     <p class="mb-0">
                         <strong>@activeRide.Boat.BoatName</strong> &mdash;
-                        @activeRide.NumberOfPassengers passenger@(activeRide.NumberOfPassengers == 1 ? "" : "s") on board<br />
-                        <small>Started: @activeRide.RideStartedAt.Value.ToString("HH:mm, dd MMM yyyy")</small>
+                        @activeRide.NumberOfPassengers passenger@(activeRide.NumberOfPassengers == 1 ? "" : "s") on board
+                        <br />
+                        <small>
+                            Started: @activeRide.RideStartedAt.Value.ToString("HH:mm, dd MMM yyyy")
+                        </small>
                     </p>
                 </div>
-                <div class="d-flex gap-2 flex-shrink-0">
-                    @Html.ActionLink("&#128205; View Map", "RideMap", "Driver", new { bookingId = activeRide.BookingID },
-                        new { @class = "btn btn-light fw-semibold" })
-                </div>
+
+                @Html.ActionLink(
+                    "View Map",
+                    "RideMap",
+                    "Driver",
+                    new { bookingId = activeRide.BookingID },
+                    new { @class = "btn btn-light fw-semibold flex-shrink-0" }
+                )
             </div>
         </div>
     }
 
-    @* ── Next Trip Notification ────────────────────────────────── *@
+    @* Next Trip Banner *@
     @if (activeRide == null && nextBooking != null)
     {
-        bool isToday    = nextBooking.TripDate.Date == DateTime.Today;
+        bool isToday = nextBooking.TripDate.Date == DateTime.Today;
         bool isTomorrow = nextBooking.TripDate.Date == DateTime.Today.AddDays(1);
 
-        <div class="alert @(isToday ? "hc-trip-today" : "hc-trip-upcoming") mb-4" role="alert">
+        <div class="alert @(isToday ? "hc-trip-today" : "hc-trip-upcoming") mb-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div>
                     <h5 class="mb-1">
                         @if (isToday)
-                        { <text>&#128680; Trip Today!</text> }
+                        {
+                            <text>&#128680; Trip Today!</text>
+                        }
                         else if (isTomorrow)
-                        { <text>&#128276; Trip Tomorrow</text> }
+                        {
+                            <text>&#128276; Trip Tomorrow</text>
+                        }
                         else
-                        { <text>&#128197; Upcoming Trip</text> }
+                        {
+                            <text>&#128197; Upcoming Trip</text>
+                        }
                     </h5>
+
                     <p class="mb-0">
-                        <strong>@nextBooking.Boat.BoatName</strong> &mdash; @nextBooking.TripDate.ToString("dddd, dd MMMM yyyy")<br />
-                        <strong>@nextBooking.NumberOfPassengers</strong> passenger@(nextBooking.NumberOfPassengers == 1 ? "" : "s") &bull;
+                        <strong>@nextBooking.Boat.BoatName</strong> &mdash;
+                        @nextBooking.TripDate.ToString("dddd, dd MMMM yyyy")
+                        <span class="fw-semibold text-warning ms-1">
+                            @nextBooking.TripStartTime.Hours.ToString("D2"):@nextBooking.TripStartTime.Minutes.ToString("D2")
+                        </span>
+                        @if (nextBooking.TripDurationHours > 0)
+                        {
+                            <span class="text-light small">&mdash; @nextBooking.TripDurationHours hr@(nextBooking.TripDurationHours == 1 ? "" : "s")</span>
+                        }
+                        <br />
+                        <strong>@nextBooking.NumberOfPassengers</strong>
+                        adult@(nextBooking.NumberOfPassengers == 1 ? "" : "s")
+                        @if (nextBooking.ChildPassengers > 0)
+                        {
+                            <text>&bull; <strong>@nextBooking.ChildPassengers</strong> child@(nextBooking.ChildPassengers == 1 ? "" : "ren")</text>
+                        }
+                        &bull;
                         Customer: <strong>@nextBooking.Customer.FullName</strong>
                     </p>
                 </div>
-                @if (isToday)
-                {
-                    <div class="flex-shrink-0">
-                        @using (Html.BeginForm("StartRide", "Driver", FormMethod.Post))
+
+                <div class="flex-shrink-0">
+                    @{
+                        DateTime bookedDT    = nextBooking.TripDate.Date.Add(nextBooking.TripStartTime);
+                        DateTime earliestDT  = bookedDT;   // rides start at the booked time, not before
+                        DateTime latestDT    = bookedDT.AddHours(1);
+                        bool tooEarly        = DateTime.Now < earliestDT;
+                        bool tooLate         = DateTime.Now > latestDT;
+                        int minsUntilReady   = tooEarly ? (int)Math.Ceiling((earliestDT - DateTime.Now).TotalMinutes) : 0;
+                        string earliestStr   = earliestDT.ToString("HH:mm");
+                        string tooEarlyTitle = "Too early — you can start at " + earliestStr;
+                        string bookedStr     = bookedDT.ToString("HH:mm");
+                    }
+                    @using (Html.BeginForm("StartRide", "Driver", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@nextBooking.BookingID" />
+
+                        if (tooEarly)
                         {
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="bookingId" value="@nextBooking.BookingID" />
-                            <button type="submit" class="btn btn-success btn-lg fw-semibold"
+                            <button type="button" class="btn btn-secondary btn-lg fw-semibold"
+                                    disabled title="@tooEarlyTitle">
+                                &#9654; Start Ride
+                            </button>
+                            <div class="text-warning small mt-1 text-center">
+                                Available at @earliestStr<br/>
+                                (@minsUntilReady min@(minsUntilReady == 1 ? "" : "s") away)
+                            </div>
+                        }
+                        else if (tooLate)
+                        {
+                            <button type="button" class="btn btn-danger btn-lg fw-semibold"
+                                    disabled title="Ride window has expired">
+                                &#10005; Expired
+                            </button>
+                            <div class="text-danger small mt-1 text-center">
+                                Booked @bookedStr — window closed
+                            </div>
+                        }
+                        else
+                        {
+                            <button type="submit"
+                                    class="btn btn-success btn-lg fw-semibold"
                                     onclick="return confirm('Start the ride? Make sure all passengers are on board.')">
                                 &#9654; Start Ride
                             </button>
                         }
-                    </div>
-                }
+                    }
+                </div>
             </div>
         </div>
     }
@@ -77,31 +165,265 @@
     @if (activeRide == null && nextBooking == null && Model.AssignedBoatID != null)
     {
         <div class="alert alert-info mb-4">
-            &#128197; No upcoming trips scheduled. Check back later or view all your trips below.
+            &#128197; No upcoming trips scheduled. Explore the harbour map below.
         </div>
     }
 
-    @* ── Stats ────────────────────────────────────────────────── *@
+    @* Dashboard Statistics *@
     <div class="row g-3 mb-4">
-        <div class="col-sm-6">
+
+        <div class="col-6 col-md-3">
             <div class="card hc-stat-card hc-stat-info text-center p-3">
                 <div class="hc-stat-number">@ViewBag.UpcomingTrips</div>
-                <div class="hc-stat-label">Upcoming Trips</div>
+                <div class="hc-stat-label">My Upcoming</div>
             </div>
         </div>
-        <div class="col-sm-6">
+
+        <div class="col-6 col-md-3">
             <div class="card hc-stat-card hc-stat-success text-center p-3">
                 <div class="hc-stat-number">@ViewBag.TotalTrips</div>
-                <div class="hc-stat-label">Total Trips</div>
+                <div class="hc-stat-label">My Total Trips</div>
             </div>
         </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card hc-stat-card hc-stat-warning text-center p-3">
+                <div class="hc-stat-number">@ridesInProgress.Count</div>
+                <div class="hc-stat-label">Rides Active Now</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card hc-stat-card hc-stat-primary text-center p-3">
+                <div class="hc-stat-number">@allBoats.Count</div>
+                <div class="hc-stat-label">Boats at Harbour</div>
+            </div>
+        </div>
+
     </div>
 
-    @* ── Assigned Boat Info ──────────────────────────────────── *@
+    @* Harbour Map *@
+    <div class="card hc-card mb-4">
+
+        <div class="card-header d-flex align-items-center justify-content-between py-2 px-3"
+             style="background:#0d2c54; color:#fff;">
+
+            <div class="d-flex align-items-center gap-2">
+                <span>&#128205;</span>
+                <strong>Live Harbour Map &mdash; All Approved Boats</strong>
+            </div>
+
+            <span class="badge bg-success">
+                &#9679; @allBoats.Count boat@(allBoats.Count == 1 ? "" : "s") docked
+            </span>
+        </div>
+
+        <div id="harbourMap" style="height:420px; width:100%;"></div>
+
+        <div class="px-3 py-2 bg-light border-top d-flex align-items-center gap-3 flex-wrap"
+             style="font-size:0.8rem;">
+
+            <span>&#128674; Your assigned boat</span>
+            <span>&#9851; Other boats at harbour</span>
+            <span>&#127945; Currently on a trip</span>
+            <span class="ms-auto text-muted">Click any marker for details</span>
+        </div>
+
+    </div>
+
+    @* Harbour Activity Feed *@
     <div class="row g-3 mb-4">
+
+        @* Rides Currently in Progress *@
+        <div class="col-md-4">
+            <div class="card hc-card h-100">
+
+                <div class="card-header py-2 px-3 d-flex align-items-center gap-2"
+                     style="background:#1b5e20; color:#fff;">
+
+                    <span>&#127945;</span>
+                    <strong class="small">On the Water Now</strong>
+
+                    <span class="badge bg-light text-dark ms-auto">
+                        @ridesInProgress.Count
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!ridesInProgress.Any())
+                    {
+                        <p class="text-muted small p-3 mb-0">
+                            No boats currently on the water.
+                        </p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var ride in ridesInProgress)
+                            {
+                                bool isMyRide = ride.BoatID == Model.AssignedBoatID;
+
+                                <li class="list-group-item py-2 px-3 @(isMyRide ? "list-group-item-success" : "")">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-semibold small">
+                                                &#128674; @ride.Boat.BoatName
+                                            </span>
+
+                                            @if (isMyRide)
+                                            {
+                                                <span class="badge bg-success ms-1"
+                                                      style="font-size:0.6rem;">
+                                                    MINE
+                                                </span>
+                                            }
+
+                                            <div class="text-muted" style="font-size:0.75rem;">
+                                                @ride.NumberOfPassengers pax &bull;
+                                                Started @ride.RideStartedAt.Value.ToString("HH:mm")
+                                            </div>
+                                        </div>
+
+                                        <span style="font-size:1.2rem;">&#127945;</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Upcoming Trips Today *@
+        <div class="col-md-4">
+            <div class="card hc-card h-100">
+
+                <div class="card-header py-2 px-3 d-flex align-items-center gap-2"
+                     style="background:#0d47a1; color:#fff;">
+
+                    <span>&#128197;</span>
+                    <strong class="small">Upcoming Today</strong>
+
+                    <span class="badge bg-light text-dark ms-auto">
+                        @tripsToday.Count
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!tripsToday.Any())
+                    {
+                        <p class="text-muted small p-3 mb-0">
+                            No more trips scheduled for today.
+                        </p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var trip in tripsToday)
+                            {
+                                bool isMyTrip = trip.BoatID == Model.AssignedBoatID;
+
+                                <li class="list-group-item py-2 px-3 @(isMyTrip ? "list-group-item-primary" : "")">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-semibold small">
+                                                &#128674; @trip.Boat.BoatName
+                                            </span>
+
+                                            @if (isMyTrip)
+                                            {
+                                                <span class="badge bg-primary ms-1"
+                                                      style="font-size:0.6rem;">
+                                                    MINE
+                                                </span>
+                                            }
+
+                                            <div class="text-muted" style="font-size:0.75rem;">
+                                                @trip.NumberOfPassengers pax &bull;
+                                                @trip.TripStartTime.ToString(@"hh\:mm")
+                                            </div>
+                                        </div>
+
+                                        <span style="font-size:1.2rem;">&#128197;</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Recently Completed Trips *@
+        <div class="col-md-4">
+            <div class="card hc-card h-100">
+
+                <div class="card-header py-2 px-3 d-flex align-items-center gap-2"
+                     style="background:#4a148c; color:#fff;">
+
+                    <span>&#10003;</span>
+                    <strong class="small">Completed Today</strong>
+
+                    <span class="badge bg-light text-dark ms-auto">
+                        @recentlyCompleted.Count
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    @if (!recentlyCompleted.Any())
+                    {
+                        <p class="text-muted small p-3 mb-0">
+                            No completed trips yet today.
+                        </p>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var done in recentlyCompleted)
+                            {
+                                bool isMyDone = done.BoatID == Model.AssignedBoatID;
+
+                                <li class="list-group-item py-2 px-3 @(isMyDone ? "list-group-item-warning" : "")">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="fw-semibold small">
+                                                &#128674; @done.Boat.BoatName
+                                            </span>
+
+                                            @if (isMyDone)
+                                            {
+                                                <span class="badge bg-warning text-dark ms-1"
+                                                      style="font-size:0.6rem;">
+                                                    MINE
+                                                </span>
+                                            }
+
+                                            <div class="text-muted" style="font-size:0.75rem;">
+                                                Ended @(done.RideEndedAt.HasValue
+                                                    ? done.RideEndedAt.Value.ToString("HH:mm")
+                                                    : "-")
+                                            </div>
+                                        </div>
+
+                                        <span style="font-size:1.2rem;">&#10003;</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* Assigned Boat and Driver Details *@
+    <div class="row g-3 mb-4">
+
         <div class="col-md-6">
             <div class="card hc-card p-4 h-100">
                 <h5>&#128674; My Assigned Boat</h5>
+
                 @if (Model.AssignedBoat != null)
                 {
                     <table class="table table-sm mt-3">
@@ -119,16 +441,25 @@
                         </tr>
                         <tr>
                             <th>Registration</th>
-                            <td><span class="badge bg-dark">@Model.AssignedBoat.RegistrationNumber</span></td>
+                            <td>
+                                <span class="badge bg-dark">
+                                    @Model.AssignedBoat.RegistrationNumber
+                                </span>
+                            </td>
                         </tr>
                         <tr>
                             <th>Max Passengers</th>
                             <td>@Model.AssignedBoat.MaxPassengers</td>
                         </tr>
-                        <tr>
-                            <th>Life Jackets</th>
-                            <td>@Model.AssignedBoat.LifeJacketQuantity on board</td>
-                        </tr>
+
+                        @if (Model.AssignedBoat.HasLifeJackets)
+                        {
+                            <tr>
+                                <th>Life Jackets</th>
+                                <td><span class="text-success">&#10003; On board</span></td>
+                            </tr>
+                        }
+
                         @if (Model.AssignedBoat.HasMedKit)
                         {
                             <tr>
@@ -136,10 +467,11 @@
                                 <td><span class="text-success">&#10003; On board</span></td>
                             </tr>
                         }
+
                         @if (Model.AssignedBoat.HasFireExtinguisher)
                         {
                             <tr>
-                                <th>Fire Extinguisher</th>
+                                <th>Fire Ext.</th>
                                 <td><span class="text-success">&#10003; On board</span></td>
                             </tr>
                         }
@@ -149,7 +481,6 @@
                 {
                     <div class="alert alert-warning mt-3">
                         You are not currently assigned to a boat.
-                        Please contact your boat owner.
                     </div>
                 }
             </div>
@@ -158,59 +489,302 @@
         <div class="col-md-6">
             <div class="card hc-card p-4 h-100">
                 <h5>&#128100; My Details</h5>
+
                 <table class="table table-sm mt-3">
-                    <tr><th>Name</th><td>@Model.FullName</td></tr>
-                    <tr><th>Email</th><td>@Model.Email</td></tr>
-                    <tr><th>Phone</th><td>@Model.PhoneNumber</td></tr>
-                    <tr><th>License No.</th><td>@Model.LicenseNumber</td></tr>
+                    <tr>
+                        <th>Name</th>
+                        <td>@Model.FullName</td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <th>Phone</th>
+                        <td>@Model.PhoneNumber</td>
+                    </tr>
+                    <tr>
+                        <th>License No.</th>
+                        <td>@Model.LicenseNumber</td>
+                    </tr>
+
                     <tr>
                         <th>Status</th>
                         <td>
                             @if (Model.Status == APDP.Models.DriverStatus.Active)
-                            { <span class="badge bg-success">Active</span> }
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
                             else if (Model.Status == APDP.Models.DriverStatus.Inactive)
-                            { <span class="badge bg-secondary">Inactive</span> }
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
                             else
-                            { <span class="badge bg-danger">Suspended</span> }
+                            {
+                                <span class="badge bg-danger">Suspended</span>
+                            }
                         </td>
                     </tr>
+
                     @if (Model.BoatOwner != null)
                     {
-                        <tr><th>Boat Owner</th><td>@Model.BoatOwner.FullName</td></tr>
+                        <tr>
+                            <th>Boat Owner</th>
+                            <td>@Model.BoatOwner.FullName</td>
+                        </tr>
                     }
                 </table>
             </div>
         </div>
+
     </div>
 
-    @* ── Action Cards ────────────────────────────────────────── *@
+    @* Quick Actions *@
     <div class="row g-3">
+
         <div class="col-md-6">
             <div class="card hc-card p-4">
                 <h5>&#128197; My Trips</h5>
-                <p class="text-muted">View all upcoming and completed trips for your assigned boat.</p>
-                @Html.ActionLink("View My Trips", "MyTrips", "Driver", null, new { @class = "btn btn-primary" })
+                <p class="text-muted">
+                    View all upcoming and completed trips.
+                </p>
+
+                @Html.ActionLink(
+                    "View My Trips",
+                    "MyTrips",
+                    "Driver",
+                    null,
+                    new { @class = "btn btn-primary" }
+                )
             </div>
         </div>
+
         <div class="col-md-6">
             <div class="card hc-card p-4">
                 <h5>&#128100; My Profile</h5>
-                <p class="text-muted">View your driver profile and assignment details.</p>
-                @Html.ActionLink("View Profile", "Profile", "Driver", null, new { @class = "btn btn-outline-secondary" })
+                <p class="text-muted">
+                    View your driver profile and assignment details.
+                </p>
+
+                @Html.ActionLink(
+                    "View Profile",
+                    "Profile",
+                    "Driver",
+                    null,
+                    new { @class = "btn btn-outline-secondary" }
+                )
             </div>
         </div>
+
     </div>
 
     <div class="mt-4">
-        @Html.ActionLink("Logout", "Logout", "Driver", null, new { @class = "btn btn-outline-danger" })
+        @Html.ActionLink(
+            "Logout",
+            "Logout",
+            "Driver",
+            null,
+            new { @class = "btn btn-outline-danger" }
+        )
     </div>
+
 </div>
 
-<style>
-    .hc-active-ride-banner { background: linear-gradient(135deg,#1b5e20,#2e7d32); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
-    .hc-active-ride-banner h5 { color:#fff; }
-    .hc-trip-today    { background: linear-gradient(135deg,#b71c1c,#c62828); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
-    .hc-trip-today h5 { color:#fff; }
-    .hc-trip-upcoming { background: linear-gradient(135deg,#0d47a1,#1565c0); color:#fff; border:none; border-radius:12px; padding:20px 24px; }
-    .hc-trip-upcoming h5 { color:#fff; }
-</style>
+@section scripts {
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Build boat data from the server
+        var boatData = [
+            @foreach (var b in allBoats)
+            {
+                var loc = harbourCoords.ContainsKey(b.HarbourLocation)
+                    ? harbourCoords[b.HarbourLocation]
+                    : "-29.8679,31.0292";
+
+                var parts = loc.Split(',');
+
+                var isRiding = ridesInProgress.Any(r => r.BoatID == b.BoatID);
+                var isAssigned = Model.AssignedBoatID == b.BoatID;
+
+                // Small offset so boats at the same harbour do not overlap
+                var rng = new Random(b.BoatID * 7 + 13);
+                var latOff = (rng.NextDouble() - 0.5) * 0.008;
+                var lngOff = (rng.NextDouble() - 0.5) * 0.008;
+
+                var bLat = (
+                    double.Parse(parts[0], System.Globalization.CultureInfo.InvariantCulture)
+                    + latOff
+                ).ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture);
+
+                var bLng = (
+                    double.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture)
+                    + lngOff
+                ).ToString("0.0000", System.Globalization.CultureInfo.InvariantCulture);
+
+                // FIX: Use a Razor text block to output the JavaScript object.
+                // JSON.Encode safely formats strings for JavaScript.
+                <text>{
+                    lat: @bLat,
+                    lng: @bLng,
+                    name: @Html.Raw(System.Web.Helpers.Json.Encode(b.BoatName ?? "")),
+                    reg: @Html.Raw(System.Web.Helpers.Json.Encode(b.RegistrationNumber ?? "")),
+                    type: @Html.Raw(System.Web.Helpers.Json.Encode(b.BoatType ?? "")),
+                    owner: @Html.Raw(System.Web.Helpers.Json.Encode(
+                        b.BoatOwner == null ? "" : (b.BoatOwner.BusinessName ?? "")
+                    )),
+                    location: @Html.Raw(System.Web.Helpers.Json.Encode(b.HarbourLocation ?? "")),
+                    pax: @b.MaxPassengers,
+                    isRiding: @(isRiding ? "true" : "false"),
+                    isMine: @(isAssigned ? "true" : "false")
+                },</text>
+            }
+        ];
+
+        // Initialise the map
+        var map = L.map('harbourMap').setView([@defLat, @defLng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Harbour boundary circle
+        L.circle([@defLat, @defLng], {
+            color: '#1565c0',
+            fillColor: '#e3f2fd',
+            fillOpacity: 0.15,
+            radius: 800,
+            weight: 2
+        })
+        .addTo(map)
+        .bindTooltip(
+            @Html.Raw(System.Web.Helpers.Json.Encode(harbourLocation)),
+            {
+                permanent: true,
+                direction: 'center',
+                className: 'hc-harbour-label'
+            }
+        );
+
+        // Plot each boat on the map
+        boatData.forEach(function (boat) {
+
+            var colour = boat.isMine
+                ? '#2e7d32'
+                : (boat.isRiding ? '#ff6f00' : '#1565c0');
+
+            var size = boat.isMine ? 42 : 34;
+
+            var icon = L.divIcon({
+                html:
+                    '<div style="font-size:' + (size - 10) +
+                    'px; line-height:1; background:' + colour +
+                    '; color:#fff; border-radius:50%; width:' + size +
+                    'px; height:' + size +
+                    'px; display:flex; align-items:center; justify-content:center;' +
+                    ' border:3px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.35);">' +
+
+                    (boat.isMine
+                        ? '&#128674;'
+                        : (boat.isRiding ? '&#127945;' : '&#9875;')) +
+
+                    '</div>',
+
+                className: '',
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2]
+            });
+
+            var statusText = boat.isMine
+                ? '<span style="color:#2e7d32; font-weight:700;">Your Assigned Boat</span>'
+                : (boat.isRiding
+                    ? '<span style="color:#ff6f00; font-weight:700;">On the water now</span>'
+                    : '<span style="color:#1565c0;">Docked at harbour</span>');
+
+            var popup =
+                '<div style="min-width:180px;">' +
+
+                '<div style="font-weight:700; font-size:1rem; margin-bottom:4px;">' +
+                '&#128674; ' + boat.name + '</div>' +
+
+                '<div style="font-size:0.82rem; color:#555; margin-bottom:2px;">' +
+                'Type: ' + boat.type + '</div>' +
+
+                '<div style="font-size:0.82rem; color:#555; margin-bottom:2px;">' +
+                'Reg: <code>' + boat.reg + '</code></div>' +
+
+                '<div style="font-size:0.82rem; color:#555; margin-bottom:2px;">' +
+                'Owner: ' + boat.owner + '</div>' +
+
+                '<div style="font-size:0.82rem; color:#555; margin-bottom:4px;">' +
+                'Location: ' + boat.location + '</div>' +
+
+                '<div style="font-size:0.82rem; color:#555; margin-bottom:6px;">' +
+                'Max Passengers: ' + boat.pax + '</div>' +
+
+                statusText +
+
+                '</div>';
+
+            L.marker([boat.lat, boat.lng], { icon: icon })
+                .addTo(map)
+                .bindPopup(popup);
+        });
+
+        // Refresh the activity feed every 60 seconds
+        setTimeout(function () {
+            location.reload();
+        }, 60000);
+    </script>
+
+    <style>
+        .hc-active-ride-banner {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+            .hc-active-ride-banner h5 {
+                color: #fff;
+            }
+
+        .hc-trip-today {
+            background: linear-gradient(135deg, #b71c1c, #c62828);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+            .hc-trip-today h5 {
+                color: #fff;
+            }
+
+        .hc-trip-upcoming {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+            .hc-trip-upcoming h5 {
+                color: #fff;
+            }
+
+        .hc-harbour-label {
+            background: rgba(13,44,84,0.75) !important;
+            color: #fff !important;
+            border: none !important;
+            font-weight: 700 !important;
+            font-size: 0.82rem !important;
+            border-radius: 6px !important;
+        }
+    </style>
+}

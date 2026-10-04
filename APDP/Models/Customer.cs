@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APDP.Models
 {
@@ -21,8 +22,8 @@ namespace APDP.Models
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required.")]
-        [RegularExpression(@"^(\+27|0)[6-8][0-9]{8}$",
-            ErrorMessage = "Enter a valid South African number e.g. +27821234567 or 0821234567.")]
+        [RegularExpression(@"^\+?[0-9\s\-]{7,20}$",
+            ErrorMessage = "Enter a valid phone number including country code e.g. +27821234567.")]
         [StringLength(20)]
         [Display(Name = "Phone Number")]
         public string PhoneNumber { get; set; }
@@ -30,7 +31,12 @@ namespace APDP.Models
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
         [DataType(DataType.Password)]
+        [NotMapped]
         public string Password { get; set; }
+
+        // Salted PBKDF2 hash (see Helpers.PasswordHasher); the plain Password is never stored.
+        [StringLength(256)]
+        public string PasswordHash { get; set; }
 
         public DateTime DateRegistered { get; set; }
 

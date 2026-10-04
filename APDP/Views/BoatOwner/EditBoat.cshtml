@@ -1,391 +1,1570 @@
-@model APDP.Models.Boat
+﻿@model APDP.Models.Boat
+
 @{
-    ViewBag.Title = "Edit Boat";
+    ViewBag.Title = "Edit " + Model.BoatName;
+    var recentRatings = ViewBag.RecentRatings as IEnumerable<APDP.Models.BoatRating>;
+
+    // Existing photos
+    var existingPhotos = new[] {
+        new { Path = Model.ImagePath,  Slot = "1" },
+        new { Path = Model.ImagePath2, Slot = "2" },
+        new { Path = Model.ImagePath3, Slot = "3" },
+        new { Path = Model.ImagePath4, Slot = "4" },
+        new { Path = Model.ImagePath5, Slot = "5" },
+        new { Path = Model.ImagePath6, Slot = "6" }
+    }.Where(p => !string.IsNullOrEmpty(p.Path)).ToArray();
+
+    // Existing videos
+    var existingVideos = new[] {
+        new { Path = Model.VideoPath1, Slot = "1" },
+        new { Path = Model.VideoPath2, Slot = "2" },
+        new { Path = Model.VideoPath3, Slot = "3" }
+    }.Where(v => !string.IsNullOrEmpty(v.Path)).ToArray();
+
+    string disabilityDisplay = Model.IsDisabilityFriendly ? "block" : "none";
+
+    string lifeJacketCls = Model.HasLifeJackets
+        ? "hc-tile-checked hc-check-tile-required"
+        : "hc-check-tile-required";
+
+    string medKitCls = Model.HasMedKit ? "hc-tile-checked" : "";
+    string fireExtCls = Model.HasFireExtinguisher ? "hc-tile-checked" : "";
+    string fishingCls = Model.HasFishingEquipment ? "hc-tile-checked" : "";
+    string decorationCls = Model.HasDecoration ? "hc-tile-checked" : "";
+    string soundCls = Model.HasSoundSystem ? "hc-tile-checked" : "";
+
+    int minimumHours = (int)Math.Ceiling(Model.DefaultTripDurationMinutes / 60.0);
+    int maximumHours = Model.MaxBookingHours;
+
+    string durationPreview = (maximumHours <= 0)
+        ? (minimumHours + (minimumHours == 1 ? " hr" : " hrs") + " and above (limited by operating hours)")
+        : minimumHours <= maximumHours
+            ? string.Join(", ", Enumerable.Range(minimumHours, maximumHours - minimumHours + 1)
+                .Select(h => h + (h == 1 ? " hr" : " hrs")))
+            : "Please check the minimum and maximum duration.";
 }
 
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-9">
+<div class="container-fluid py-4 px-3 px-md-4">
 
-            <div class="card hc-form-card">
-                <div class="card-header hc-form-header">
-                    <h4 class="mb-0">&#9998; Edit Boat — @Model.BoatName</h4>
-                    <p class="mb-0 small">Changing the boat name or registration number resets status to Pending for TNPA review.</p>
+    @* Page header *@
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="mb-0">&#9998; Edit: @Model.BoatName</h3>
+            <p class="text-muted small mb-0">
+                Left: customer preview &nbsp;|&nbsp; Right: edit form
+            </p>
+        </div>
+
+        @Html.ActionLink(
+            "Back to My Boats",
+            "MyBoats",
+            "BoatOwner",
+            null,
+            new { @class = "btn btn-outline-secondary" })
+    </div>
+
+    <div class="row g-4 align-items-start">
+
+        @* LEFT COLUMN - customer preview *@
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-dark text-white py-2 px-3">
+                    <strong>&#128100; Customer View</strong>
                 </div>
-                <div class="card-body p-4">
 
-                    @using (Html.BeginForm("EditBoat", "BoatOwner", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                @* Main photo *@
+                @if (!string.IsNullOrEmpty(Model.ImagePath))
+                {
+                    <img src="@Url.Content(Model.ImagePath)"
+                         id="previewMainImg"
+                         style="width:100%; max-height:280px; object-fit:cover;"
+                         alt="@Model.BoatName" />
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-center bg-light"
+                         style="height:180px; font-size:3rem;">
+                        &#128674;
+                    </div>
+                }
+
+                @* All photo thumbnails — show up to 6 *@
+                @{
+                    var previewThumbs = new[] {
+                        Model.ImagePath, Model.ImagePath2, Model.ImagePath3,
+                        Model.ImagePath4, Model.ImagePath5, Model.ImagePath6
+                    }.Where(p => !string.IsNullOrEmpty(p)).ToArray();
+
+                    var previewVids = new[] { Model.VideoPath1, Model.VideoPath2, Model.VideoPath3 }
+                        .Where(v => !string.IsNullOrEmpty(v)).ToArray();
+                }
+
+                @if (previewThumbs.Length > 1)
+                {
+                    <div class="d-flex flex-wrap gap-2 px-3 pt-2 pb-1">
+                        @foreach (var tp in previewThumbs)
+                        {
+                            string activeClass = (tp == Model.ImagePath) ? "hc-thumb active" : "hc-thumb";
+                            <img src="@Url.Content(tp)"
+                                 class="@activeClass"
+                                 onclick="switchPreview(this, '@Url.Content(tp)')"
+                                 alt="Photo" />
+                        }
+                    </div>
+                }
+
+                @* Videos *@
+                @if (previewVids.Length > 0)
+                {
+                    <div class="px-3 pt-2 pb-1">
+                        <p class="small fw-semibold mb-1">&#127909; Videos (@previewVids.Length)</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var vp in previewVids)
+                            {
+                                <video src="@Url.Content(vp)"
+                                       style="width:160px; height:100px; object-fit:contain; background:#000; border-radius:6px;"
+                                       controls muted playsinline></video>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="card-body p-3">
+
+                    @* Name, type, price and rating *@
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="mb-1">@Model.BoatName</h5>
+
+                            <p class="text-muted small mb-1">
+                                @Model.BoatType &bull; @Model.HarbourLocation
+                            </p>
+
+                            <span class="badge bg-dark">
+                                Reg: @Model.RegistrationNumber
+                            </span>
+                        </div>
+
+                        <div class="text-end">
+                            <div class="fw-bold text-primary fs-5">
+                                R @Model.PriceAdult.ToString("N2")
+                                <small class="text-muted fs-6 fw-normal">/hr adult</small>
+                            </div>
+
+                            <small class="text-muted">
+                                R @Model.PriceChild.ToString("N2")/hr child (2-15)
+                            </small>
+
+                            @if (Model.TotalRatings > 0)
+                            {
+                                <div class="hc-star-block mt-1">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        string starCls =
+                                            s <= (int)Math.Round(Model.AverageRating)
+                                            ? "hc-star filled"
+                                            : "hc-star";
+
+                                        <span class="@starCls">&#9733;</span>
+                                    }
+                                </div>
+
+                                <small class="text-muted">
+                                    @Model.AverageRating.ToString("0.0") / 5
+                                    (@Model.TotalRatings)
+                                </small>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="small mb-2">@Model.Description</p>
+                    }
+
+                    @* Boat specifications *@
+                    <div class="row small mb-2">
+                        <div class="col-6">
+                            <strong>Max Passengers:</strong> @Model.MaxPassengers
+                        </div>
+
+                        <div class="col-6">
+                            <strong>Location:</strong> @Model.HarbourLocation
+                        </div>
+                    </div>
+
+                    @* Safety equipment *@
+                    @if (Model.HasLifeJackets ||
+                         Model.HasMedKit ||
+                         Model.HasFireExtinguisher)
+                    {
+                        <p class="fw-semibold small mb-1">
+                            &#9875; Safety Equipment
+                        </p>
+
+                        <ul class="list-unstyled small mb-2">
+                            @if (Model.HasLifeJackets)
+                            {
+                                <li class="text-success">
+                                    &#10003; Life Jackets on board
+                                </li>
+                            }
+
+                            @if (Model.HasMedKit)
+                            {
+                                <li class="text-success">
+                                    &#10003; Medical Kit on board
+                                </li>
+                            }
+
+                            @if (Model.HasFireExtinguisher)
+                            {
+                                <li class="text-success">
+                                    &#10003; Fire Extinguisher on board
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    @* Paid extras *@
+                    @if (Model.Extras != null && Model.Extras.Any())
+                    {
+                        <p class="fw-semibold small mb-1">
+                            &#127775; Paid Extras
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            @foreach (var extra in Model.Extras)
+                            {
+                                <span class="badge bg-success px-2 py-1">
+                                    @extra.Name &mdash; R @extra.Price.ToString("N2")
+                                </span>
+                            }
+                        </div>
+                    }
+
+                    @* Disability accommodation *@
+                    @if (!string.IsNullOrEmpty(Model.DisabilityAccommodation))
+                    {
+                        <div class="alert alert-primary py-1 px-2 small mb-2">
+                            &#9855; @Model.DisabilityAccommodation
+                        </div>
+                    }
+
+                    @* Customer reviews *@
+                    @if (Model.TotalRatings > 0 &&
+                         recentRatings != null &&
+                         recentRatings.Any())
+                    {
+                        <p class="fw-semibold small mb-1">
+                            &#11088; Recent Reviews
+                        </p>
+
+                        foreach (var r in recentRatings)
+                        {
+                            <div class="border-bottom pb-1 mb-1">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="small">
+                                        @r.Customer.FullName
+                                    </strong>
+
+                                    <small class="text-muted">
+                                        @r.DateRated.ToString("dd MMM yyyy")
+                                    </small>
+                                </div>
+
+                                <div class="hc-star-block">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        string rStarCls =
+                                            s <= r.Stars
+                                            ? "hc-star filled"
+                                            : "hc-star";
+
+                                        <span class="@rStarCls"
+                                              style="font-size:0.85rem;">
+                                            &#9733;
+                                        </span>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(r.Comment))
+                                {
+                                    <p class="small text-muted mb-0">
+                                        &ldquo;@r.Comment&rdquo;
+                                    </p>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">
+                            No customer reviews yet.
+                        </p>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        @* RIGHT COLUMN - edit form *@
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+
+                <div class="card-header hc-form-header py-2 px-3">
+                    <strong>&#9998; Edit Form</strong>
+                </div>
+
+                <div class="card-body p-3">
+
+                    @using (Html.BeginForm(
+                        "EditBoat",
+                        "BoatOwner",
+                        FormMethod.Post,
+                        new { enctype = "multipart/form-data" }))
                     {
                         @Html.AntiForgeryToken()
+
                         @Html.HiddenFor(m => m.BoatID)
-                        @Html.ValidationSummary(true, "Please fix the following errors:", new { @class = "alert alert-danger" })
+                        @Html.HiddenFor(m => m.HarbourLocation)
+                        @Html.HiddenFor(m => m.AverageRating)
+                        @Html.HiddenFor(m => m.TotalRatings)
+                        @Html.HiddenFor(m => m.DateAdded)
+                        @Html.HiddenFor(m => m.BoatOwnerID)
 
-                        @* ── Boat Details ──────────────────────────────────────── *@
+                        if (!ViewData.ModelState.IsValid)
+                        {
+                            @Html.ValidationSummary(
+                                true,
+                                "Please fix the errors below:",
+                                new { @class = "alert alert-danger" })
+                        }
+
+                        @* Boat details *@
                         <h6 class="hc-form-section-title">Boat Details</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.BoatName, new { @class = "form-label fw-semibold" })
-                                @Html.TextBoxFor(m => m.BoatName, new { @class = "form-control" })
-                                @Html.ValidationMessageFor(m => m.BoatName, "", new { @class = "text-danger small" })
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.RegistrationNumber, new { @class = "form-label fw-semibold" })
-                                <div class="input-group">
-                                    <span class="input-group-text">&#128273;</span>
-                                    @Html.TextBoxFor(m => m.RegistrationNumber, new { @class = "form-control", maxlength = "50" })
-                                </div>
-                                @Html.ValidationMessageFor(m => m.RegistrationNumber, "", new { @class = "text-danger small" })
-                                <small class="text-muted">&#128273; <strong>Primary key</strong></small>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.BoatType, new { @class = "form-label fw-semibold" })
-                                @Html.DropDownListFor(m => m.BoatType,
-                                    new SelectList(new[] { "Fishing Boat", "Leisure Cruiser", "Speed Boat", "Yacht", "Catamaran", "Party Boat", "Other" }, Model.BoatType),
-                                    "-- Select Boat Type --",
-                                    new { @class = "form-select" })
-                                @Html.ValidationMessageFor(m => m.BoatType, "", new { @class = "text-danger small" })
-                            </div>
-                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                @Html.LabelFor(
+                                    m => m.BoatName,
+                                    new { @class = "form-label fw-semibold small" })
 
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.Description, new { @class = "form-label fw-semibold" })
-                            @Html.TextAreaFor(m => m.Description, 3, 0, new { @class = "form-control" })
-                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "text-danger small" })
-                        </div>
+                                @Html.TextBoxFor(
+                                    m => m.BoatName,
+                                    new { @class = "form-control form-control-sm" })
 
-                        @* ── Capacity & Pricing ────────────────────────────────── *@
-                        <h6 class="hc-form-section-title mt-3">Capacity &amp; Pricing</h6>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.MaxPassengers, new { @class = "form-label fw-semibold" })
-                                @Html.TextBoxFor(m => m.MaxPassengers, new { @class = "form-control", type = "number", min = "1" })
-                                @Html.ValidationMessageFor(m => m.MaxPassengers, "", new { @class = "text-danger small" })
+                                @Html.ValidationMessageFor(
+                                    m => m.BoatName,
+                                    "",
+                                    new { @class = "text-danger small" })
                             </div>
-                            <div class="col-md-6 mb-3">
-                                @Html.LabelFor(m => m.PricePerTrip, new { @class = "form-label fw-semibold" })
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold">R</span>
-                                    @Html.TextBoxFor(m => m.PricePerTrip, new { @class = "form-control", type = "number", min = "0", step = "1" })
-                                </div>
-                                @Html.ValidationMessageFor(m => m.PricePerTrip, "", new { @class = "text-danger small" })
+
+                            <div class="col-md-6">
+                                @Html.LabelFor(
+                                    m => m.RegistrationNumber,
+                                    new { @class = "form-label fw-semibold small" })
+
+                                @Html.TextBoxFor(
+                                    m => m.RegistrationNumber,
+                                    new
+                                    {
+                                        @class = "form-control form-control-sm",
+                                        maxlength = "50"
+                                    })
+
+                                @Html.ValidationMessageFor(
+                                    m => m.RegistrationNumber,
+                                    "",
+                                    new { @class = "text-danger small" })
                             </div>
                         </div>
 
-                        @* ── Safety Equipment ──────────────────────────────────── *@
-                        <h6 class="hc-form-section-title mt-3">&#9875; Safety Equipment</h6>
-                        <p class="text-muted small mb-3">Upload a new photo to replace the existing one, or leave blank to keep it.</p>
+                        <div class="mb-2">
+                            @Html.LabelFor(
+                                m => m.BoatType,
+                                new { @class = "form-label fw-semibold small" })
 
-                        <div class="row g-3 mb-3">
+                            @Html.DropDownListFor(
+                                m => m.BoatType,
+                                new SelectList(
+                                    new[]
+                                    {
+                                        "Fishing Boat",
+                                        "Leisure Cruiser",
+                                        "Speed Boat",
+                                        "Yacht",
+                                        "Catamaran",
+                                        "Party Boat",
+                                        "Other"
+                                    },
+                                    Model.BoatType),
+                                "-- Select Type --",
+                                new { @class = "form-select form-select-sm" })
 
-                            @* Life Jackets *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card hc-eq-always" style="cursor:default;">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.LifeJacketImagePath))
-                                        {
-                                            <img id="prev_lj" src="@Url.Content(Model.LifeJacketImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Life Jacket" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_lj" src="https://cdn-icons-png.flaticon.com/512/2972/2972158.png"
-                                                 class="hc-eq-img" alt="Life Jacket" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Life Jackets</div>
-                                    <div class="mt-2 px-2 w-100">
-                                        @Html.LabelFor(m => m.LifeJacketQuantity, "Quantity", new { @class = "form-label small mb-1" })
-                                        @Html.TextBoxFor(m => m.LifeJacketQuantity, new { @class = "form-control form-control-sm text-center", type = "number", min = "0" })
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.LifeJacketImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqLifeJacket" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_lj','https://cdn-icons-png.flaticon.com/512/2972/2972158.png')" />
-                                    </div>
-                                    <div class="hc-eq-required-badge">Required</div>
-                                </div>
-                            </div>
-
-                            @* Medical Kit *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card @(Model.HasMedKit ? "hc-eq-active" : "")"
-                                     id="medKitCard" onclick="toggleEquipment('HasMedKit','medKitCard','medKitStatus','On board')">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.MedKitImagePath))
-                                        {
-                                            <img id="prev_mk" src="@Url.Content(Model.MedKitImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Medical Kit" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_mk" src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png"
-                                                 class="hc-eq-img" alt="Medical Kit" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Medical Kit</div>
-                                    @Html.CheckBoxFor(m => m.HasMedKit, new { @class = "d-none", id = "HasMedKit" })
-                                    <div class="hc-eq-status" id="medKitStatus">
-                                        @(Model.HasMedKit ? "&#10003; On board" : "Click to add")
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.MedKitImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqMedKit" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_mk','https://cdn-icons-png.flaticon.com/512/2966/2966327.png')" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Fire Extinguisher *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card @(Model.HasFireExtinguisher ? "hc-eq-active" : "")"
-                                     id="fireCard" onclick="toggleEquipment('HasFireExtinguisher','fireCard','fireStatus','On board')">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.FireExtImagePath))
-                                        {
-                                            <img id="prev_fe" src="@Url.Content(Model.FireExtImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Fire Extinguisher" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_fe" src="https://cdn-icons-png.flaticon.com/512/3774/3774278.png"
-                                                 class="hc-eq-img" alt="Fire Extinguisher" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Fire Extinguisher</div>
-                                    @Html.CheckBoxFor(m => m.HasFireExtinguisher, new { @class = "d-none", id = "HasFireExtinguisher" })
-                                    <div class="hc-eq-status" id="fireStatus">
-                                        @(Model.HasFireExtinguisher ? "&#10003; On board" : "Click to add")
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.FireExtImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqFireExt" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_fe','https://cdn-icons-png.flaticon.com/512/3774/3774278.png')" />
-                                    </div>
-                                </div>
-                            </div>
-
+                            @Html.ValidationMessageFor(
+                                m => m.BoatType,
+                                "",
+                                new { @class = "text-danger small" })
                         </div>
 
-                        @* ── Features & Extras ────────────────────────────────── *@
-                        <h6 class="hc-form-section-title mt-3">&#127775; Features &amp; Extras</h6>
-                        <div class="row g-3 mb-3">
+                        <div class="mb-2">
+                            @Html.LabelFor(
+                                m => m.Description,
+                                new { @class = "form-label fw-semibold small" })
 
-                            @* Fishing Equipment *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card @(Model.HasFishingEquipment ? "hc-eq-active" : "")"
-                                     id="fishCard" onclick="toggleEquipment('HasFishingEquipment','fishCard','fishStatus','Available')">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.FishingImagePath))
-                                        {
-                                            <img id="prev_fish" src="@Url.Content(Model.FishingImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Fishing Equipment" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_fish" src="https://cdn-icons-png.flaticon.com/512/1988/1988592.png"
-                                                 class="hc-eq-img" alt="Fishing Equipment" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Fishing Equipment</div>
-                                    @Html.CheckBoxFor(m => m.HasFishingEquipment, new { @class = "d-none", id = "HasFishingEquipment" })
-                                    <div class="hc-eq-status" id="fishStatus">
-                                        @(Model.HasFishingEquipment ? "&#10003; Available" : "Click to add")
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.FishingImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqFishing" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_fish','https://cdn-icons-png.flaticon.com/512/1988/1988592.png')" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Decoration *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card @(Model.HasDecoration ? "hc-eq-active" : "")"
-                                     id="decorCard" onclick="toggleEquipment('HasDecoration','decorCard','decorStatus','Available')">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.DecorationImagePath))
-                                        {
-                                            <img id="prev_dec" src="@Url.Content(Model.DecorationImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Decoration" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_dec" src="https://cdn-icons-png.flaticon.com/512/3050/3050434.png"
-                                                 class="hc-eq-img" alt="Decoration" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Decoration</div>
-                                    @Html.CheckBoxFor(m => m.HasDecoration, new { @class = "d-none", id = "HasDecoration" })
-                                    <div class="hc-eq-status" id="decorStatus">
-                                        @(Model.HasDecoration ? "&#10003; Available" : "Click to add")
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.DecorationImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqDecoration" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_dec','https://cdn-icons-png.flaticon.com/512/3050/3050434.png')" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            @* Sound System *@
-                            <div class="col-md-4">
-                                <div class="hc-eq-card @(Model.HasSoundSystem ? "hc-eq-active" : "")"
-                                     id="soundCard" onclick="toggleEquipment('HasSoundSystem','soundCard','soundStatus','Available')">
-                                    <div class="hc-eq-img-wrap">
-                                        @if (!string.IsNullOrEmpty(Model.SoundSystemImagePath))
-                                        {
-                                            <img id="prev_snd" src="@Url.Content(Model.SoundSystemImagePath)"
-                                                 class="hc-eq-img hc-eq-uploaded" alt="Sound System" />
-                                        }
-                                        else
-                                        {
-                                            <img id="prev_snd" src="https://cdn-icons-png.flaticon.com/512/2972/2972531.png"
-                                                 class="hc-eq-img" alt="Sound System" />
-                                        }
-                                    </div>
-                                    <div class="hc-eq-name">Sound System</div>
-                                    @Html.CheckBoxFor(m => m.HasSoundSystem, new { @class = "d-none", id = "HasSoundSystem" })
-                                    <div class="hc-eq-status" id="soundStatus">
-                                        @(Model.HasSoundSystem ? "&#10003; Available" : "Click to add")
-                                    </div>
-                                    <div class="hc-eq-upload mt-2 w-100 px-2" onclick="event.stopPropagation()">
-                                        <label class="form-label small mb-1">
-                                            &#128247; @(string.IsNullOrEmpty(Model.SoundSystemImagePath) ? "Upload photo" : "Replace photo")
-                                        </label>
-                                        <input type="file" name="eqSoundSystem" class="form-control form-control-sm"
-                                               accept=".jpg,.jpeg,.png,.gif"
-                                               onchange="previewEq(this,'prev_snd','https://cdn-icons-png.flaticon.com/512/2972/2972531.png')" />
-                                    </div>
-                                </div>
-                            </div>
-
+                            @Html.TextAreaFor(
+                                m => m.Description,
+                                3,
+                                0,
+                                new { @class = "form-control form-control-sm" })
                         </div>
 
-                        @* ── Disability Accommodation ──────────────────────────── *@
-                        <h6 class="hc-form-section-title mt-3">&#9855; Disability Accommodation</h6>
-                        <div class="mb-3">
-                            @Html.LabelFor(m => m.DisabilityAccommodation, new { @class = "form-label fw-semibold" })
-                            @Html.TextAreaFor(m => m.DisabilityAccommodation, 3, 0, new
+                        @* Capacity and pricing *@
+                        <h6 class="hc-form-section-title mt-3">
+                            Capacity &amp; Hourly Pricing
+                        </h6>
+
+                        <p class="text-muted small mb-2">
+                            Total = passengers &times; hourly rate &times; hours booked.
+                        </p>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                @Html.LabelFor(
+                                    m => m.MaxPassengers,
+                                    new { @class = "form-label fw-semibold small" })
+
+                                @Html.TextBoxFor(
+                                    m => m.MaxPassengers,
+                                    new
+                                    {
+                                        @class = "form-control form-control-sm",
+                                        type = "number",
+                                        min = "1"
+                                    })
+
+                                @Html.ValidationMessageFor(
+                                    m => m.MaxPassengers,
+                                    "",
+                                    new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">
+                                    Adult Rate (R/hr)
+                                </label>
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R</span>
+
+                                    @Html.TextBoxFor(
+                                        m => m.PriceAdult,
+                                        new
+                                        {
+                                            @class = "form-control",
+                                            type = "number",
+                                            min = "0",
+                                            step = "any"
+                                        })
+
+                                    <span class="input-group-text text-muted">/hr</span>
+                                </div>
+
+                                <small class="text-muted">16+ years</small>
+
+                                @Html.ValidationMessageFor(
+                                    m => m.PriceAdult,
+                                    "",
+                                    new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small">
+                                    Child Rate (R/hr)
+                                </label>
+
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">R</span>
+
+                                    @Html.TextBoxFor(
+                                        m => m.PriceChild,
+                                        new
+                                        {
+                                            @class = "form-control",
+                                            type = "number",
+                                            min = "0",
+                                            step = "any"
+                                        })
+
+                                    <span class="input-group-text text-muted">/hr</span>
+                                </div>
+
+                                <small class="text-muted">2 - 15 years</small>
+
+                                @Html.ValidationMessageFor(
+                                    m => m.PriceChild,
+                                    "",
+                                    new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        @* Trip duration *@
+                        <div class="col-md-10 mt-2">
+                            <label class="form-label fw-semibold small">
+                                Trip Duration Options
+                            </label>
+
+                            <p class="text-muted small mb-2">
+                                Set the minimum and maximum hours customers may book.
+                            </p>
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">
+                                        Minimum
+                                        <span class="text-muted fw-normal">
+                                            (shortest trip)
+                                        </span>
+                                    </label>
+
+                                    <div class="d-flex flex-wrap gap-2"
+                                         id="editMinDurGroup">
+
+                                        @foreach (var opt in new[]
+                                        {
+                                            new { Val = 60, Label = "1 hr" },
+                                            new { Val = 120, Label = "2 hrs" },
+                                            new { Val = 180, Label = "3 hrs" },
+                                            new { Val = 240, Label = "4 hrs" }
+                                        })
+                                        {
+                                            string minSel =
+                                                Model.DefaultTripDurationMinutes == opt.Val
+                                                ? "hc-slot-selected"
+                                                : "";
+
+                                            <label class="hc-slot-btn @minSel"
+                                                   style="cursor:pointer;">
+
+                                                @Html.RadioButtonFor(
+                                                    m => m.DefaultTripDurationMinutes,
+                                                    opt.Val,
+                                                    new
+                                                    {
+                                                        @class = "hc-slot-radio",
+                                                        id = "editMinDur_" + opt.Val,
+                                                        onchange = "validateEditDurationRange()"
+                                                    })
+
+                                                @opt.Label
+                                            </label>
+                                        }
+                                    </div>
+
+                                    @Html.ValidationMessageFor(
+                                        m => m.DefaultTripDurationMinutes,
+                                        "",
+                                        new
+                                        {
+                                            @class = "text-danger small d-block mt-1"
+                                        })
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">
+                                        Maximum
+                                        <span class="text-muted fw-normal">
+                                            (longest trip — optional)
+                                        </span>
+                                    </label>
+
+                                    <div class="d-flex flex-wrap gap-2"
+                                         id="editMaxDurGroup">
+
+                                        @* 0 = no limit *@
+                                        @{
+                                            string noLimitSel = (Model.MaxBookingHours == 0) ? "hc-slot-selected" : "";
+                                        }
+                                        <label class="hc-slot-btn @noLimitSel" style="cursor:pointer;">
+                                            @Html.RadioButtonFor(m => m.MaxBookingHours, 0,
+                                                new { @class = "hc-slot-radio", id = "editMaxDur_0", onchange = "validateEditDurationRange()" })
+                                            No limit
+                                        </label>
+
+                                        @foreach (var opt in new[]
+                                        {
+                                            new { Val = 1, Label = "1 hr" },
+                                            new { Val = 2, Label = "2 hrs" },
+                                            new { Val = 3, Label = "3 hrs" },
+                                            new { Val = 4, Label = "4 hrs" },
+                                            new { Val = 6, Label = "6 hrs" },
+                                            new { Val = 8, Label = "8 hrs" }
+                                        })
+                                        {
+                                            string maxSel =
+                                                Model.MaxBookingHours == opt.Val
+                                                ? "hc-slot-selected"
+                                                : "";
+
+                                            <label class="hc-slot-btn @maxSel"
+                                                   style="cursor:pointer;">
+
+                                                @Html.RadioButtonFor(
+                                                    m => m.MaxBookingHours,
+                                                    opt.Val,
+                                                    new
+                                                    {
+                                                        @class = "hc-slot-radio",
+                                                        id = "editMaxDur_" + opt.Val,
+                                                        onchange = "validateEditDurationRange()"
+                                                    })
+
+                                                @opt.Label
+                                            </label>
+                                        }
+                                    </div>
+
+                                    @Html.ValidationMessageFor(
+                                        m => m.MaxBookingHours,
+                                        "",
+                                        new
+                                        {
+                                            @class = "text-danger small d-block mt-1"
+                                        })
+
+                                    <div id="editDurationRangeError"
+                                         class="text-danger small mt-1"
+                                         style="display:none;">
+                                        Maximum must be equal to or greater than minimum.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-light border mt-2 py-2 small">
+                                Customers will choose:
+                                <strong id="editDurationPreviewText">
+                                    @durationPreview
+                                </strong>
+                            </div>
+                        </div>
+
+                        @* ── Weekly Timetable ─────────────────────────────── *@
+                        <div class="col-md-10 mt-2 mb-3">
+                            @Html.Partial("_WeeklyTimetable", (List<APDP.Helpers.DayHours>)ViewBag.Week,
+                                new ViewDataDictionary { { "BufferMinutes", Model.BufferMinutes } })
+                        </div>
+
+                        @* Safety equipment *@
+                        <h6 class="hc-form-section-title mt-3">
+                            &#9875; Safety Equipment
+                        </h6>
+
+                        @* Use the variables declared at the top of this view.
+                            Do not declare them again inside this form. *@
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <label class="hc-check-tile @lifeJacketCls">
+                                    @Html.CheckBoxFor(
+                                        m => m.HasLifeJackets,
+                                        new
+                                        {
+                                            @class = "hc-tile-cb",
+                                            id = "HasLifeJackets"
+                                        })
+
+                                    <span class="hc-tile-body">
+                                        <span class="hc-tile-icon">&#129399;</span>
+
+                                        <span class="hc-tile-name">
+                                            Life Jackets
+                                            <span class="badge bg-danger ms-1"
+                                                  style="font-size:0.6rem;">
+                                                Required
+                                            </span>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="hc-check-tile @medKitCls">
+                                    @Html.CheckBoxFor(
+                                        m => m.HasMedKit,
+                                        new
+                                        {
+                                            @class = "hc-tile-cb",
+                                            id = "HasMedKit"
+                                        })
+
+                                    <span class="hc-tile-body">
+                                        <span class="hc-tile-icon">&#129657;</span>
+                                        <span class="hc-tile-name">Medical Kit</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="hc-check-tile @fireExtCls">
+                                    @Html.CheckBoxFor(
+                                        m => m.HasFireExtinguisher,
+                                        new
+                                        {
+                                            @class = "hc-tile-cb",
+                                            id = "HasFireExtinguisher"
+                                        })
+
+                                    <span class="hc-tile-body">
+                                        <span class="hc-tile-icon">&#128293;</span>
+                                        <span class="hc-tile-name">Fire Extinguisher</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        @* Paid extras *@
+                        <h6 class="hc-form-section-title mt-3">
+                            &#127775; Paid Extras
+                        </h6>
+
+                        <p class="text-muted small mb-2">
+                            Optional items customers can add at booking, each with a name and price.
+                        </p>
+
+                        <div id="extrasContainer">
+                            @if (Model.Extras != null)
                             {
-                                @class      = "form-control",
-                                placeholder = "e.g. Wheelchair ramp, wide boarding platform. Leave blank if none."
-                            })
-                            @Html.ValidationMessageFor(m => m.DisabilityAccommodation, "", new { @class = "text-danger small" })
+                                foreach (var extra in Model.Extras)
+                                {
+                                    string priceVal =
+                                        extra.Price.ToString(
+                                            "0.00",
+                                            System.Globalization.CultureInfo.InvariantCulture);
+
+                                    <div class="hc-extra-row d-flex gap-2 align-items-center mb-2"
+                                         id="extra_db_@extra.ExtraID">
+
+                                        <input type="text"
+                                               name="extraName"
+                                               class="form-control form-control-sm"
+                                               value="@extra.Name"
+                                               placeholder="Extra name"
+                                               required />
+
+                                        <div class="input-group input-group-sm"
+                                             style="max-width:140px;">
+
+                                            <span class="input-group-text">R</span>
+
+                                            <input type="number"
+                                                   name="extraPrice"
+                                                   class="form-control"
+                                                   value="@priceVal"
+                                                   min="0"
+                                                   step="any"
+                                                   required />
+                                        </div>
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-sm"
+                                                onclick="this.closest('.hc-extra-row').remove()">
+                                            &#10005;
+                                        </button>
+                                    </div>
+                                }
+                            }
                         </div>
 
-                        @* ── Boat Photos ───────────────────────────────────────── *@
-                        <h6 class="hc-form-section-title mt-3">Boat Photos</h6>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Main Photo</label>
-                                @if (!string.IsNullOrEmpty(Model.ImagePath))
-                                {
-                                    <img src="@Url.Content(Model.ImagePath)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current main" />
-                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
-                                }
-                                <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Side View Photo</label>
-                                @if (!string.IsNullOrEmpty(Model.ImagePath2))
-                                {
-                                    <img src="@Url.Content(Model.ImagePath2)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current side" />
-                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
-                                }
-                                <input type="file" name="imageFile2" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Interior Photo</label>
-                                @if (!string.IsNullOrEmpty(Model.ImagePath3))
-                                {
-                                    <img src="@Url.Content(Model.ImagePath3)" class="img-thumbnail d-block mb-1" style="max-height:90px;" alt="Current interior" />
-                                    <small class="text-muted d-block mb-1">Upload new to replace</small>
-                                }
-                                <input type="file" name="imageFile3" class="form-control" accept=".jpg,.jpeg,.png,.gif" />
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm mt-1 mb-3"
+                                onclick="addExtraRow()">
+                            + Add Extra
+                        </button>
+
+                        @* Disability accommodation *@
+                        <h6 class="hc-form-section-title mt-3">
+                            &#9855; Disability Accommodation
+                        </h6>
+
+                        <div class="mb-2">
+                            <label class="hc-check-tile" style="max-width:480px;">
+
+                                @Html.CheckBoxFor(
+                                    m => m.IsDisabilityFriendly,
+                                    new
+                                    {
+                                        @class = "hc-tile-cb",
+                                        id = "IsDisabilityFriendly",
+                                        onchange = "toggleDisabilityDetails(this)"
+                                    })
+
+                                <span class="hc-tile-body">
+                                    <span class="hc-tile-icon">&#9855;</span>
+
+                                    <span class="hc-tile-name">
+                                        This boat accommodates people with disabilities
+                                    </span>
+                                </span>
+                            </label>
+
+                            <div id="disabilityDetails"
+                                 style="display:@disabilityDisplay;"
+                                 class="mt-2">
+
+                                <label class="form-label fw-semibold small">
+                                    Describe the accessibility features
+                                </label>
+
+                                @Html.TextAreaFor(
+                                    m => m.DisabilityAccommodation,
+                                    2,
+                                    0,
+                                    new
+                                    {
+                                        @class = "form-control form-control-sm",
+                                        placeholder = "e.g. wheelchair ramp, wide boarding platform, accessible seating"
+                                    })
                             </div>
                         </div>
 
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
-                            @Html.ActionLink("Cancel", "MyBoats", "BoatOwner", null, new { @class = "btn btn-outline-secondary btn-lg" })
+                        @* Boat photos and videos *@
+                        <h6 class="hc-form-section-title mt-3">
+                            &#128247; Boat Photos &amp; Videos
+                        </h6>
+
+                        <p class="text-muted small mb-2">
+                            New uploads are added alongside existing media.
+                            Existing files stay unless you delete them.
+                        </p>
+
+                        @* Photos *@
+                        <p class="text-muted small mb-2">
+                            &#128247; <strong>Photos</strong> — JPG, PNG, WEBP
+                            &nbsp;|&nbsp; Up to 6 total
+                        </p>
+
+                        @* FIX: no @ before if inside the Html.BeginForm code block *@
+                        if (existingPhotos.Length > 0)
+                        {
+                            <p class="small text-muted mb-1">
+                                Current photos — already saved:
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-3 mb-3">
+                                @foreach (var ep in existingPhotos)
+                                {
+                                    <div class="hc-thumb-wrap">
+                                        <img src="@Url.Content(ep.Path)"
+                                             class="hc-thumb-img"
+                                             alt="Photo @ep.Slot" />
+
+                                        <small class="d-block text-center text-muted mt-1"
+                                               style="font-size:0.7rem;">
+                                            Photo @ep.Slot
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <input type="file"
+                               id="editPhotoFileInput"
+                               name="boatPhotos"
+                               accept=".jpg,.jpeg,.png,.gif,.webp"
+                               multiple
+                               class="d-none" />
+
+                        <div class="hc-upload-zone mb-2" id="editPhotoDropZone">
+                            <p class="text-muted small mb-2">
+                                Add new photos.
+                            </p>
+
+                            <button type="button"
+                                    class="btn btn-primary btn-sm px-4"
+                                    onclick="document.getElementById('editPhotoFileInput').click()">
+                                &#128247; Upload photos
+                            </button>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-3 mt-3"
+                             id="editPhotoThumbGrid"></div>
+
+                        @* Videos *@
+                        <p class="text-muted small mt-4 mb-2">
+                            &#127909; <strong>Videos</strong> — MP4, MOV, AVI, WEBM
+                            &nbsp;|&nbsp; Up to 3 total
+                        </p>
+
+                        @* FIX: no @ before if inside the Html.BeginForm code block *@
+                        if (existingVideos.Length > 0)
+                        {
+                            <p class="small text-muted mb-1">
+                                Current videos — already saved:
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-3 mb-3">
+                                @foreach (var ev in existingVideos)
+                                {
+                                    <div class="hc-thumb-wrap">
+                                        <video src="@Url.Content(ev.Path)"
+                                               class="hc-thumb-img"
+                                               style="object-fit:contain; background:#000;"
+                                               controls
+                                               muted
+                                               playsinline>
+                                        </video>
+
+                                        <small class="d-block text-center text-muted mt-1"
+                                               style="font-size:0.7rem;">
+                                            Video @ev.Slot
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <input type="file"
+                               id="editVideoFileInput"
+                               name="boatVideos"
+                               accept=".mp4,.mov,.avi,.webm"
+                               multiple
+                               class="d-none" />
+
+                        <div class="hc-upload-zone mb-2" id="editVideoDropZone">
+                            <p class="text-muted small mb-2">
+                                Add new videos.
+                            </p>
+
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-sm px-4"
+                                    onclick="document.getElementById('editVideoFileInput').click()">
+                                &#127909; Upload videos
+                            </button>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-3 mt-3"
+                             id="editVideoThumbGrid"></div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                Save Changes
+                            </button>
+
+                            @Html.ActionLink(
+                                "Cancel",
+                                "MyBoats",
+                                "BoatOwner",
+                                null,
+                                new { @class = "btn btn-outline-secondary" })
                         </div>
                     }
 
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
 @section scripts {
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
+
     <script>
-        function previewEq(input, imgId, fallbackSrc) {
+        // Photo gallery switcher
+        function switchPreview(thumb, src) {
+            var mainImage = document.getElementById('previewMainImg');
+
+            if (mainImage) {
+                mainImage.src = src;
+            }
+
+            document.querySelectorAll('.hc-thumb').forEach(function (t) {
+                t.classList.remove('active');
+            });
+
+            thumb.classList.add('active');
+        }
+
+        // Validate minimum and maximum trip duration
+        function validateEditDurationRange() {
+            var minSelected = document.querySelector(
+                'input[name="DefaultTripDurationMinutes"]:checked'
+            );
+
+            var maxSelected = document.querySelector(
+                'input[name="MaxBookingHours"]:checked'
+            );
+
+            var error = document.getElementById('editDurationRangeError');
+            var preview = document.getElementById('editDurationPreviewText');
+
+            var minHours = minSelected
+                ? parseInt(minSelected.value, 10) / 60
+                : 1;
+
+            var maxHours = maxSelected
+                ? parseInt(maxSelected.value, 10)
+                : 0; // 0 = no limit
+
+            // No limit selected — always valid, show open-ended message
+            if (maxHours === 0) {
+                if (error)   error.style.display = 'none';
+                if (preview) preview.textContent  = minHours + (minHours === 1 ? ' hr' : ' hrs') + ' and above (limited by operating hours)';
+
+                document.querySelectorAll('#editMinDurGroup .hc-slot-btn, #editMaxDurGroup .hc-slot-btn').forEach(function(lbl) {
+                    var r = lbl.querySelector('input[type="radio"]');
+                    if (r) lbl.classList.toggle('hc-slot-selected', r.checked);
+                });
+                return true;
+            }
+
+            var isValid = minHours <= maxHours;
+
+            if (error) {
+                error.style.display = isValid ? 'none' : 'block';
+            }
+
+            if (preview) {
+                if (isValid) {
+                    var choices = [];
+
+                    for (var h = minHours; h <= maxHours; h++) {
+                        choices.push(h + (h === 1 ? ' hr' : ' hrs'));
+                    }
+
+                    preview.textContent = choices.join(', ');
+                } else {
+                    preview.textContent = 'Please check the minimum and maximum duration.';
+                }
+            }
+
+            document.querySelectorAll('#editMinDurGroup .hc-slot-btn').forEach(function (label) {
+                var radio = label.querySelector('input[type="radio"]');
+
+                if (radio) {
+                    label.classList.toggle('hc-slot-selected', radio.checked);
+                }
+            });
+
+            document.querySelectorAll('#editMaxDurGroup .hc-slot-btn').forEach(function (label) {
+                var radio = label.querySelector('input[type="radio"]');
+
+                if (radio) {
+                    label.classList.toggle('hc-slot-selected', radio.checked);
+                }
+            });
+
+            return isValid;
+        }
+
+        // Prevent submitting an invalid duration range
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.querySelector('form');
+
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!validateEditDurationRange()) {
+                        event.preventDefault();
+                    }
+                });
+            }
+
+            validateEditDurationRange();
+        });
+
+        // Dynamic photo and video uploader
+        var editPhotoFiles = [];
+        var editVideoFiles = [];
+        var MAX_VIDEO_DURATION_EDIT = 120; // 2 minutes
+        var MAX_VIDEO_MB_EDIT       = 150; // 150 MB
+
+        document.getElementById('editPhotoFileInput').addEventListener('change', function () {
+            addEditFiles(this.files, 'photo');
+            this.value = '';
+        });
+
+        document.getElementById('editVideoFileInput').addEventListener('change', function () {
+            addEditFiles(this.files, 'video');
+            this.value = '';
+        });
+
+        function showEditMediaError(msg) {
+            var el = document.getElementById('editMediaErrorMsg');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'editMediaErrorMsg';
+                el.className = 'alert alert-danger alert-dismissible mt-2';
+                el.innerHTML = '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button><span id="editMediaErrorText"></span>';
+                var zone = document.getElementById('editVideoDropZone');
+                zone.parentNode.insertBefore(el, zone.nextSibling);
+            }
+            document.getElementById('editMediaErrorText').textContent = msg;
+        }
+
+        function addEditFiles(fileList, type) {
+            var arr   = type === 'photo' ? editPhotoFiles : editVideoFiles;
+            var limit = type === 'photo' ? 6 : 3;
+            var grid  = document.getElementById(type === 'photo' ? 'editPhotoThumbGrid' : 'editVideoThumbGrid');
+
+            for (var i = 0; i < fileList.length; i++) {
+                if (arr.length >= limit) {
+                    showEditMediaError('Maximum ' + limit + (type === 'photo' ? ' photos' : ' videos') + ' allowed.');
+                    break;
+                }
+                (function(file) {
+                    if (type === 'video') {
+                        if (file.size > MAX_VIDEO_MB_EDIT * 1024 * 1024) {
+                            showEditMediaError(file.name + ' is too large. Maximum video size is ' + MAX_VIDEO_MB_EDIT + ' MB.');
+                            return;
+                        }
+                        var tempVid = document.createElement('video');
+                        tempVid.preload = 'metadata';
+                        tempVid.src = URL.createObjectURL(file);
+                        tempVid.onloadedmetadata = function() {
+                            URL.revokeObjectURL(tempVid.src);
+                            if (tempVid.duration > MAX_VIDEO_DURATION_EDIT) {
+                                var mins = Math.floor(tempVid.duration / 60);
+                                var secs = Math.round(tempVid.duration % 60);
+                                showEditMediaError(
+                                    file.name + ' is ' + mins + 'm ' + secs + 's. ' +
+                                    'Maximum allowed is 2 minutes. Please trim it before uploading.'
+                                );
+                            } else {
+                                arr.push(file);
+                                renderEditThumb(file, arr.length - 1, type, grid);
+                            }
+                        };
+                        tempVid.onerror = function() {
+                            showEditMediaError('Could not read ' + file.name + '. Please check the file is a valid video.');
+                        };
+                    } else {
+                        arr.push(file);
+                        renderEditThumb(file, arr.length - 1, type, grid);
+                    }
+                })(fileList[i]);
+            }
+        }
+                renderEditThumb(fileList[i], arr.length - 1, type, grid);
+            }
+        }
+
+        function renderEditThumb(file, idx, type, grid) {
+            var wrap = document.createElement('div');
+
+            wrap.className = 'hc-thumb-wrap';
+            wrap.id = 'edit_' + type + '_' + idx;
+
+            if (file.type.startsWith('image/')) {
+                var img = document.createElement('img');
+
+                img.className = 'hc-thumb-img';
+                img.alt = file.name;
+
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                };
+
+                reader.readAsDataURL(file);
+                wrap.appendChild(img);
+            } else {
+                var vid = document.createElement('video');
+
+                vid.className = 'hc-thumb-img';
+                vid.src = URL.createObjectURL(file);
+                vid.style.background = '#000';
+                vid.muted = true;
+                vid.controls = true;
+
+                wrap.appendChild(vid);
+            }
+
+            var label = document.createElement('small');
+
+            label.className = 'd-block text-center text-success mt-1';
+            label.style.fontSize = '0.7rem';
+            label.textContent = 'New: ' +
+                (file.name.length > 18
+                    ? file.name.substring(0, 16) + '…'
+                    : file.name);
+
+            wrap.appendChild(label);
+
+            var del = document.createElement('button');
+
+            del.type = 'button';
+            del.className = 'hc-thumb-del';
+            del.textContent = '✕ Remove';
+            del.setAttribute('data-idx', idx);
+            del.setAttribute('data-type', type);
+
+            del.addEventListener('click', function () {
+                var selectedType = this.getAttribute('data-type');
+
+                var files = selectedType === 'photo'
+                    ? editPhotoFiles
+                    : editVideoFiles;
+
+                files.splice(
+                    parseInt(this.getAttribute('data-idx'), 10),
+                    1
+                );
+
+                var selectedGrid = document.getElementById(
+                    selectedType === 'photo'
+                        ? 'editPhotoThumbGrid'
+                        : 'editVideoThumbGrid'
+                );
+
+                selectedGrid.innerHTML = '';
+
+                files.forEach(function (f, i) {
+                    renderEditThumb(f, i, selectedType, selectedGrid);
+                });
+            });
+
+            wrap.appendChild(del);
+            grid.appendChild(wrap);
+        }
+
+        // Drag and drop uploads
+        ['editPhotoDropZone', 'editVideoDropZone'].forEach(function (zoneId) {
+            var zone = document.getElementById(zoneId);
+
+            var type = zoneId === 'editPhotoDropZone'
+                ? 'photo'
+                : 'video';
+
+            zone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                zone.classList.add('hc-upload-zone-hover');
+            });
+
+            zone.addEventListener('dragleave', function () {
+                zone.classList.remove('hc-upload-zone-hover');
+            });
+
+            zone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                zone.classList.remove('hc-upload-zone-hover');
+
+                addEditFiles(e.dataTransfer.files, type);
+            });
+        });
+
+        // Equipment photo preview helper
+        function previewEq(input, imgId, fallback) {
             var img = document.getElementById(imgId);
+
+            if (!img) {
+                return;
+            }
+
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
+
                 reader.onload = function (e) {
                     img.src = e.target.result;
                     img.classList.add('hc-eq-uploaded');
                 };
+
                 reader.readAsDataURL(input.files[0]);
             } else {
-                img.src = fallbackSrc;
+                img.src = fallback;
                 img.classList.remove('hc-eq-uploaded');
             }
         }
 
-        function toggleEquipment(cbId, cardId, statusId, activeLabel) {
-            var cb   = document.getElementById(cbId);
-            var card = document.getElementById(cardId);
-            var st   = document.getElementById(statusId);
-            cb.checked = !cb.checked;
-            if (cb.checked) {
-                card.classList.add('hc-eq-active');
-                st.innerHTML = '&#10003; ' + activeLabel;
-            } else {
-                card.classList.remove('hc-eq-active');
-                st.textContent = 'Click to add';
-            }
+        // Checkbox tile highlighting
+        document.querySelectorAll('.hc-tile-cb').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                var tile = this.closest('.hc-check-tile');
+
+                if (tile) {
+                    tile.classList.toggle('hc-tile-checked', this.checked);
+                }
+            });
+        });
+
+        // Paid extras builder
+        var extraCount = 0;
+
+        function addExtraRow() {
+            extraCount++;
+
+            var id = 'xnew_' + extraCount;
+            var row = document.createElement('div');
+
+            row.className = 'hc-extra-row d-flex gap-2 align-items-center mb-2';
+            row.id = id;
+
+            row.innerHTML =
+                '<input type="text" name="extraName" class="form-control form-control-sm" placeholder="e.g. Champagne Package" required />' +
+                '<div class="input-group input-group-sm" style="max-width:140px;">' +
+                '<span class="input-group-text">R</span>' +
+                '<input type="number" name="extraPrice" class="form-control" placeholder="0.00" min="0" step="any" required />' +
+                '</div>' +
+                '<button type="button" class="btn btn-outline-danger btn-sm" onclick="document.getElementById(\'' + id + '\').remove()">&#10005;</button>';
+
+            document.getElementById('extrasContainer').appendChild(row);
+        }
+
+        // Show or hide disability details
+        function toggleDisabilityDetails(cb) {
+            document.getElementById('disabilityDetails').style.display =
+                cb.checked ? 'block' : 'none';
         }
     </script>
 
     <style>
-        .hc-eq-card         { border:2px dashed #90a4ae; border-radius:12px; padding:14px 10px 14px;
-                              background:#fff; cursor:pointer; transition:all 0.2s; text-align:center;
-                              user-select:none; display:flex; flex-direction:column; align-items:center; position:relative; }
-        .hc-eq-card:hover   { border-color:#00897b; background:#f0faf9; transform:translateY(-2px); }
-        .hc-eq-active       { border:2px solid #00897b !important; background:#e8f5e9 !important; }
-        .hc-eq-always       { border:2px solid #1565c0 !important; background:#e3f2fd !important; cursor:default; }
-        .hc-eq-img-wrap     { width:80px; height:80px; display:flex; align-items:center; justify-content:center; }
-        .hc-eq-img          { width:72px; height:72px; object-fit:contain; transition:all 0.2s; border-radius:4px; }
-        .hc-eq-uploaded     { object-fit:cover !important; border-radius:8px !important; border:2px solid #00897b; }
-        .hc-eq-name         { font-weight:700; font-size:0.88rem; margin-top:8px; color:#212529; }
-        .hc-eq-status       { font-size:0.78rem; color:#666; margin-top:3px; min-height:18px; }
-        .hc-eq-active .hc-eq-status { color:#2e7d32; font-weight:700; }
-        .hc-eq-upload       { border-top:1px dashed #ccc; padding-top:8px; margin-top:6px; }
-        .hc-eq-required-badge { position:absolute; top:6px; right:8px; background:#1565c0;
-                                color:#fff; font-size:0.62rem; padding:1px 7px;
-                                border-radius:10px; font-weight:700; }
+        /* Preview column */
+        .hc-thumb {
+            width: 64px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            opacity: 0.7;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+            .hc-thumb:hover,
+            .hc-thumb.active {
+                border-color: #0d6efd;
+                opacity: 1;
+            }
+
+        /* Equipment display */
+        .hc-equip-display {
+            border-radius: 8px;
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        .hc-equip-yes {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+
+        .hc-equip-no {
+            background: #fafafa;
+            border: 1px dashed #ddd;
+        }
+
+        .hc-equip-display-img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .hc-equip-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .hc-equip-value {
+            font-size: 0.68rem;
+            margin-top: 2px;
+        }
+
+        .hc-equip-yes .hc-equip-value {
+            color: #2e7d32;
+        }
+
+        .hc-equip-no .hc-equip-value {
+            color: #9e9e9e;
+        }
+
+        /* Ratings */
+        .hc-star-block {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .hc-star {
+            font-size: 0.95rem;
+            color: #ddd;
+        }
+
+            .hc-star.filled {
+                color: #f9a825;
+            }
+
+        /* Equipment cards */
+        .hc-eq-card {
+            border: 2px dashed #90a4ae;
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+            .hc-eq-card:hover {
+                border-color: #00897b;
+                background: #f0faf9;
+            }
+
+        .hc-eq-active {
+            border: 2px solid #00897b !important;
+            background: #e8f5e9 !important;
+        }
+
+        .hc-eq-always {
+            border: 2px solid #1565c0 !important;
+            background: #e3f2fd !important;
+            cursor: default;
+        }
+
+        .hc-eq-name {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #212529;
+        }
+
+        .hc-eq-status {
+            font-size: 0.74rem;
+            color: #666;
+        }
+
+        .hc-eq-active .hc-eq-status {
+            color: #2e7d32;
+            font-weight: 700;
+        }
+
+        .hc-eq-uploaded {
+            object-fit: cover !important;
+            border-radius: 6px !important;
+            border: 2px solid #00897b;
+        }
+
+        /* Paid extras */
+        .hc-extra-row input {
+            min-width: 0;
+        }
+
+        /* Checkbox tiles */
+        .hc-check-tile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.18s;
+            background: #fff;
+            width: 100%;
+        }
+
+            .hc-check-tile:hover {
+                border-color: #1565c0;
+                background: #f0f4ff;
+            }
+
+        .hc-tile-checked {
+            border-color: #2e7d32 !important;
+            background: #e8f5e9 !important;
+        }
+
+        .hc-check-tile-required {
+            border-color: #ef9a9a;
+        }
+
+        .hc-tile-checked.hc-check-tile-required {
+            border-color: #2e7d32 !important;
+        }
+
+        .hc-tile-cb {
+            width: 1.2rem;
+            height: 1.2rem;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: #2e7d32;
+        }
+
+        .hc-tile-body {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hc-tile-icon {
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+
+        .hc-tile-name {
+            font-weight: 600;
+            font-size: 0.84rem;
+            color: #212529;
+        }
+
+        /* Upload zones and thumbnails */
+        .hc-upload-zone {
+            border: 2px dashed #b0bec5;
+            border-radius: 12px;
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .hc-upload-zone-hover {
+            border-color: #1565c0;
+            background: #f0f4ff;
+        }
+
+        .hc-thumb-wrap {
+            position: relative;
+            width: 140px;
+        }
+
+        .hc-thumb-img {
+            width: 140px;
+            height: 105px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            display: block;
+        }
+
+        video.hc-thumb-img {
+            object-fit: contain;
+            background: #000;
+        }
+
+        .hc-thumb-del {
+            display: block;
+            width: 100%;
+            margin-top: 4px;
+            background: none;
+            border: none;
+            color: #e53935;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            text-align: center;
+        }
+
+            .hc-thumb-del:hover {
+                color: #b71c1c;
+                text-decoration: underline;
+            }
     </style>
 }

@@ -1,0 +1,89 @@
+@model APDP.Models.Boat
+@{
+    ViewBag.Title = "Pay Registration Fee";
+    decimal registrationFee = 500.00m;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            @* ── Success banner ──────────────────────────────── *@
+            <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+                <span style="font-size:2rem;">&#10003;</span>
+                <div>
+                    <h5 class="mb-0 fw-bold">Your boat has been approved by TNPA!</h5>
+                    <p class="mb-0 small">
+                        To complete your registration and make <strong>@Model.BoatName</strong>
+                        visible to customers, please pay the registration fee below.
+                    </p>
+                </div>
+            </div>
+
+            @* ── Boat summary ─────────────────────────────────── *@
+            <div class="card hc-form-card mb-4">
+                <div class="card-header hc-form-header">
+                    <h5 class="mb-0">&#128674; Boat Registration Summary</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0">
+                        <tr><th width="40%" class="bg-light">Boat Name</th><td><strong>@Model.BoatName</strong></td></tr>
+                        <tr><th class="bg-light">Registration Number</th><td><code>@Model.RegistrationNumber</code></td></tr>
+                        <tr><th class="bg-light">Boat Type</th><td>@Model.BoatType</td></tr>
+                        <tr><th class="bg-light">Location</th><td>@Model.HarbourLocation</td></tr>
+                        <tr>
+                            <th class="bg-light">Registration Fee</th>
+                            <td><strong class="text-success fs-5">R @registrationFee.ToString("N2")</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            @* ── Payment (demo) ───────────────────────────────── *@
+            <div class="card hc-form-card">
+                <div class="card-header hc-form-header-green">
+                    <h5 class="mb-0">&#128179; Payment</h5>
+                </div>
+                <div class="card-body p-4">
+
+                    <div class="alert alert-info small d-flex gap-2">
+                        <span>&#8505;</span>
+                        <span>
+                            <strong>Demo payment.</strong> Online payments are not connected yet, so no card
+                            details are needed and no money is charged. Pressing the button marks the fee as paid
+                            and makes your boat visible to customers.
+                        </span>
+                    </div>
+
+                    @using (Html.BeginForm("PayRegistrationFee", "BoatOwner",
+                        new { id = Model.BoatID }, FormMethod.Post, new { id = "payForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success btn-lg fw-semibold px-4" id="payBtn"
+                                    onclick="return confirm('Confirm the registration fee payment (demo)?')">
+                                Pay R @registrationFee.ToString("N2") (demo) and Activate Boat
+                            </button>
+                            @Html.ActionLink("Cancel", "MyBoats", "BoatOwner", null,
+                                new { @class = "btn btn-outline-secondary btn-lg" })
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Disable button after submit to prevent double payment
+        document.getElementById('payForm').addEventListener('submit', function () {
+            var btn = document.getElementById('payBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+        });
+    </script>
+}

@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewBag.Title = "TNPA Dashboard";
 }
 
@@ -6,7 +6,7 @@
 
     <div class="hc-dashboard-header mb-4">
         <h2>&#128203; TNPA Admin Dashboard</h2>
-        <p class="text-muted">Welcome, <strong>@Session["TnpaAdminName"]</strong> — Transnet National Ports Authority</p>
+        <p class="text-muted">Welcome, <strong>@Session["TnpaAdminName"]</strong> - Transnet National Ports Authority</p>
     </div>
 
     @* Stats Row *@
@@ -14,7 +14,7 @@
         <div class="col-sm-6 col-lg-3">
             <div class="card hc-stat-card hc-stat-warning text-center p-3">
                 <div class="hc-stat-number">@ViewBag.PendingCount</div>
-                <div class="hc-stat-label">Pending Review</div>
+                <div class="hc-stat-label">Pending Boats</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
@@ -32,7 +32,7 @@
         <div class="col-sm-6 col-lg-3">
             <div class="card hc-stat-card hc-stat-info text-center p-3">
                 <div class="hc-stat-number">@ViewBag.TotalOwners</div>
-                <div class="hc-stat-label">Registered Owners</div>
+                <div class="hc-stat-label">Boat Owners</div>
             </div>
         </div>
     </div>

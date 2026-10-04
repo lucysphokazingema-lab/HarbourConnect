@@ -41,7 +41,13 @@
                             <td>@booking.Customer.FullName</td>
                             <td>@booking.Boat.BoatName</td>
                             <td>@booking.TripDate.ToString("dd MMM yyyy")</td>
-                            <td>@booking.NumberOfPassengers</td>
+                            <td>
+                                @booking.NumberOfPassengers adult@(booking.NumberOfPassengers == 1 ? "" : "s")
+                                @if (booking.ChildPassengers > 0)
+                                {
+                                    <text>, @booking.ChildPassengers child@(booking.ChildPassengers == 1 ? "" : "ren")</text>
+                                }
+                            </td>
                             <td>R @booking.TotalPrice.ToString("N2")</td>
                             <td>
                                 @switch (booking.Status)

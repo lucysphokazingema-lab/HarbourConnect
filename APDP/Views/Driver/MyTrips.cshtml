@@ -47,6 +47,11 @@
                             <td>@trip.Customer.PhoneNumber</td>
                             <td>
                                 @trip.TripDate.ToString("dddd, dd MMM yyyy")
+                                <br /><span class="fw-semibold text-primary">@trip.TripStartTime.Hours.ToString("D2"):@trip.TripStartTime.Minutes.ToString("D2")</span>
+                                @if (trip.TripDurationHours > 0)
+                                {
+                                    <span class="text-muted small">&mdash; @(trip.TripDurationHours) hr@(trip.TripDurationHours == 1 ? "" : "s")</span>
+                                }
                                 @if (trip.TripDate.Date == DateTime.Today)
                                 {
                                     <br /><span class="badge bg-warning text-dark">Today!</span>
@@ -56,7 +61,7 @@
                                     <br /><span class="badge bg-info">Tomorrow</span>
                                 }
                             </td>
-                            <td>@trip.NumberOfPassengers</td>
+                            <td>@trip.NumberOfPassengers adult@(trip.NumberOfPassengers == 1 ? "" : "s")@(trip.ChildPassengers > 0 ? ", " + trip.ChildPassengers + (trip.ChildPassengers == 1 ? " child" : " children") : "")</td>
                             <td>
                                 @if (!string.IsNullOrEmpty(trip.SpecialRequests))
                                 {

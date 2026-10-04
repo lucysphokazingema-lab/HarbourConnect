@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -12,7 +12,7 @@
     <nav class="navbar navbar-expand-lg hc-navbar">
         <div class="container">
             <a class="navbar-brand hc-brand" href="@Url.Action("Index", "Home")">
-                &#9875; HarbourConnect
+                ⚓ HarbourConnect
             </a>
             <button class="navbar-toggler" type="button"
                     data-bs-toggle="collapse" data-bs-target="#navbarMain"
@@ -46,6 +46,12 @@
                             @Html.ActionLink("Dashboard", "Dashboard", "BoatOwner", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link hc-bell-link" href="@Url.Action("Index","Notifications")" title="Notifications">
+                                🔔
+                                <span class="hc-bell-badge d-none" id="bellBadge">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             @Html.ActionLink("Logout", "Logout", "BoatOwner", null, new { @class = "nav-link hc-logout" })
                         </li>
                     }
@@ -60,6 +66,12 @@
                             @Html.ActionLink("Dashboard", "Dashboard", "Tnpa", null, new { @class = "nav-link" })
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link hc-bell-link" href="@Url.Action("Index","Notifications")" title="Notifications">
+                                🔔
+                                <span class="hc-bell-badge d-none" id="bellBadge">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             @Html.ActionLink("Logout", "Logout", "Tnpa", null, new { @class = "nav-link hc-logout" })
                         </li>
                     }
@@ -72,6 +84,12 @@
                         </li>
                         <li class="nav-item">
                             @Html.ActionLink("Dashboard", "Dashboard", "Customer", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link hc-bell-link" href="@Url.Action("Index","Notifications")" title="Notifications">
+                                🔔
+                                <span class="hc-bell-badge d-none" id="bellBadge">0</span>
+                            </a>
                         </li>
                         <li class="nav-item">
                             @Html.ActionLink("Logout", "Logout", "Customer", null, new { @class = "nav-link hc-logout" })
@@ -89,6 +107,12 @@
                         </li>
                         <li class="nav-item">
                             @Html.ActionLink("My Trips", "MyTrips", "Driver", null, new { @class = "nav-link" })
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link hc-bell-link" href="@Url.Action("Index","Notifications")" title="Notifications">
+                                🔔
+                                <span class="hc-bell-badge d-none" id="bellBadge">0</span>
+                            </a>
                         </li>
                         <li class="nav-item">
                             @Html.ActionLink("Logout", "Logout", "Driver", null, new { @class = "nav-link hc-logout" })
@@ -153,7 +177,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
-                    <h5>&#9875; HarbourConnect</h5>
+                    <h5>⚓ HarbourConnect</h5>
                     <p class="text-muted small">Connecting boat owners, customers and the harbour authority.</p>
                 </div>
                 <div class="col-md-4">
@@ -181,7 +205,7 @@
         </div>
     </footer>
 
-    @* Scripts loaded directly — bypasses the WebGrease minifier *@
+    @* Scripts loaded directly - bypasses the WebGrease minifier *@
     <script src="@Url.Content("~/Scripts/jquery-3.7.0.min.js")"></script>
     <script src="@Url.Content("~/Scripts/bootstrap.bundle.min.js")"></script>
 
@@ -190,8 +214,8 @@
 
         @* Toggle Button *@
         <button id="hc-chat-toggle" onclick="HarbourChat.toggle()" title="Chat with HarbourBot">
-            <span id="hc-chat-icon">&#129302;</span>
-            <span id="hc-chat-close" style="display:none;">&#10005;</span>
+            <span id="hc-chat-icon">🤖</span>
+            <span id="hc-chat-close" style="display:none;">✕</span>
             <span id="hc-chat-badge" style="display:none;">1</span>
         </button>
 
@@ -202,10 +226,10 @@
                     <span style="font-size:1.4rem;">⚓</span>
                     <div>
                         <div style="font-weight:700; font-size:0.95rem;">HarbourBot</div>
-                        <div style="font-size:0.72rem; opacity:0.85;">&#128994; Online — always here to help</div>
+                        <div style="font-size:0.72rem; opacity:0.85;">🟢 Online - always here to help</div>
                     </div>
                 </div>
-                <button onclick="HarbourChat.toggle()" class="hc-chat-close-btn">&#10005;</button>
+                <button onclick="HarbourChat.toggle()" class="hc-chat-close-btn">✕</button>
             </div>
 
             <div id="hc-chat-messages"></div>
@@ -216,8 +240,9 @@
                 <button onclick="HarbourChat.quickReply('How do I book a boat?')">Book a Boat</button>
                 <button onclick="HarbourChat.quickReply('How does TNPA approval work?')">TNPA</button>
                 <button onclick="HarbourChat.quickReply('Tell me about the weather feature')">Weather</button>
-                <button onclick="HarbourChat.quickReply('Show demo accounts')">Demo Accounts</button>
             </div>
+
+            <div id="hc-chat-token">@Html.AntiForgeryToken()</div>
 
             <div id="hc-chat-input-area">
                 <input type="text"
@@ -226,7 +251,7 @@
                        onkeypress="HarbourChat.onKeyPress(event)"
                        autocomplete="off" />
                 <button onclick="HarbourChat.send()" id="hc-chat-send-btn">
-                    &#10148;
+                    ➤
                 </button>
             </div>
         </div>
@@ -278,12 +303,15 @@
                 showTyping();
 
                 $.ajax({
-                    url: '/Chatbot/GetResponse',
+                    url: '@Url.Action("GetResponse", "Chatbot")',
                     type: 'POST',
-                    data: { message: text },
+                    data: {
+                        message: text,
+                        __RequestVerificationToken: $('#hc-chat-token input[name="__RequestVerificationToken"]').val()
+                    },
                     success: function (data) {
                         removeTyping();
-                        addBotMessage(data.reply);
+                        addBotReply(data.reply);
                     },
                     error: function () {
                         removeTyping();
@@ -311,6 +339,16 @@
                 scrollBottom();
             }
 
+            // AI output is untrusted: escape everything, then turn in-app paths
+            // such as /Customer/Login into links. Never insert the reply as raw HTML.
+            function addBotReply(text) {
+                var safe = escapeHtml(String(text || ''))
+                    .replace(/(^|[\s(])(\/(?:Home|Customer|BoatOwner|Driver|Tnpa|Notifications)\/[A-Za-z]+)(?=$|[\s).,!?])/g,
+                             '$1<a href="$2">$2</a>');
+                addBotMessage(safe);
+            }
+
+            // Only for trusted, hard-coded HTML (e.g. the greeting).
             function addBotMessage(html) {
                 var msgs = document.getElementById('hc-chat-messages');
                 var div  = document.createElement('div');
@@ -352,7 +390,9 @@
             function escapeHtml(text) {
                 return text.replace(/&/g,'&amp;')
                            .replace(/</g,'&lt;')
-                           .replace(/>/g,'&gt;');
+                           .replace(/>/g,'&gt;')
+                           .replace(/"/g,'&quot;')
+                           .replace(/'/g,'&#39;');
             }
 
             // Show badge after 3 seconds if chat hasn't been opened
@@ -367,5 +407,30 @@
     </script>
 
     @RenderSection("scripts", required: false)
+
+    @* Bell notification poll — only when logged in *@
+    @if (Session["BoatOwnerID"] != null || Session["CustomerID"] != null ||
+         Session["DriverID"] != null || Session["TnpaAdminID"] != null)
+    {
+        <script>
+            function pollBell() {
+                fetch('@Url.Action("UnreadCount", "Notifications")')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var badge = document.getElementById('bellBadge');
+                        if (!badge) return;
+                        if (data.count > 0) {
+                            badge.textContent = data.count > 99 ? '99+' : data.count;
+                            badge.classList.remove('d-none');
+                        } else {
+                            badge.classList.add('d-none');
+                        }
+                    })
+                    .catch(function() {});
+            }
+            pollBell();
+            setInterval(pollBell, 30000); // poll every 30 seconds
+        </script>
+    }
 </body>
 </html>

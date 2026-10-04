@@ -3,17 +3,27 @@
     ViewBag.Title = "Available Boats";
 }
 
-<div class="container py-4">
+<div class="sb-page">
 
-    <h2 class="mb-3">&#128674; Available Boats</h2>
-
-    @* Filter Bar *@
-    @using (Html.BeginForm("Boats", "Customer", FormMethod.Get, new { @class = "mb-4" }))
+    @* ── Top Filter Bar ───────────────────────────────────────────── *@
+    @using (Html.BeginForm("Boats", "Customer", FormMethod.Get, new { @class = "sb-filterbar" }))
     {
-        <div class="row g-2 align-items-end">
-            <div class="col-md-6">
-                <label class="form-label small fw-semibold">Filter by Type</label>
-                <select name="boatType" class="form-select">
+        <div class="sb-filterbar-inner">
+
+            <div class="sb-filter-field">
+                <span class="sb-filter-label">Search</span>
+                <input type="text" name="searchName" id="searchName"
+                       class="sb-filter-input"
+                       value="@ViewBag.SearchName"
+                       placeholder="Boat name..."
+                       autocomplete="off" />
+            </div>
+
+            <div class="sb-filter-divider"></div>
+
+            <div class="sb-filter-field">
+                <span class="sb-filter-label">Boat Type</span>
+                <select name="boatType" class="sb-filter-input">
                     <option value="">All Types</option>
                     <option value="Fishing Boat"    @(ViewBag.SelectedType == "Fishing Boat"    ? "selected" : "")>Fishing Boat</option>
                     <option value="Leisure Cruiser" @(ViewBag.SelectedType == "Leisure Cruiser" ? "selected" : "")>Leisure Cruiser</option>
@@ -23,124 +33,483 @@
                     <option value="Party Boat"      @(ViewBag.SelectedType == "Party Boat"      ? "selected" : "")>Party Boat</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">Filter</button>
+
+            <div class="sb-filter-divider"></div>
+
+            <div class="sb-filter-field">
+                <span class="sb-filter-label">Sort by Price</span>
+                <select name="sortPrice" class="sb-filter-input">
+                    <option value="">Default</option>
+                    <option value="asc"  @(ViewBag.SortPrice == "asc"  ? "selected" : "")>Low to High</option>
+                    <option value="desc" @(ViewBag.SortPrice == "desc" ? "selected" : "")>High to Low</option>
+                </select>
             </div>
-            <div class="col-md-3">
-                @Html.ActionLink("Clear", "Boats", "Customer", null, new { @class = "btn btn-outline-secondary w-100" })
-            </div>
+
+            <button type="submit" class="sb-filter-btn">
+                &#9881; Filter
+            </button>
+
+            @Html.ActionLink("Clear", "Boats", "Customer", null, new { @class = "sb-clear-btn" })
         </div>
     }
 
-    @if (!Model.Any())
-    {
-        <div class="alert alert-info text-center p-5">
-            <h5>No boats match your search.</h5>
-            <p>Try changing the filters or check back later.</p>
+    @* ── Results Header ───────────────────────────────────────────── *@
+    <div class="sb-content">
+        <div class="sb-results-header">
+            <div>
+                <h2 class="sb-results-title">Available Boats in Durban Harbour</h2>
+                <p class="sb-results-count">@Model.Count() boats available</p>
+            </div>
+            @Html.ActionLink("← Back to Dashboard", "Dashboard", "Customer", null, new { @class = "sb-back-link" })
         </div>
-    }
-    else
-    {
-        <div class="row g-4">
-            @foreach (var boat in Model)
-            {
-                <div class="col-md-4">
-                    <div class="card hc-boat-card h-100">
 
-                        @* Boat image *@
-                        @if (!string.IsNullOrEmpty(boat.ImagePath))
-                        {
-                            <img src="@Url.Content(boat.ImagePath)" class="card-img-top hc-boat-card-img" alt="@boat.BoatName" />
-                        }
-                        else
-                        {
-                            <div class="hc-boat-card-img-placeholder d-flex align-items-center justify-content-center">
-                                <span style="font-size:3rem;">&#128674;</span>
-                            </div>
-                        }
+        @* ── No Results ───────────────────────────────────────────── *@
+        @if (!Model.Any())
+        {
+            <div class="sb-no-results">
+                <p class="sb-no-results-title">No boats found</p>
+                @if (!string.IsNullOrWhiteSpace(ViewBag.SearchName as string))
+                {
+                    <p>No boats match &ldquo;<strong>@ViewBag.SearchName</strong>&rdquo;. Try a different name or clear your filters.</p>
+                }
+                else
+                {
+                    <p>Try adjusting your filters or clear them to see all boats.</p>
+                }
+            </div>
+        }
+        else
+        {
+            @* ── Boat List ─────────────────────────────────────────── *@
+            <div id="boatGrid">
+                @foreach (var boat in Model)
+                {
+                    <div class="sb-card boat-card-col" data-boatname="@boat.BoatName.ToLower()">
 
-                        <div class="card-body d-flex flex-column">
+                        @* Image *@
+                        <div class="sb-card-img-wrap">
+                            @if (!string.IsNullOrEmpty(boat.ImagePath))
+                            {
+                                <img src="@Url.Content(boat.ImagePath)" class="sb-card-img" alt="@boat.BoatName" />
+                            }
+                            else
+                            {
+                                <div class="sb-card-img-placeholder">
+                                    &#128674;
+                                </div>
+                            }
+                        </div>
 
-                            @* Title + star rating row *@
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h5 class="card-title mb-0">@boat.BoatName</h5>
+                        @* Details *@
+                        <div class="sb-card-body">
+
+                            @* Title row *@
+                            <div class="sb-card-title-row">
+                                <h3 class="sb-card-title">@boat.BoatName</h3>
                                 @if (boat.TotalRatings > 0)
                                 {
-                                    <div class="hc-star-rating-sm" title="@boat.AverageRating.ToString("0.0") out of 5">
-                                        @for (int s = 1; s <= 5; s++)
-                                        {
-                                            if (s <= (int)Math.Round(boat.AverageRating))
-                                            { <span class="hc-star filled">&#9733;</span> }
-                                            else
-                                            { <span class="hc-star">&#9734;</span> }
-                                        }
-                                        <span class="hc-rating-count">(@boat.TotalRatings)</span>
+                                    <div class="sb-rating">
+                                        <span class="sb-star">&#9733;</span>
+                                        <span class="sb-rating-num">@boat.AverageRating.ToString("0.0")</span>
+                                        <span class="sb-rating-count">(@boat.TotalRatings @(boat.TotalRatings == 1 ? "review" : "reviews"))</span>
                                     </div>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-light text-muted border">No ratings</span>
+                                    <span class="sb-no-rating">No ratings yet</span>
                                 }
                             </div>
 
-                            <p class="text-muted small mb-1"><strong>Type:</strong> @boat.BoatType</p>
-                            <p class="text-muted small mb-1"><strong>Location:</strong> @boat.HarbourLocation</p>
-                            <p class="text-muted small mb-1"><strong>Max Passengers:</strong> @boat.MaxPassengers</p>
+                            @* Location *@
+                            <p class="sb-card-location">&#128205; @boat.HarbourLocation</p>
 
-                            @* Equipment & safety badges *@
-                            <div class="mt-2 mb-2 d-flex flex-wrap gap-1">
-                                @if (boat.LifeJacketQuantity > 0)
-                                {
-                                    <span class="badge hc-badge-safety" title="Life jackets on board">&#129399; @boat.LifeJacketQuantity Jackets</span>
-                                }
-                                @if (boat.HasMedKit)
-                                {
-                                    <span class="badge hc-badge-safety" title="Medical kit on board">&#129657; Med Kit</span>
-                                }
-                                @if (boat.HasFireExtinguisher)
-                                {
-                                    <span class="badge hc-badge-safety" title="Fire extinguisher on board">&#128293; Fire Ext.</span>
-                                }
-                                @if (boat.HasFishingEquipment)
-                                {
-                                    <span class="badge bg-secondary">&#127907; Fishing</span>
-                                }
-                                @if (boat.HasDecoration)
-                                {
-                                    <span class="badge bg-secondary">&#127881; Decor</span>
-                                }
-                                @if (boat.HasSoundSystem)
-                                {
-                                    <span class="badge bg-secondary">&#127925; Sound</span>
-                                }
-                                @if (!string.IsNullOrEmpty(boat.DisabilityAccommodation))
-                                {
-                                    <span class="badge hc-badge-access" title="@boat.DisabilityAccommodation">&#9855; Accessible</span>
-                                }
+                            @* Meta row *@
+                            <p class="sb-card-meta">
+                                @boat.BoatType &nbsp;&bull;&nbsp; @boat.MaxPassengers pers.
+                            </p>
+
+                            @* Badges *@
+                            <div class="sb-badges">
+                                @if (boat.HasLifeJackets)       { <span class="sb-badge sb-badge-green">Life Jackets</span> }
+                                @if (boat.HasMedKit)            { <span class="sb-badge sb-badge-green">Med Kit</span> }
+                                @if (boat.HasFireExtinguisher)  { <span class="sb-badge sb-badge-green">Fire Ext.</span> }
+                                @if (boat.HasFishingEquipment)  { <span class="sb-badge sb-badge-grey">Fishing</span> }
+                                @if (boat.HasDecoration)        { <span class="sb-badge sb-badge-grey">Decor</span> }
+                                @if (boat.HasSoundSystem)       { <span class="sb-badge sb-badge-grey">Sound System</span> }
+                                @if (!string.IsNullOrEmpty(boat.DisabilityAccommodation) || boat.IsDisabilityFriendly)
+                                { <span class="sb-badge sb-badge-blue">Accessible</span> }
                             </div>
 
-                            <p class="hc-price-tag mt-auto">R @boat.PricePerTrip.ToString("N2") <small class="text-muted fw-normal">/ trip</small></p>
-                            <div class="d-flex gap-2 mt-2">
-                                @Html.ActionLink("View Details", "BoatDetails", "Customer", new { id = boat.BoatID }, new { @class = "btn btn-outline-primary btn-sm flex-fill" })
-                                @Html.ActionLink("Book Now", "BookBoat", "Customer", new { id = boat.BoatID }, new { @class = "btn btn-success btn-sm flex-fill" })
+                            @* Price + Actions *@
+                            <div class="sb-card-footer">
+                                <div class="sb-price">
+                                    <span class="sb-price-from">from</span>
+                                    <span class="sb-price-amount">R @boat.PriceAdult.ToString("N2")</span>
+                                    <span class="sb-price-unit">/ adult &nbsp;|&nbsp; R @boat.PriceChild.ToString("N2") / child</span>
+                                </div>
+                                <div class="sb-card-actions">
+                                    @Html.ActionLink("View Details", "BoatDetails", "Customer", new { id = boat.BoatID }, new { @class = "sb-btn-outline" })
+                                    @if (boat.Status == APDP.Models.BoatStatus.Inactive)
+                                    {
+                                        <span class="sb-btn-disabled">Unavailable</span>
+                                    }
+                                    else
+                                    {
+                                        @Html.ActionLink("Book Now", "BookBoat", "Customer", new { id = boat.BoatID }, new { @class = "sb-btn-primary" })
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-    }
+                }
+            </div>
+        }
 
-    <div class="mt-4">
-        @Html.ActionLink("Back to Dashboard", "Dashboard", "Customer", null, new { @class = "btn btn-outline-secondary" })
+        @* Live-search no-match (JS) *@
+        <div id="liveNoMatch" class="sb-no-results" style="display:none;">
+            <p class="sb-no-results-title">No match for &ldquo;<span id="liveNoMatchTerm"></span>&rdquo;</p>
+            <p>Try a different letter or clear the search.</p>
+        </div>
     </div>
 </div>
 
 <style>
-    .hc-star-rating-sm { display: inline-flex; align-items: center; gap: 1px; flex-shrink: 0; }
-    .hc-star { color: #ccc; font-size: 0.9rem; }
-    .hc-star.filled { color: #f9a825; }
-    .hc-rating-count { font-size: 0.72rem; color: #888; margin-left: 2px; }
-    .hc-badge-safety { background-color: #1b5e20; color: #fff; }
-    .hc-badge-access { background-color: #1565c0; color: #fff; }
+    /* ── Page wrapper ─────────────────────────────────────── */
+    .sb-page {
+        min-height: 100vh;
+        background: #f5f6f8;
+    }
+
+    /* ── Filter bar ───────────────────────────────────────── */
+    .sb-filterbar {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0 24px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .sb-filterbar-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        height: 64px;
+        gap: 0;
+    }
+
+    .sb-filter-field {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 20px;
+        min-width: 160px;
+        flex: 1;
+    }
+
+    .sb-filter-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 2px;
+    }
+
+    .sb-filter-input {
+        border: none;
+        outline: none;
+        font-size: 0.9rem;
+        color: #222;
+        background: transparent;
+        padding: 0;
+        width: 100%;
+    }
+
+    .sb-filter-divider {
+        width: 1px;
+        height: 36px;
+        background: #e5e7eb;
+        flex-shrink: 0;
+    }
+
+    .sb-filter-btn {
+        background: #1a56db;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 16px;
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+
+    .sb-filter-btn:hover { background: #1446b8; }
+
+    .sb-clear-btn {
+        color: #666;
+        font-size: 0.85rem;
+        margin-left: 12px;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .sb-clear-btn:hover { color: #222; }
+
+    /* ── Content area ─────────────────────────────────────── */
+    .sb-content {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 28px 24px;
+    }
+
+    /* ── Results header ───────────────────────────────────── */
+    .sb-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .sb-results-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 4px 0;
+    }
+
+    .sb-results-count {
+        font-size: 0.88rem;
+        color: #1a56db;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .sb-back-link {
+        font-size: 0.85rem;
+        color: #555;
+        text-decoration: none;
+        padding: 8px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .sb-back-link:hover { background: #f0f0f0; color: #222; }
+
+    /* ── Boat card ────────────────────────────────────────── */
+    .sb-card {
+        display: flex;
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 18px;
+        border: 1px solid #e8eaed;
+        transition: box-shadow 0.2s;
+    }
+
+    .sb-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+    /* Image */
+    .sb-card-img-wrap {
+        width: 280px;
+        min-width: 280px;
+        height: 200px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .sb-card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .sb-card-img-placeholder {
+        width: 100%;
+        height: 100%;
+        background: #dbe4f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        color: #6b8cba;
+    }
+
+    /* Body */
+    .sb-card-body {
+        flex: 1;
+        padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sb-card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .sb-card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #111;
+        margin: 0;
+    }
+
+    .sb-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .sb-star { color: #f9a825; font-size: 1rem; }
+    .sb-rating-num { font-weight: 700; font-size: 0.9rem; color: #111; }
+    .sb-rating-count { font-size: 0.8rem; color: #888; }
+    .sb-no-rating { font-size: 0.8rem; color: #aaa; }
+
+    .sb-card-location {
+        font-size: 0.85rem;
+        color: #1a56db;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .sb-card-meta {
+        font-size: 0.82rem;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Badges */
+    .sb-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .sb-badge {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .sb-badge-green { background: #e6f4ea; color: #1b5e20; }
+    .sb-badge-blue  { background: #e3f0ff; color: #1565c0; }
+    .sb-badge-grey  { background: #f0f0f0; color: #555; }
+
+    /* Footer */
+    .sb-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .sb-price { display: flex; align-items: baseline; gap: 5px; }
+    .sb-price-from { font-size: 0.78rem; color: #888; }
+    .sb-price-amount { font-size: 1.2rem; font-weight: 800; color: #111; }
+    .sb-price-unit { font-size: 0.78rem; color: #888; }
+
+    .sb-card-actions { display: flex; gap: 10px; align-items: center; }
+
+    .sb-btn-outline {
+        padding: 8px 18px;
+        border: 1.5px solid #1a56db;
+        border-radius: 8px;
+        color: #1a56db;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        background: #fff;
+        transition: all 0.2s;
+    }
+
+    .sb-btn-outline:hover { background: #1a56db; color: #fff; }
+
+    .sb-btn-primary {
+        padding: 8px 18px;
+        background: #1a56db;
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .sb-btn-primary:hover { background: #1446b8; color: #fff; }
+
+    .sb-btn-disabled {
+        padding: 8px 18px;
+        background: #e0e0e0;
+        border-radius: 8px;
+        color: #999;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: not-allowed;
+    }
+
+    /* No results */
+    .sb-no-results {
+        text-align: center;
+        padding: 60px 20px;
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e8eaed;
+    }
+
+    .sb-no-results-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 8px;
+    }
 </style>
+
+<script>
+    (function () {
+        var input       = document.getElementById('searchName');
+        var grid        = document.getElementById('boatGrid');
+        var noMatch     = document.getElementById('liveNoMatch');
+        var noMatchTerm = document.getElementById('liveNoMatchTerm');
+
+        if (!input || !grid) return;
+
+        var cards = Array.prototype.slice.call(grid.querySelectorAll('.boat-card-col'));
+
+        input.addEventListener('input', function () {
+            var term    = input.value.trim().toLowerCase();
+            var visible = 0;
+
+            cards.forEach(function (col) {
+                var name = col.getAttribute('data-boatname') || '';
+                if (term === '' || name.indexOf(term) !== -1) {
+                    col.style.display = '';
+                    visible++;
+                } else {
+                    col.style.display = 'none';
+                }
+            });
+
+            if (visible === 0 && term !== '') {
+                noMatchTerm.textContent = input.value.trim();
+                noMatch.style.display   = '';
+                grid.style.display      = 'none';
+            } else {
+                noMatch.style.display = 'none';
+                grid.style.display    = '';
+            }
+        });
+    })();
+</script>

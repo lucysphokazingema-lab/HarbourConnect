@@ -126,8 +126,14 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\ChatbotController.cs" />
+    <Compile Include="Controllers\NotificationsController.cs" />
     <Compile Include="Controllers\DriverController.cs" />
     <Compile Include="Services\WeatherService.cs" />
+    <Compile Include="Helpers\NotificationHelper.cs" />
+    <Compile Include="Helpers\PasswordHasher.cs" />
+    <Compile Include="Helpers\BoatAvailability.cs" />
+    <Compile Include="Helpers\EmailSender.cs" />
+    <Compile Include="Models\BoatOpeningHours.cs" />
     <Compile Include="Controllers\BoatOwnerController.cs" />
     <Compile Include="Controllers\CustomerController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -144,6 +150,9 @@
     <Compile Include="Models\TnpaAdmin.cs" />
     <Compile Include="Models\HarbourConnectContext.cs" />
     <Compile Include="Models\BoatRating.cs" />
+    <Compile Include="Models\BoatExtra.cs" />
+    <Compile Include="Models\BoatUnavailableDate.cs" />
+    <Compile Include="Models\Notification.cs" />
     <Compile Include="Models\HarbourConnectInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -185,6 +194,7 @@
     <Content Include="Content\bootstrap-utilities.rtl.css.map" />
     <Content Include="Content\bootstrap-utilities.rtl.min.css.map" />
     <!-- Scripts -->
+    <Content Include="Scripts\qrcode.min.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
@@ -220,9 +230,21 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <None Include="AppSecrets.example.config" />
     <None Include="packages.config" />
     <!-- Views config -->
+    <Content Include="Content\hero-bg.jpg" />
+    <Content Include="Content\login-bg.jpg" />
+    <Content Include="Content\BoatImages\OIP (1).jpg" />
+    <Content Include="Content\BoatImages\OIP (1).webp" />
     <Content Include="Views\Web.config" />
+    <Content Include="Views\BoatOwner\PayRegistrationFee.cshtml" />
+    <Content Include="Views\BoatOwner\RegistrationCertificate.cshtml" />
+    <Content Include="Views\BoatOwner\_WeeklyTimetable.cshtml" />
+    <Content Include="Views\Customer\PayBooking.cshtml" />
+    <Content Include="Views\Notifications\Index.cshtml" />
+    <Content Include="Views\Shared\_LoginStyles.cshtml" />
+    <Content Include="Views\Shared\_SailingHours.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />
     <!-- Shared -->
     <Content Include="Views\Shared\Error.cshtml" />
@@ -264,6 +286,7 @@
     <Content Include="Views\Customer\MyBookings.cshtml" />
     <Content Include="Views\Customer\RateBoat.cshtml" />
     <Content Include="Views\Customer\BookingConfirmation.cshtml" />
+    <Content Include="Views\BoatOwner\ManageAvailability.cshtml" />
   </ItemGroup>
   <!-- ── Folders ──────────────────────────────────────────── -->
   <ItemGroup>

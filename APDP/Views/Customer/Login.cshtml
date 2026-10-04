@@ -2,51 +2,78 @@
     ViewBag.Title = "Customer Login";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card hc-form-card">
-                <div class="card-header hc-form-header-green">
-                    <h4 class="mb-0">&#128106; Customer Login</h4>
-                    <p class="mb-0 small">Sign in to book your harbour trip</p>
+<div class="lp-wrapper">
+
+    @* ── Left image panel ── *@
+    <div class="lp-left">
+        <div class="lp-left-overlay"></div>
+
+        <div class="lp-left-top">
+            <span class="lp-logo-icon">&#9875;</span>
+            <h2 class="lp-brand">Harbour Connect</h2>
+            <p class="lp-tagline">Book Boats &nbsp;&bull;&nbsp; Explore &nbsp;&bull;&nbsp; Travel</p>
+        </div>
+
+        <div class="lp-left-bottom">
+            <p class="lp-hero-text">Your journey starts here.</p>
+            <p class="lp-hero-sub">Safe &nbsp;&bull;&nbsp; Reliable &nbsp;&bull;&nbsp; Connected</p>
+        </div>
+    </div>
+
+    @* ── Right form panel ── *@
+    <div class="lp-right">
+        <div class="lp-form-box">
+
+            <h3 class="lp-form-title">Login to Your Account</h3>
+            <p class="lp-form-sub">Enter your details to continue</p>
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger py-2 small">@ViewBag.ErrorMessage</div>
+            }
+
+            @using (Html.BeginForm("Login", "Customer", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128231;</span>
+                    <input type="email" name="email" class="lp-input"
+                           placeholder="Email address" required autocomplete="email" />
                 </div>
-                <div class="card-body p-4">
 
-                    @if (ViewBag.ErrorMessage != null)
-                    {
-                        <div class="alert alert-danger">
-                            @ViewBag.ErrorMessage
-                        </div>
-                    }
-
-                    @using (Html.BeginForm("Login", "Customer", FormMethod.Post))
-                    {
-                        @Html.AntiForgeryToken()
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email Address</label>
-                            <input type="email" name="email" class="form-control"
-                                   placeholder="Enter your email" required />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Password</label>
-                            <input type="password" name="password" class="form-control"
-                                   placeholder="Enter your password" required />
-                        </div>
-
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-success btn-lg">Login</button>
-                        </div>
-                    }
-
-                    <hr class="mt-4" />
-                    <p class="text-center text-muted mb-0">
-                        Don't have an account?
-                        @Html.ActionLink("Register here", "Register", "Customer", null, new { @class = "text-success fw-semibold" })
-                    </p>
+                <div class="lp-field">
+                    <span class="lp-field-icon">&#128274;</span>
+                    <input type="password" name="password" id="lpPass" class="lp-input"
+                           placeholder="Password" required autocomplete="current-password" />
+                    <button type="button" class="lp-toggle-pass" onclick="lpTogglePass()" tabindex="-1">&#128065;</button>
                 </div>
-            </div>
+
+                <div class="lp-row">
+                    <label class="lp-remember">
+                        <input type="checkbox" name="rememberMe" /> Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="lp-btn-primary">Login</button>
+            }
+
+            <div class="lp-divider">OR</div>
+
+            @Html.ActionLink("Register", "Register", "Customer", null, new { @class = "lp-btn-outline" })
+
+            <p class="lp-footer-note">Not a customer? <a href="@Url.Action("Index","Home")">Go back home</a></p>
         </div>
     </div>
 </div>
+
+@Html.Partial("_LoginStyles")
+
+@section scripts {
+    <script>
+        function lpTogglePass() {
+            var f = document.getElementById('lpPass');
+            f.type = f.type === 'password' ? 'text' : 'password';
+        }
+    </script>
+}

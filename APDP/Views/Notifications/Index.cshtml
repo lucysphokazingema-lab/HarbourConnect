@@ -1,0 +1,76 @@
+@model IEnumerable<APDP.Models.Notification>
+@{
+    ViewBag.Title = "Notifications";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2>&#128276; Notifications</h2>
+        @if (Model.Any())
+        {
+            using (Html.BeginForm("ClearAll", "Notifications", FormMethod.Post, new { style = "display:inline;" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Clear all notifications?')">
+                    Clear All
+                </button>
+            }
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center p-5">
+            <h5>&#128276; No notifications yet.</h5>
+            <p class="mb-0">You will see notifications here when something important happens.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-2">
+            @foreach (var n in Model)
+            {
+                <div class="card hc-notif-card @(n.IsRead ? "" : "hc-notif-unread")">
+                    <div class="card-body d-flex align-items-start gap-3 py-3 px-4">
+                        <span style="font-size:1.5rem; flex-shrink:0;">
+                            @if (!n.IsRead)
+                            {
+                                <text>&#128276;</text>
+                            }
+                            else
+                            {
+                                <text>&#128277;</text>
+                            }
+                        </span>
+                        <div class="flex-grow-1">
+                            <p class="mb-1 @(n.IsRead ? "text-muted" : "fw-semibold")">@n.Message</p>
+                            <small class="text-muted">@n.CreatedAt.ToString("dd MMM yyyy 'at' HH:mm")</small>
+                        </div>
+                        @if (!string.IsNullOrEmpty(n.Link))
+                        {
+                            <a href="@Url.Action("Open", "Notifications", new { id = n.NotificationID })"
+                               class="btn btn-sm btn-outline-primary flex-shrink-0">
+                                View
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">Back</a>
+    </div>
+
+</div>
+
+<style>
+    .hc-notif-card         { border: 1px solid #dee2e6; border-radius: 10px;
+                             background: #fff; transition: all 0.2s; }
+    .hc-notif-unread       { border-left: 4px solid #1565c0 !important;
+                             background: #f0f4ff !important; }
+    .hc-notif-card:hover   { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+</style>

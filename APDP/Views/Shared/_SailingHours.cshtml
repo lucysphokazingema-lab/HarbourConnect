@@ -1,0 +1,23 @@
+@model List<APDP.Helpers.DayHours>
+@* Read-only weekly timetable. Optional ViewData: "BufferMinutes" (int). *@
+@{
+    int buffer = ViewData["BufferMinutes"] is int ? (int)ViewData["BufferMinutes"] : 0;
+}
+@if (Model != null && Model.Any())
+{
+    <table class="table table-sm mb-1" style="max-width:360px;">
+        <tbody>
+            @foreach (var d in Model)
+            {
+                <tr class="@(d.IsOpen ? "" : "text-muted")">
+                    <td class="fw-semibold" style="width:45%">@d.Name</td>
+                    <td>@(d.IsOpen ? d.OpenText + " – " + d.CloseText : "Closed")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    if (buffer > 0)
+    {
+        <small class="text-muted">@buffer-minute break kept between trips.</small>
+    }
+}

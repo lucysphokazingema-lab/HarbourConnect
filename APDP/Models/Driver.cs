@@ -36,7 +36,12 @@ namespace APDP.Models
         [Required(ErrorMessage = "Password is required.")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
         [DataType(DataType.Password)]
+        [NotMapped]
         public string Password { get; set; }
+
+        // Salted PBKDF2 hash (see Helpers.PasswordHasher); the plain Password is never stored.
+        [StringLength(256)]
+        public string PasswordHash { get; set; }
 
         [Required(ErrorMessage = "License number is required.")]
         [StringLength(50)]

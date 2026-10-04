@@ -1,53 +1,17 @@
-@model APDP.Models.Booking
+﻿@model APDP.Models.Booking
 @{
     ViewBag.Title = "Booking Confirmed";
 
-    // Build the QR code data string — everything a scanner needs to see
-    string qrData = string.Format(
-        "HARBOURCONNECT BOOKING\n" +
-        "======================\n" +
-        "Booking ID   : #{0}\n" +
-        "Status       : {1}\n" +
-        "-----------------------------\n" +
-        "CUSTOMER\n" +
-        "Name         : {2}\n" +
-        "Phone        : {3}\n" +
-        "Email        : {4}\n" +
-        "-----------------------------\n" +
-        "BOAT\n" +
-        "Boat         : {5}\n" +
-        "Reg. Number  : {6}\n" +
-        "Type         : {7}\n" +
-        "Location     : {8}\n" +
-        "-----------------------------\n" +
-        "TRIP\n" +
-        "Trip Date    : {9}\n" +
-        "Passengers   : {10}\n" +
-        "Booked On    : {11}\n" +
-        "-----------------------------\n" +
-        "PAYMENT\n" +
-        "Amount Paid  : R {12}\n" +
-        "Payment      : Paid in Full\n" +
-        "-----------------------------\n" +
-        "DRIVER\n" +
-        "Owner        : {13}\n" +
-        "Phone        : {14}",
-        Model.BookingID,
-        Model.Status,
-        Model.Customer.FullName,
-        Model.Customer.PhoneNumber,
-        Model.Customer.Email,
-        Model.Boat.BoatName,
-        Model.Boat.RegistrationNumber,
-        Model.Boat.BoatType,
-        Model.Boat.HarbourLocation,
-        Model.TripDate.ToString("dddd, dd MMMM yyyy"),
-        Model.NumberOfPassengers,
-        Model.BookingDate.ToString("dd MMM yyyy HH:mm"),
-        Model.TotalPrice.ToString("N2"),
-        Model.Boat.BoatOwner.BusinessName,
-        Model.Boat.BoatOwner.PhoneNumber
-    );
+    // QR content is kept minimal (no phone/email) and rendered in the browser
+    // by Scripts/qrcode.min.js, so booking data is never sent to a third party.
+    string qrText =
+        "HARBOURCONNECT BOOKING #" + Model.BookingID + "\n" +
+        "Status: " + Model.Status + "\n" +
+        "Customer: " + Model.Customer.FullName + "\n" +
+        "Boat: " + Model.Boat.BoatName + " (" + Model.Boat.RegistrationNumber + ")\n" +
+        "Trip: " + Model.TripDate.ToString("dd MMM yyyy") + " " + Model.TripStartTime.ToString(@"hh\:mm") +
+        " for " + Model.TripDurationHours + "h\n" +
+        "Passengers: " + Model.NumberOfPassengers + " adult(s), " + Model.ChildPassengers + " child(ren)";
 }
 
 <div class="container py-4">
@@ -83,7 +47,7 @@
                 <div class="card-body p-4">
                     <div class="row g-4">
 
-                        @* Left column — booking details *@
+                        @* Left column - booking details *@
                         <div class="col-md-7">
 
                             @* Customer *@
@@ -114,11 +78,32 @@
                                 <div class="hc-slip-section-title">&#128197; Trip &amp; Payment</div>
                                 <table class="table table-sm hc-slip-table">
                                     <tr><th>Trip Date</th><td><strong>@Model.TripDate.ToString("dddd, dd MMMM yyyy")</strong></td></tr>
-                                    <tr><th>Passengers</th><td>@Model.NumberOfPassengers</td></tr>
+                                    <tr><th>Start Time</th><td><strong>@Model.TripStartTime.ToString(@"hh\:mm")</strong> (@Model.TripDurationHours h)</td></tr>
+                                    <tr>
+                                        <th>Passengers</th>
+                                        <td>
+                                            @Model.NumberOfPassengers adult@(Model.NumberOfPassengers == 1 ? "" : "s")
+                                            @if (Model.ChildPassengers > 0)
+                                            {
+                                                <text>, @Model.ChildPassengers child@(Model.ChildPassengers == 1 ? "" : "ren")</text>
+                                            }
+                                        </td>
+                                    </tr>
                                     <tr><th>Booked On</th><td>@Model.BookingDate.ToString("dd MMM yyyy") at @Model.BookingDate.ToString("HH:mm")</td></tr>
                                     @if (!string.IsNullOrEmpty(Model.SpecialRequests))
                                     {
                                         <tr><th>Special Requests</th><td>@Model.SpecialRequests</td></tr>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.SelectedExtras))
+                                    {
+                                        <tr>
+                                            <th>Extras Selected</th>
+                                            <td>@Model.SelectedExtras</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Extras Total</th>
+                                            <td>R @Model.ExtrasTotal.ToString("N2")</td>
+                                        </tr>
                                     }
                                     <tr class="hc-slip-total">
                                         <th>Amount Paid</th>
@@ -130,63 +115,12 @@
 
                         </div>
 
-                        @* Right column — QR code *@
+                        @* Right column - QR code *@
                         <div class="col-md-5 d-flex flex-column align-items-center justify-content-start">
                             <div class="hc-qr-container">
                                 <div class="hc-qr-label">&#128247; Scan to Verify Booking</div>
-                                @{
-                                    // Full booking details encoded into the QR code
-                                    string qrFull = string.Format(
-                                        "===== HARBOURCONNECT BOOKING =====\n" +
-                                        "Booking ID     : #{0}\n" +
-                                        "Status         : CONFIRMED\n" +
-                                        "----------------------------------\n" +
-                                        "CUSTOMER\n" +
-                                        "Name           : {1}\n" +
-                                        "Phone          : {2}\n" +
-                                        "Email          : {3}\n" +
-                                        "----------------------------------\n" +
-                                        "BOAT\n" +
-                                        "Boat Name      : {4}\n" +
-                                        "Reg Number     : {5}\n" +
-                                        "Type           : {6}\n" +
-                                        "Location       : {7}\n" +
-                                        "----------------------------------\n" +
-                                        "OWNER\n" +
-                                        "Business       : {8}\n" +
-                                        "Phone          : {9}\n" +
-                                        "----------------------------------\n" +
-                                        "TRIP\n" +
-                                        "Trip Date      : {10}\n" +
-                                        "Passengers     : {11}\n" +
-                                        "Booked On      : {12}\n" +
-                                        "----------------------------------\n" +
-                                        "PAYMENT\n" +
-                                        "Amount Paid    : R {13}\n" +
-                                        "Payment Status : PAID IN FULL\n" +
-                                        "==================================",
-                                        Model.BookingID,
-                                        Model.Customer.FullName,
-                                        Model.Customer.PhoneNumber,
-                                        Model.Customer.Email,
-                                        Model.Boat.BoatName,
-                                        Model.Boat.RegistrationNumber,
-                                        Model.Boat.BoatType,
-                                        Model.Boat.HarbourLocation,
-                                        Model.Boat.BoatOwner.BusinessName,
-                                        Model.Boat.BoatOwner.PhoneNumber,
-                                        Model.TripDate.ToString("dddd, dd MMMM yyyy"),
-                                        Model.NumberOfPassengers,
-                                        Model.BookingDate.ToString("dd MMM yyyy HH:mm"),
-                                        Model.TotalPrice.ToString("N2")
-                                    );
-                                    string qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=220x220&ecc=M&data="
-                                                   + Uri.EscapeDataString(qrFull);
-                                }
-                                <img src="@qrUrl"
-                                     alt="Booking QR Code"
-                                     width="220" height="220"
-                                     style="border-radius:8px; border:3px solid #0d2c54; display:block; margin:0 auto;" />
+                                <div id="qrcode" data-qr="@qrText"
+                                     style="border-radius:8px; border:3px solid #0d2c54; padding:6px; background:#fff; display:inline-block;"></div>
                                 <div class="hc-qr-sublabel mt-2">
                                     Booking #@Model.BookingID &bull; @Model.Boat.BoatName<br />
                                     @Model.TripDate.ToString("dd MMM yyyy") &bull; R @Model.TotalPrice.ToString("N2")
@@ -194,9 +128,8 @@
                             </div>
 
                             <div class="mt-3 text-center">
-                                <div class="hc-email-notice">
-                                    &#128231; A copy of this slip has been<br />
-                                    sent to <strong>@Model.Customer.Email</strong>
+                                <div class="hc-qr-note">
+                                    &#9432; Show this QR code to the driver on the day of your trip.
                                 </div>
                             </div>
                         </div>
@@ -215,11 +148,11 @@
             @* Action buttons *@
             <div class="d-flex gap-3 mt-4 flex-wrap">
                 <button class="btn btn-primary btn-lg" onclick="window.print()">
-                    &#128438; Print / Save as PDF
+                    Print / Save as PDF
                 </button>
-                @Html.ActionLink("&#128203; View All Bookings", "MyBookings", "Customer", null,
+                @Html.ActionLink("View All Bookings", "MyBookings", "Customer", null,
                     new { @class = "btn btn-outline-secondary btn-lg" })
-                @Html.ActionLink("&#128674; Browse More Boats", "Boats", "Customer", null,
+                @Html.ActionLink("Browse More Boats", "Boats", "Customer", null,
                     new { @class = "btn btn-outline-success btn-lg" })
             </div>
 
@@ -243,10 +176,23 @@
     #qrcode                { display: inline-block; }
     #qrcode img            { border-radius: 6px; }
     .hc-qr-sublabel        { font-size: 0.72rem; color: #888; margin-top: 10px; line-height: 1.5; }
-    .hc-email-notice       { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #2e7d32; }
+    .hc-qr-note        { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #0d47a1; }
     .hc-slip-footer        { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: #6d4c00; }
 </style>
 
 @* Print styles live in Site.css to avoid Razor parsing @media as code *@
 
-@* No scripts needed — QR code is generated server-side as an image *@
+@section scripts {
+    <script src="@Url.Content("~/Scripts/qrcode.min.js")"></script>
+    <script>
+        (function () {
+            var el = document.getElementById('qrcode');
+            if (!el || typeof QRCode === 'undefined') return;
+            new QRCode(el, {
+                text: el.getAttribute('data-qr'),
+                width: 208, height: 208,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        })();
+    </script>
+}

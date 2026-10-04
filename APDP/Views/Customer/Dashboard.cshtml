@@ -2,46 +2,87 @@
     ViewBag.Title = "Customer Dashboard";
 }
 
+@* ── Hero Section ─────────────────────────────────────────────── *@
+<div class="hc-hero">
+    @* Left panel — search & welcome *@
+    <div class="hc-hero-panel">
+        <h1 class="hc-hero-title">Find Your Perfect<br>Harbour Adventure</h1>
+        <p class="hc-hero-sub">Welcome back, <strong>@Session["CustomerName"]</strong></p>
+
+        <div class="hc-hero-form">
+            @using (Html.BeginForm("Boats", "Customer", FormMethod.Get))
+            {
+                <div class="hc-search-field">
+                    <span class="hc-search-icon">&#128205;</span>
+                    <select name="boatType" class="hc-search-input">
+                        <option value="">All Boat Types</option>
+                        <option value="Fishing Boat">Fishing Boat</option>
+                        <option value="Leisure Cruiser">Leisure Cruiser</option>
+                        <option value="Speed Boat">Speed Boat</option>
+                        <option value="Yacht">Yacht</option>
+                        <option value="Catamaran">Catamaran</option>
+                        <option value="Party Boat">Party Boat</option>
+                    </select>
+                </div>
+
+                <div class="hc-search-field">
+                    <span class="hc-search-icon">&#128269;</span>
+                    <input type="text" name="searchName" class="hc-search-input"
+                           placeholder="Search boat name..." autocomplete="off" />
+                </div>
+
+                <div class="hc-type-btns">
+                    <button type="submit" name="sortPrice" value="asc"  class="hc-type-btn">Low Price</button>
+                    <button type="submit" name="sortPrice" value="desc" class="hc-type-btn">High Price</button>
+                </div>
+
+                <button type="submit" class="hc-search-btn">Search Boats</button>
+            }
+        </div>
+
+        @* Stats row *@
+        <div class="hc-hero-stats">
+            <div class="hc-hero-stat">
+                <span class="hc-hero-stat-num">@ViewBag.AvailableBoats</span>
+                <span class="hc-hero-stat-lbl">Available Boats</span>
+            </div>
+            <div class="hc-hero-stat-divider"></div>
+            <div class="hc-hero-stat">
+                <span class="hc-hero-stat-num">@ViewBag.TotalBookings</span>
+                <span class="hc-hero-stat-lbl">My Bookings</span>
+            </div>
+            <div class="hc-hero-stat-divider"></div>
+            <div class="hc-hero-stat">
+                <span class="hc-hero-stat-num">@ViewBag.UnratedTrips</span>
+                <span class="hc-hero-stat-lbl">To Rate</span>
+            </div>
+        </div>
+    </div>
+
+    @* Right side — background image *@
+    <div class="hc-hero-image"></div>
+</div>
+
+@* ── Quick Action Cards ───────────────────────────────────────── *@
 <div class="container py-4">
-
-    <div class="hc-dashboard-header mb-4">
-        <h2>&#128106; Customer Dashboard</h2>
-        <p class="text-muted">Welcome back, <strong>@Session["CustomerName"]</strong></p>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6">
-            <div class="card hc-stat-card hc-stat-success text-center p-3">
-                <div class="hc-stat-number">@ViewBag.AvailableBoats</div>
-                <div class="hc-stat-label">Available Boats</div>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="card hc-stat-card hc-stat-info text-center p-3">
-                <div class="hc-stat-number">@ViewBag.TotalBookings</div>
-                <div class="hc-stat-label">My Bookings</div>
-            </div>
-        </div>
-    </div>
-
     <div class="row g-3">
         <div class="col-md-6">
             <div class="card hc-card p-4 h-100">
-                <h5>&#128674; Browse Available Boats</h5>
+                <h5>Browse Available Boats</h5>
                 <p class="text-muted">Explore TNPA-approved boats and plan your harbour trip.</p>
                 @Html.ActionLink("Browse Boats", "Boats", "Customer", null, new { @class = "btn btn-success" })
             </div>
         </div>
         <div class="col-md-6">
             <div class="card hc-card p-4 h-100">
-                <h5>&#128203; My Bookings</h5>
+                <h5>My Bookings</h5>
                 <p class="text-muted">View and manage all your trip bookings.</p>
                 @Html.ActionLink("View My Bookings", "MyBookings", "Customer", null, new { @class = "btn btn-info" })
             </div>
         </div>
     </div>
 
-    @* Durban Harbour Location *@
+    @* Durban Harbour Map *@
     <div class="card hc-card mt-4">
         <div class="card-body p-4">
             <h5 class="mb-1">&#128205; Durban Harbour Location</h5>
@@ -49,11 +90,8 @@
             <div class="ratio ratio-16x9" style="border-radius:10px; overflow:hidden;">
                 <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3460.2!2d31.0292!3d-29.8681!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1ef7a9127b8aad3b%3A0x8f1f3e2a1e3e1e3e!2sDurban%20Harbour!5e0!3m2!1sen!2sza!4v1690000000000!5m2!1sen!2sza"
-                    width="600"
-                    height="450"
-                    style="border:0;"
-                    allowfullscreen=""
-                    loading="lazy"
+                    width="600" height="450" style="border:0;"
+                    allowfullscreen="" loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"
                     title="Durban Harbour Map">
                 </iframe>
@@ -69,3 +107,173 @@
         @Html.ActionLink("Logout", "Logout", "Customer", null, new { @class = "btn btn-outline-danger" })
     </div>
 </div>
+
+<style>
+    /* ── Hero wrapper ─────────────────────────────────── */
+    .hc-hero {
+        display: flex;
+        min-height: 520px;
+        width: 100%;
+    }
+
+    /* ── Left panel ───────────────────────────────────── */
+    .hc-hero-panel {
+        width: 42%;
+        background: #fff;
+        padding: 50px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        z-index: 2;
+    }
+
+    .hc-hero-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0a1e3d;
+        line-height: 1.25;
+        margin-bottom: 6px;
+    }
+
+    .hc-hero-sub {
+        color: #555;
+        margin-bottom: 24px;
+        font-size: 1rem;
+    }
+
+    /* ── Search form ──────────────────────────────────── */
+    .hc-hero-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 28px;
+    }
+
+    .hc-search-field {
+        display: flex;
+        align-items: center;
+        border: 1.5px solid #dde1e9;
+        border-radius: 10px;
+        padding: 0 14px;
+        background: #f8f9fb;
+        height: 48px;
+    }
+
+    .hc-search-icon {
+        font-size: 1rem;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .hc-search-input {
+        border: none;
+        background: transparent;
+        outline: none;
+        width: 100%;
+        font-size: 0.95rem;
+        color: #333;
+        height: 100%;
+    }
+
+    .hc-type-btns {
+        display: flex;
+        gap: 10px;
+    }
+
+    .hc-type-btn {
+        flex: 1;
+        border: 1.5px solid #dde1e9;
+        border-radius: 10px;
+        background: #f8f9fb;
+        padding: 10px;
+        font-size: 0.88rem;
+        cursor: pointer;
+        color: #333;
+        transition: all 0.2s;
+    }
+
+    .hc-type-btn:hover {
+        background: #e8f0fe;
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+
+    .hc-search-btn {
+        background: #f5a623;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .hc-search-btn:hover {
+        background: #e09417;
+    }
+
+    /* ── Stats row ────────────────────────────────────── */
+    .hc-hero-stats {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #f8f9fb;
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+
+    .hc-hero-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+
+    .hc-hero-stat-num {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #0a1e3d;
+        line-height: 1;
+    }
+
+    .hc-hero-stat-lbl {
+        font-size: 0.72rem;
+        color: #888;
+        text-align: center;
+        margin-top: 3px;
+    }
+
+    .hc-hero-stat-divider {
+        width: 1px;
+        height: 36px;
+        background: #dde1e9;
+    }
+
+    /* ── Right image panel ────────────────────────────── */
+    .hc-hero-image {
+        flex: 1;
+        background-image: url('/Content/hero-bg.jpg');
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    /* Fallback gradient if image not yet added */
+    .hc-hero-image::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #0a3d6b 0%, #1565c0 50%, #0288d1 100%);
+        opacity: 0;
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @@media (max-width: 768px) {
+        .hc-hero { flex-direction: column; }
+        .hc-hero-panel { width: 100%; padding: 30px 20px; }
+        .hc-hero-image { min-height: 220px; }
+        .hc-hero-title { font-size: 1.5rem; }
+    }
+</style>

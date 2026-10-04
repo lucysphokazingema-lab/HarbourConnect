@@ -1,0 +1,132 @@
+@model APDP.Models.Boat
+@{
+    ViewBag.Title = "Registration Certificate";
+    decimal registrationFee = 500.00m;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+
+            @* ── Success banner ──────────────────────────────── *@
+            <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+                <span style="font-size:2.5rem;">&#10003;</span>
+                <div>
+                    <h5 class="mb-0 fw-bold">Payment Successful! Boat is Now Active.</h5>
+                    <p class="mb-0 small">
+                        <strong>@Model.BoatName</strong> is now visible to customers and available for booking.
+                    </p>
+                </div>
+            </div>
+
+            @* ── Certificate card ─────────────────────────────── *@
+            <div class="card hc-cert-card" id="certificate">
+
+                @* Certificate header *@
+                <div class="hc-cert-header">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <h3 class="mb-0 fw-bold">&#9875; HarbourConnect</h3>
+                            <div class="hc-cert-sub">Official Boat Registration Certificate</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="hc-cert-number">@Model.CertificateNumber</div>
+                            <span class="badge bg-success px-3 py-2 fs-6">ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+
+                    @* Boat image if available *@
+                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                    {
+                        <div class="text-center mb-4">
+                            <img src="@Url.Content(Model.ImagePath)"
+                                 class="img-fluid rounded"
+                                 style="max-height:200px; object-fit:cover; width:100%;"
+                                 alt="@Model.BoatName" />
+                        </div>
+                    }
+
+                    @* Boat details *@
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="hc-cert-section">
+                                <div class="hc-cert-section-title">&#128674; Boat Details</div>
+                                <table class="table table-sm hc-cert-table">
+                                    <tr><th>Boat Name</th><td><strong>@Model.BoatName</strong></td></tr>
+                                    <tr><th>Reg. Number</th><td><code>@Model.RegistrationNumber</code></td></tr>
+                                    <tr><th>Type</th><td>@Model.BoatType</td></tr>
+                                    <tr><th>Location</th><td>@Model.HarbourLocation</td></tr>
+                                    <tr><th>Max Passengers</th><td>@Model.MaxPassengers</td></tr>
+                                    <tr><th>Rate (Adult)</th><td>R @Model.PriceAdult.ToString("N2")/hr</td></tr>
+                                    <tr><th>Rate (Child)</th><td>R @Model.PriceChild.ToString("N2")/hr</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="hc-cert-section">
+                                <div class="hc-cert-section-title">&#128100; Owner Details</div>
+                                <table class="table table-sm hc-cert-table">
+                                    <tr><th>Full Name</th><td>@Model.BoatOwner.FullName</td></tr>
+                                    <tr><th>Business</th><td>@Model.BoatOwner.BusinessName</td></tr>
+                                    <tr><th>Phone</th><td>@Model.BoatOwner.PhoneNumber</td></tr>
+                                    <tr><th>Email</th><td>@Model.BoatOwner.Email</td></tr>
+                                </table>
+                            </div>
+
+                            <div class="hc-cert-section mt-3">
+                                <div class="hc-cert-section-title">&#128203; Registration Details</div>
+                                <table class="table table-sm hc-cert-table">
+                                    <tr><th>Certificate No.</th><td><strong>@Model.CertificateNumber</strong></td></tr>
+                                    <tr><th>Date Issued</th><td>@(Model.RegistrationPaidDate.HasValue ? Model.RegistrationPaidDate.Value.ToString("dd MMMM yyyy") : "-")</td></tr>
+                                    <tr><th>Fee Paid</th><td><span class="text-success fw-semibold">R @registrationFee.ToString("N2")</span></td></tr>
+                                    <tr><th>Status</th><td><span class="badge bg-success">Active</span></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Certificate footer *@
+                    <div class="hc-cert-footer mt-3">
+                        &#9432; This certificate confirms that the above vessel has been registered and approved
+                        on the HarbourConnect platform and is authorised to accept customer bookings
+                        at @Model.HarbourLocation.
+                    </div>
+
+                </div>
+            </div>
+
+            @* ── Action buttons ───────────────────────────────── *@
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                <button class="btn btn-primary btn-lg" onclick="window.print()">
+                    Print / Save as PDF
+                </button>
+                @Html.ActionLink("My Boats", "MyBoats", "BoatOwner", null,
+                    new { @class = "btn btn-outline-secondary btn-lg" })
+                @Html.ActionLink("Dashboard", "Dashboard", "BoatOwner", null,
+                    new { @class = "btn btn-outline-primary btn-lg" })
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .hc-cert-card        { border: 2px solid #dee2e6; border-radius: 14px; overflow: hidden;
+                           box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+    .hc-cert-header      { background: linear-gradient(135deg, #0d2c54, #1565c0); color: #fff;
+                           padding: 24px 28px; }
+    .hc-cert-sub         { font-size: 0.85rem; opacity: 0.85; margin-top: 2px; }
+    .hc-cert-number      { font-size: 1.3rem; font-weight: 800; letter-spacing: 1px; }
+    .hc-cert-section     { margin-bottom: 12px; }
+    .hc-cert-section-title { font-weight: 700; font-size: 0.8rem; text-transform: uppercase;
+                             letter-spacing: 0.8px; color: #1565c0;
+                             border-bottom: 1px solid #e3f2fd; padding-bottom: 4px; margin-bottom: 8px; }
+    .hc-cert-table th    { font-weight: 600; color: #555; width: 40%; font-size: 0.82rem; }
+    .hc-cert-table td    { font-size: 0.85rem; color: #212529; }
+    .hc-cert-footer      { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px;
+                           padding: 10px 14px; font-size: 0.82rem; color: #2e7d32; }
+</style>
