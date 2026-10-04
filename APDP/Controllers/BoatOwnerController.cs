@@ -554,6 +554,45 @@ namespace APDP.Controllers
                 return RedirectToAction("MyBoats");
             }
 
+            // Re-load the full boat entity from DB so image paths are still available
+            // on the view even when ModelState is invalid (form-bound model has null image paths).
+            var boatForView = db.Boats
+                .Include("Extras")
+                .FirstOrDefault(b => b.BoatID == model.BoatID && b.BoatOwnerID == ownerID);
+
+            if (boatForView != null)
+            {
+                // Copy posted values onto the DB entity so the form retains what the user typed
+                boatForView.BoatName                 = model.BoatName;
+                boatForView.RegistrationNumber       = model.RegistrationNumber;
+                boatForView.BoatType                 = model.BoatType;
+                boatForView.Description              = model.Description;
+                boatForView.MaxPassengers            = model.MaxPassengers;
+                boatForView.PriceAdult               = model.PriceAdult;
+                boatForView.PriceChild               = model.PriceChild;
+                boatForView.DefaultTripDurationMinutes = model.DefaultTripDurationMinutes;
+                boatForView.MaxBookingHours          = model.MaxBookingHours;
+                boatForView.BufferMinutes            = model.BufferMinutes;
+                boatForView.HarbourLocation          = model.HarbourLocation;
+                boatForView.HasLifeJackets           = model.HasLifeJackets;
+                boatForView.HasMedKit                = model.HasMedKit;
+                boatForView.HasFireExtinguisher      = model.HasFireExtinguisher;
+                boatForView.HasFishingEquipment      = model.HasFishingEquipment;
+                boatForView.HasDecoration            = model.HasDecoration;
+                boatForView.HasSoundSystem           = model.HasSoundSystem;
+                boatForView.IsDisabilityFriendly     = model.IsDisabilityFriendly;
+                boatForView.DisabilityAccommodation  = model.DisabilityAccommodation;
+
+                ViewBag.RecentRatings = db.BoatRatings
+                    .Include("Customer")
+                    .Where(r => r.BoatID == model.BoatID)
+                    .OrderByDescending(r => r.DateRated)
+                    .Take(5)
+                    .ToList();
+                ViewBag.Week = week;
+                return View(boatForView);
+            }
+
             ViewBag.Week = week;
             return View(model);
         }
