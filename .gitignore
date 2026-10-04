@@ -373,3 +373,6 @@ apdp_deploy.zip
 build_*.txt
 msbuild_result.txt
 Output-Build.txt
+
+# Azure resource names remembered by deploy/Deploy-Azure.ps1
+deploy/azure.local.json
